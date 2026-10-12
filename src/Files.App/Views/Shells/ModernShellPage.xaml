@@ -157,12 +157,29 @@
 		</Grid>
 
 		<!--  Shell Frame  -->
-		<Frame
-			x:Name="ItemDisplayFrame"
-			Grid.Row="2"
-			x:FieldModifier="public"
-			Navigated="ItemDisplayFrame_Navigated"
-			TabIndex="1" />
+		<Grid Grid.Row="2">
+			<Frame
+				x:Name="ItemDisplayFrame"
+				x:FieldModifier="public"
+				Navigated="ItemDisplayFrame_Navigated"
+				TabIndex="1" />
+			<InfoBar
+				x:Name="RecycleBinAccessInfoBar"
+				Margin="12"
+				VerticalAlignment="Top"
+				IsClosable="False"
+				IsOpen="False"
+				Severity="Warning"
+				Title="{helpers:ResourceString Key=RecycleBinAccessTitle}"
+				Message="{helpers:ResourceString Key=RecycleBinAccessMessage}">
+				<InfoBar.ActionButton>
+					<Button
+						x:Name="RecycleBinAccessSettingsButton"
+						Click="RecycleBinAccessSettingsButton_Click"
+						Content="{helpers:ResourceString Key=RecycleBinAccessOpenSettings}" />
+				</InfoBar.ActionButton>
+			</InfoBar>
+		</Grid>
 
 		<!--  Status Bar  -->
 		<uc:StatusBar

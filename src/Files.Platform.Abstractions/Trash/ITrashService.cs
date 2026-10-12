@@ -28,6 +28,13 @@ namespace Files.Platform.Abstractions.Trash
 		bool IsUnderTrash(string? path);
 
 		/// <summary>
+		/// Determines whether the OS currently blocks enumerating the system trash (for example macOS
+		/// requires Full Disk Access to list <c>~/.Trash</c>). Callers can prompt the user instead of
+		/// presenting an empty folder when this is <see langword="true"/>.
+		/// </summary>
+		bool IsListingRestricted();
+
+		/// <summary>
 		/// Moves the items to the trash and returns one result per path.
 		/// </summary>
 		Task<IReadOnlyList<TrashOperationResult>> TrashAsync(IEnumerable<string> paths, CancellationToken cancellationToken = default);

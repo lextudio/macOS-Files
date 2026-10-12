@@ -58,6 +58,9 @@ namespace Files.Platform.MacOS
 		/// <summary>Sends a message returning a <c>BOOL</c> with two pointer arguments.</summary>
 		public static bool MsgBool(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2) => objc_msgSend_b2(receiver, selector, arg1, arg2) != 0;
 
+		/// <summary>Sends a message returning a <c>BOOL</c> with three pointer arguments.</summary>
+		public static bool MsgBool3(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2, IntPtr arg3) => objc_msgSend_b3(receiver, selector, arg1, arg2, arg3) != 0;
+
 		/// <summary>Sends a message returning a <c>BOOL</c> with four pointer arguments.</summary>
 		public static bool MsgBool(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2, IntPtr arg3, IntPtr arg4) => objc_msgSend_b4(receiver, selector, arg1, arg2, arg3, arg4) != 0;
 
@@ -127,8 +130,10 @@ namespace Files.Platform.MacOS
 		private static partial byte objc_msgSend_b2(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2);
 
 		[LibraryImport(ObjC, EntryPoint = "objc_msgSend")]
-		private static partial byte objc_msgSend_b4(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2, IntPtr arg3, IntPtr arg4);
+		private static partial byte objc_msgSend_b3(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2, IntPtr arg3);
 
+		[LibraryImport(ObjC, EntryPoint = "objc_msgSend")]
+		private static partial byte objc_msgSend_b4(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2, IntPtr arg3, IntPtr arg4);
 		[LibraryImport(ObjC, EntryPoint = "objc_msgSend")]
 		private static partial void objc_msgSend_v0(IntPtr receiver, nint selector);
 

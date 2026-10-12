@@ -103,6 +103,9 @@ namespace Files.Platform.Linux.Trash
 		}
 
 		/// <inheritdoc/>
+		public bool IsListingRestricted() => false;
+
+		/// <inheritdoc/>
 		public Task<IReadOnlyList<TrashOperationResult>> TrashAsync(IEnumerable<string> paths, CancellationToken cancellationToken = default)
 		{
 			var list = paths.ToList();

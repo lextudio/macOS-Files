@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Extensions.Logging;
 using System.IO;
 using Windows.System;
 
@@ -72,6 +73,33 @@ namespace Files.App.Views.Shells
 		private void ModernShellPage_Unloaded(object sender, RoutedEventArgs e)
 		{
 			userSettingsService.AppearanceSettingsService.PropertyChanged -= AppearanceSettingsService_PropertyChanged;
+		}
+
+		/// <summary>
+		/// Shows a warning over the Recycle Bin when the OS blocks enumerating the system trash (macOS
+		/// requires Full Disk Access to list <c>~/.Trash</c>), so an empty list is not mistaken for "no items".
+		/// </summary>
+		private void UpdateRecycleBinAccessBar()
+		{
+			if (RecycleBinAccessInfoBar is null)
+				return;
+
+			var isRecycleBin = string.Equals(ShellViewModel?.WorkingDirectory, Constants.UserEnvironmentPaths.RecycleBinPath, StringComparison.OrdinalIgnoreCase);
+			var restricted = isRecycleBin && (Ioc.Default.GetService<Files.Platform.Abstractions.Trash.ITrashService>()?.IsListingRestricted() ?? false);
+			RecycleBinAccessInfoBar.IsOpen = restricted;
+		}
+
+		private async void RecycleBinAccessSettingsButton_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				await Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Launching.ILauncherService>()
+					.LaunchUriAsync(new Uri("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"));
+			}
+			catch (Exception ex)
+			{
+				App.Logger?.LogWarning(ex, "Could not open the Full Disk Access settings.");
+			}
 		}
 
 		private void AppearanceSettingsService_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -186,6 +214,8 @@ namespace Files.App.Views.Shells
 				await UpdatePathUIToWorkingDirectoryAsync(null, e.Name);
 			else
 				await UpdatePathUIToWorkingDirectoryAsync(e.Path);
+
+			UpdateRecycleBinAccessBar();
 		}
 
 		private async void ItemDisplayFrame_Navigated(object sender, NavigationEventArgs e)
@@ -215,6 +245,8 @@ namespace Files.App.Views.Shells
 			// Fixes https://github.com/files-community/Files/issues/17469
 			if (parameters.IsSearchResultPage == false)
 				ShellViewModel!.IsSearchResults = false;
+
+			UpdateRecycleBinAccessBar();
 
 			if (_navigationInteractionTracker is not null)
 			{

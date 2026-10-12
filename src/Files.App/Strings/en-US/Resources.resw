@@ -5132,4 +5132,13 @@
   <data name="DesktopDetectCompositorDisplayScaleDescription" xml:space="preserve">
     <value>Requires a restart. Uses the niri output scale when no display or toolkit scale is configured. May double-scale on some setups.</value>
   </data>
+  <data name="RecycleBinAccessTitle" xml:space="preserve">
+    <value>Full Disk Access is off</value>
+  </data>
+  <data name="RecycleBinAccessMessage" xml:space="preserve">
+    <value>macOS only lets apps with Full Disk Access see items in the Trash that were deleted outside Files. Items you deleted with Files are shown below; grant access to also list and manage everything else.</value>
+  </data>
+  <data name="RecycleBinAccessOpenSettings" xml:space="preserve">
+    <value>Open System Settings</value>
+  </data>
 </root>
