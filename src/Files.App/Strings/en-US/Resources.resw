@@ -5150,4 +5150,10 @@
   <data name="Locations" xml:space="preserve">
     <value>Locations</value>
   </data>
+  <data name="TimeMachine" xml:space="preserve">
+    <value>Time Machine</value>
+  </data>
+  <data name="TimeMachineBackingUp" xml:space="preserve">
+    <value>Time Machine: backing up {0}</value>
+  </data>
 </root>

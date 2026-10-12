@@ -169,7 +169,8 @@ namespace Files.Platform.MacOS
 					Label: label ?? (isSystem ? "Macintosh HD" : Path.GetFileName(mount.TrimEnd('/'))),
 					FileSystem: fileSystem,
 					Size: size,
-					IsRemovable: drive.DriveType == DriveType.Removable,
+					// Anything mounted under /Volumes can be ejected (like Finder); the boot volume cannot.
+					IsRemovable: mount != "/",
 					IsOptical: drive.DriveType == DriveType.CDRom,
 					IsLoop: false,
 					IsSystem: isSystem,

@@ -140,6 +140,23 @@ namespace Files.App.Utils
 					label = System.IO.Path.GetFileName(mount.MountPoint.TrimEnd('/'));
 
 				var item = await DriveItem.CreateFromPropertiesAsync(res.Result!, volume?.Id ?? mount.MountPoint, label, info.Type);
+
+#if DESKTOP_MACOS
+				// Time Machine destinations get the Time Machine icon and show the backup progress.
+				if (Files.Platform.MacOS.MacOSTimeMachine.GetDestinationMountPoints().Contains(mount.MountPoint))
+				{
+					var timeMachineIcon = Files.Platform.MacOS.MacOSFileIcon.ExtractImageFile(
+						"/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/SidebarTimeMachine.icns",
+						(int)Constants.ShellIconSizes.Small);
+					if (timeMachineIcon is not null)
+						item.IconData = timeMachineIcon;
+
+					var status = Files.Platform.MacOS.MacOSTimeMachine.GetStatus();
+					item.ToolTip = status.Running && status.MountPoint == mount.MountPoint
+						? Strings.TimeMachineBackingUp.GetLocalizedFormatResource(status.Percent.ToString("P0"))
+						: Strings.TimeMachine.GetLocalizedResource();
+				}
+#endif
 				if (item.MenuOptions is { } options)
 					options.ShowUnmountDevice = volume is { IsRemovable: true };
 
