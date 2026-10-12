@@ -59,7 +59,7 @@ namespace Files.App.ViewModels.Previews
 		{
 			// Local streams must pin and stat the inode before opening it, including symlink targets.
 			if (file is SystemFile)
-				return Task.FromResult<Stream>(Files.Platform.Linux.Previews.PreviewFile.OpenRead(file.Id, cancellationToken));
+				return Task.FromResult<Stream>(Files.Platform.Posix.Previews.PreviewFile.OpenRead(file.Id, cancellationToken));
 
 			return file.OpenStreamAsync(FileAccess.Read, cancellationToken);
 		}

@@ -5,6 +5,8 @@
     <!--  Generic properties  -->
     <BaseTargetFramework>net10.0</BaseTargetFramework>
     <DesktopTargetFramework>$(BaseTargetFramework)-desktop</DesktopTargetFramework>
+    <!-- Desktop (Uno Skia) OS target: Linux (X11). Overridable for other desktop heads. -->
+    <FilesDesktopOS Condition="'$(FilesDesktopOS)' == ''">Linux</FilesDesktopOS>
     <LangVersion>preview</LangVersion>
     <!-- Uno's nullability annotations differ from WinUI's; keep nullable diagnostics as warnings on the Linux desktop build for now. -->
     <WarningsAsErrors Condition="!$(TargetFramework.EndsWith('-desktop'))">nullable</WarningsAsErrors>

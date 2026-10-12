@@ -4,8 +4,11 @@
 using Files.Platform.Abstractions.Clipboard;
 using Files.Platform.Abstractions.Launching;
 using Files.Platform.Abstractions.Elevation;
+using Files.Platform.Posix.Elevation;
+using Files.Platform.Posix.Launching;
+#if !DESKTOP_MACOS
 using Files.Platform.Linux.Elevation;
-using Files.Platform.Linux.Launching;
+#endif
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.IO;
@@ -33,6 +36,7 @@ namespace Files.App.Helpers
 		public static Task OpenTerminalAsync(string folder) => Task.Run(() =>
 			Ioc.Default.GetRequiredService<ILauncherService>().OpenTerminalAsRootAsync(folder));
 
+#if !DESKTOP_MACOS
 		private static bool dialogOpen;
 
 		public static async Task DeleteAsync(IReadOnlyList<string> paths)
@@ -149,5 +153,13 @@ namespace Files.App.Helpers
 				XamlRoot = MainWindow.Instance.Content.XamlRoot,
 			};
 		}
+#else
+		// macOS has no pkexec-style privileged helper; root actions are unavailable.
+		public static Task DeleteAsync(IReadOnlyList<string> paths) => Task.CompletedTask;
+
+		public static Task RenameAsync(string path) => Task.CompletedTask;
+
+		public static Task PasteAsync(string destinationFolder) => Task.CompletedTask;
+#endif
 	}
 }

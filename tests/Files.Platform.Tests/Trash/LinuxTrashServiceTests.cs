@@ -5,7 +5,7 @@
 #pragma warning disable CA1416
 
 using Files.Platform.Abstractions.Trash;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Files.Platform.Linux.Native;
 using Files.Platform.Linux.Trash;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,7 +62,7 @@ namespace Files.Platform.Tests.Trash
 			}
 		}
 
-		private LinuxTrashService CreateService(uint uid, Func<DateTime>? now = null, Action<string, string>? beforeRestore = null, LinuxFileOperationsHooks? fileOperationsHooks = null)
+		private LinuxTrashService CreateService(uint uid, Func<DateTime>? now = null, Action<string, string>? beforeRestore = null, PosixFileOperationsHooks? fileOperationsHooks = null)
 		{
 			var mounts = new FakeMountResolver(_root, _home, _usb);
 			_inspector = new FakeOwnershipInspector(uid);

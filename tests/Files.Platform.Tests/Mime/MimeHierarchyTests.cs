@@ -85,7 +85,7 @@ namespace Files.Platform.Tests.Mime
 		[TestMethod]
 		public async Task Templates_UseInjectedDisplayNamesForBuiltIns()
 		{
-			var svc = new LinuxTemplatesService(kind => kind == NewItemKind.Folder ? "Mappa" : "Szoveg");
+			var svc = new PosixTemplatesService(kind => kind == NewItemKind.Folder ? "Mappa" : "Szoveg");
 
 			var list = await svc.GetTemplatesAsync(null);
 

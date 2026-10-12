@@ -5,7 +5,7 @@ using Files.App.Storage.Archives;
 using Files.App.Storage.Storables;
 using Files.Core.Storage.Enums;
 using Files.Platform.Abstractions.Archives;
-using Files.Platform.Linux.Archives;
+using Files.Platform.Posix.Archives;
 using Files.Shared.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OwlCore.Storage;
@@ -26,7 +26,7 @@ namespace Files.Platform.Tests.Archives
 	[SupportedOSPlatform("linux")]
 	public sealed class ArchiveBrowsingTests
 	{
-		private readonly LinuxArchiveService service = new();
+		private readonly PosixArchiveService service = new();
 		private string root = null!;
 
 		[TestInitialize]

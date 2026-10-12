@@ -127,7 +127,7 @@ namespace Files.App.ViewModels
 					else
 					{
 						// Bounded, regular-file-only read and decode off the UI thread; failures just show no image
-						var bytes = await Files.Platform.Linux.Previews.BoundedFileReader.ReadAllBytesAsync(localPath, MaxBackgroundImageBytes, cts.Token);
+						var bytes = await Files.Platform.Posix.Previews.BoundedFileReader.ReadAllBytesAsync(localPath, MaxBackgroundImageBytes, cts.Token);
 						// A background needs one frame; animated images would otherwise keep every frame decoded
 						var png = (await Task.Run(() => Files.App.ViewModels.Previews.PreviewImageDecoder.DecodeImage(bytes, firstFrameOnly: true), cts.Token)).Png;
 						if (png is not null)

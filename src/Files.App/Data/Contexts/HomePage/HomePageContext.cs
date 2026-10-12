@@ -20,7 +20,7 @@ namespace Files.App.Data.Contexts
 				Ioc.Default.GetRequiredService<IUserDirectories>(),
 				Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Volumes.IVolumeService>(),
 				Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Recent.IRecentFilesStore>(),
-				Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Gvfs.INetworkLocationService>());
+				Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Network.INetworkLocationService>());
 		}
 
 		private WidgetCardItem? rightClickedItem = null;

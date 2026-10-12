@@ -179,21 +179,21 @@ namespace Files.App.ViewModels.UserControls.Widgets
 				},
 				new()
 				{
-					Text = Strings.LinuxMountDrive.GetLocalizedResource(),
+					Text = Strings.DesktopMountDrive.GetLocalizedResource(),
 					Command = MountDeviceCommand,
 					CommandParameter = item,
 					ShowItem = options?.ShowMountDevice ?? false
 				},
 				new()
 				{
-					Text = Strings.LinuxUnmountDrive.GetLocalizedResource(),
+					Text = Strings.DesktopUnmountDrive.GetLocalizedResource(),
 					Command = UnmountDeviceCommand,
 					CommandParameter = item,
 					ShowItem = options?.ShowUnmountDevice ?? false
 				},
 				new()
 				{
-					Text = Strings.LinuxDisconnectLocation.GetLocalizedResource(),
+					Text = Strings.DesktopDisconnectLocation.GetLocalizedResource(),
 					Command = EjectDeviceCommand,
 					CommandParameter = item,
 					ShowItem = options?.ShowDisconnectLocation ?? false

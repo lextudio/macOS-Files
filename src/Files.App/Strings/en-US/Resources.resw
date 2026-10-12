@@ -4810,37 +4810,37 @@
   <data name="NewTextDocument" xml:space="preserve">
     <value>New text document</value>
   </data>
-  <data name="LinuxAlwaysUseApp" xml:space="preserve">
+  <data name="DesktopAlwaysUseApp" xml:space="preserve">
     <value>Always use this app for this file type</value>
   </data>
-  <data name="LinuxRunExecutableTitle" xml:space="preserve">
+  <data name="DesktopRunExecutableTitle" xml:space="preserve">
     <value>Run "{0}"?</value>
   </data>
-  <data name="LinuxRunExecutableText" xml:space="preserve">
+  <data name="DesktopRunExecutableText" xml:space="preserve">
     <value>This is an executable text file ({0}). Do you want to run it or display its contents?</value>
   </data>
-  <data name="LinuxDisplayFile" xml:space="preserve">
+  <data name="DesktopDisplayFile" xml:space="preserve">
     <value>Display</value>
   </data>
-  <data name="LinuxUntrustedLauncherTitle" xml:space="preserve">
+  <data name="DesktopUntrustedLauncherTitle" xml:space="preserve">
     <value>Launch "{0}"?</value>
   </data>
-  <data name="LinuxUntrustedLauncherText" xml:space="preserve">
+  <data name="DesktopUntrustedLauncherText" xml:space="preserve">
     <value>This launcher is not installed and not trusted. Only run launchers from sources you trust.</value>
   </data>
-  <data name="LinuxRunBinaryText" xml:space="preserve">
+  <data name="DesktopRunBinaryText" xml:space="preserve">
     <value>This is an executable program ({0}). Only run programs from sources you trust.</value>
   </data>
-  <data name="LinuxOpenManyTitle" xml:space="preserve">
+  <data name="DesktopOpenManyTitle" xml:space="preserve">
     <value>Open {0} files?</value>
   </data>
-  <data name="LinuxOpenManyText" xml:space="preserve">
+  <data name="DesktopOpenManyText" xml:space="preserve">
     <value>Opening many files at once may be slow or unintended.</value>
   </data>
-  <data name="LinuxOpenFailedTitle" xml:space="preserve">
+  <data name="DesktopOpenFailedTitle" xml:space="preserve">
     <value>Cannot open file</value>
   </data>
-  <data name="LinuxOpenFailedText" xml:space="preserve">
+  <data name="DesktopOpenFailedText" xml:space="preserve">
     <value>No application could open {0}.</value>
   </data>
   <data name="ArchiveLimitExceededTitle" xml:space="preserve">
@@ -4856,16 +4856,16 @@
   <data name="ArchiveRefusedTitle" xml:space="preserve">
     <value>The archive could not be extracted</value>
   </data>
-  <data name="LinuxFileChangedTitle" xml:space="preserve">
+  <data name="DesktopFileChangedTitle" xml:space="preserve">
     <value>File changed</value>
   </data>
-  <data name="LinuxFileChangedText" xml:space="preserve">
+  <data name="DesktopFileChangedText" xml:space="preserve">
     <value>{0} changed after it was checked, so it was not opened.</value>
   </data>
-  <data name="LinuxOpenRefusedTitle" xml:space="preserve">
+  <data name="DesktopOpenRefusedTitle" xml:space="preserve">
     <value>Cannot open file</value>
   </data>
-  <data name="LinuxOpenRefusedText" xml:space="preserve">
+  <data name="DesktopOpenRefusedText" xml:space="preserve">
     <value>{0} is an executable-looking or invalid file that cannot be opened safely.</value>
   </data>
   <data name="PreviewTextTruncated" xml:space="preserve">
@@ -4874,73 +4874,73 @@
   <data name="PreviewArchiveMoreEntries" xml:space="preserve">
     <value>... and {0} more entries</value>
   </data>
-  <data name="LinuxMountDrive" xml:space="preserve">
+  <data name="DesktopMountDrive" xml:space="preserve">
     <value>Mount</value>
   </data>
-  <data name="LinuxUnmountDrive" xml:space="preserve">
+  <data name="DesktopUnmountDrive" xml:space="preserve">
     <value>Unmount</value>
   </data>
-  <data name="LinuxDisconnectLocation" xml:space="preserve">
+  <data name="DesktopDisconnectLocation" xml:space="preserve">
     <value>Disconnect</value>
   </data>
-  <data name="LinuxConnectToServerTitle" xml:space="preserve">
+  <data name="DesktopConnectToServerTitle" xml:space="preserve">
     <value>Connect to server</value>
   </data>
-  <data name="LinuxConnectToServerSubtitle" xml:space="preserve">
+  <data name="DesktopConnectToServerSubtitle" xml:space="preserve">
     <value>Enter the address of a server, for example smb://server/share, sftp://user@host/, ftp://host/ or davs://host/path. Saved credentials from your desktop keyring are used; passwords cannot be typed here.</value>
   </data>
-  <data name="LinuxConnectToServerPlaceholder" xml:space="preserve">
+  <data name="DesktopConnectToServerPlaceholder" xml:space="preserve">
     <value>smb://server/share</value>
   </data>
-  <data name="LinuxConnectToServerButton" xml:space="preserve">
+  <data name="DesktopConnectToServerButton" xml:space="preserve">
     <value>Connect</value>
   </data>
-  <data name="LinuxConnectToServerFailed" xml:space="preserve">
+  <data name="DesktopConnectToServerFailed" xml:space="preserve">
     <value>Could not connect to {0}. Check the address, and make sure the gio tool and the GVfs services are installed.</value>
   </data>
-  <data name="LinuxVolumeErrorTitle" xml:space="preserve">
+  <data name="DesktopVolumeErrorTitle" xml:space="preserve">
     <value>Problem with the device</value>
   </data>
-  <data name="LinuxVolumeNotAuthorized" xml:space="preserve">
+  <data name="DesktopVolumeNotAuthorized" xml:space="preserve">
     <value>You are not authorized to do this.</value>
   </data>
-  <data name="LinuxVolumeNotMounted" xml:space="preserve">
+  <data name="DesktopVolumeNotMounted" xml:space="preserve">
     <value>This drive is not mounted.</value>
   </data>
-  <data name="LinuxFileLabel" xml:space="preserve">
+  <data name="DesktopFileLabel" xml:space="preserve">
     <value>File:</value>
   </data>
-  <data name="LinuxClaimsToBe" xml:space="preserve">
+  <data name="DesktopClaimsToBe" xml:space="preserve">
     <value>Claims to be:</value>
   </data>
-  <data name="LinuxWouldRun" xml:space="preserve">
+  <data name="DesktopWouldRun" xml:space="preserve">
     <value>Would run:</value>
   </data>
-  <data name="LinuxInTerminal" xml:space="preserve">
+  <data name="DesktopInTerminal" xml:space="preserve">
     <value>in a terminal</value>
   </data>
-  <data name="LinuxCommandTooLong" xml:space="preserve">
+  <data name="DesktopCommandTooLong" xml:space="preserve">
     <value>The command is too long to be shown in full, so it will not be run.</value>
   </data>
-  <data name="SettingsLinuxDefaultFileManager" xml:space="preserve">
+  <data name="SettingsDesktopDefaultFileManager" xml:space="preserve">
     <value>Use Files as default file manager</value>
   </data>
-  <data name="SettingsLinuxDefaultFileManagerDescription" xml:space="preserve">
+  <data name="SettingsDesktopDefaultFileManagerDescription" xml:space="preserve">
     <value>Let other applications reveal files in Files (org.freedesktop.FileManager1).</value>
   </data>
-  <data name="OpenTerminalLinux" xml:space="preserve">
+  <data name="OpenTerminalDesktop" xml:space="preserve">
     <value>Open in terminal</value>
   </data>
-  <data name="ShowOpenTerminalLinux" xml:space="preserve">
+  <data name="ShowOpenTerminalDesktop" xml:space="preserve">
     <value>Show option to open folders in the terminal</value>
   </data>
-  <data name="OpenTerminalAsAdminLinux" xml:space="preserve">
+  <data name="OpenTerminalAsAdminDesktop" xml:space="preserve">
     <value>Open in terminal as administrator</value>
   </data>
   <data name="BreadcrumbMoreFolders" xml:space="preserve">
     <value>{0} more folders…</value>
   </data>
-  <data name="LinuxBrokenLink" xml:space="preserve">
+  <data name="DesktopBrokenLink" xml:space="preserve">
     <value>Broken link</value>
   </data>
   <data name="StatusCenter_RestoreWarning_Header" xml:space="preserve">
@@ -4967,20 +4967,20 @@
     <value>"{0}" could not be installed. Make sure it is a valid font file.</value>
     <comment>Shown when installing a font on Linux.</comment>
   </data>
-  <data name="LinuxAppDisplayName" xml:space="preserve">
+  <data name="DesktopAppDisplayName" xml:space="preserve">
     <value>LinuxFiles</value>
     <comment>Display name of the Linux port, shown in the window title and About page on Linux.</comment>
   </data>
-  <data name="LinuxClientSideDecorations" xml:space="preserve">
+  <data name="DesktopClientSideDecorations" xml:space="preserve">
     <value>Show window controls in the tab bar</value>
   </data>
-  <data name="LinuxMinimizeWindow" xml:space="preserve">
+  <data name="DesktopMinimizeWindow" xml:space="preserve">
     <value>Minimize</value>
   </data>
-  <data name="LinuxMaximizeWindow" xml:space="preserve">
+  <data name="DesktopMaximizeWindow" xml:space="preserve">
     <value>Maximize</value>
   </data>
-  <data name="LinuxRestoreWindow" xml:space="preserve">
+  <data name="DesktopRestoreWindow" xml:space="preserve">
     <value>Restore</value>
   </data>
   <data name="OpenArchiveAsFolder" xml:space="preserve">
@@ -4990,7 +4990,7 @@
   <data name="OpenArchiveAsFolderDescription" xml:space="preserve">
     <value>Browse the contents of the selected archive like a folder</value>
   </data>
-  <data name="LinuxFileSystemRoot" xml:space="preserve">
+  <data name="DesktopFileSystemRoot" xml:space="preserve">
     <value>File System</value>
   </data>
   <data name="RootActions" xml:space="preserve">
@@ -5039,25 +5039,25 @@
   <data name="StatusCenter_PrepareInProgress" xml:space="preserve">
     <value>Preparing...</value>
   </data>
-  <data name="LinuxServiceMenuConfirmationText" xml:space="preserve">
+  <data name="DesktopServiceMenuConfirmationText" xml:space="preserve">
     <value>This service-menu action will run the command shown below on your selection. Only run actions from sources you trust.</value>
   </data>
-  <data name="LinuxServiceMenuRefusedText" xml:space="preserve">
+  <data name="DesktopServiceMenuRefusedText" xml:space="preserve">
     <value>This service-menu action has changed, is too large, or uses an unsupported command. Shell commands and embedded file substitutions are not supported.</value>
   </data>
-  <data name="LinuxServiceMenuTitle" xml:space="preserve">
+  <data name="DesktopServiceMenuTitle" xml:space="preserve">
     <value>Run service-menu action “{0}”?</value>
   </data>
-  <data name="LinuxServiceMenuTooManyTargetsText" xml:space="preserve">
+  <data name="DesktopServiceMenuTooManyTargetsText" xml:space="preserve">
     <value>This service-menu action runs a separate command for each item. Select at most {0} items and try again.</value>
   </data>
-  <data name="OpenTerminalAsRootLinux" xml:space="preserve">
+  <data name="OpenTerminalAsRootDesktop" xml:space="preserve">
     <value>Open in terminal as root</value>
   </data>
-  <data name="LinuxRootModeSuffix" xml:space="preserve">
+  <data name="DesktopRootModeSuffix" xml:space="preserve">
     <value> (Root mode)</value>
   </data>
-  <data name="LinuxRunningAsRootSuffix" xml:space="preserve">
+  <data name="DesktopRunningAsRootSuffix" xml:space="preserve">
     <value> (Running as root)</value>
   </data>
   <data name="AdwaitaTheme" xml:space="preserve">
@@ -5072,64 +5072,64 @@
   <data name="WindowOpacityDescription" xml:space="preserve">
     <value>Makes the whole window see-through. Requires a compositing window manager.</value>
   </data>
-  <data name="LinuxColourFiles" xml:space="preserve">
+  <data name="DesktopColourFiles" xml:space="preserve">
     <value>Files</value>
   </data>
-  <data name="LinuxColourSystem" xml:space="preserve">
+  <data name="DesktopColourSystem" xml:space="preserve">
     <value>System (GTK/portal)</value>
   </data>
-  <data name="LinuxColourSource" xml:space="preserve">
+  <data name="DesktopColourSource" xml:space="preserve">
     <value>Colour source</value>
   </data>
-  <data name="LinuxColourSourceDescription" xml:space="preserve">
+  <data name="DesktopColourSourceDescription" xml:space="preserve">
     <value>Use Files colours, Adwaita, or available system colours. Missing GTK colours use the app palette. Your light/dark and custom colour choices are preserved.</value>
   </data>
-  <data name="LinuxBackdropMode" xml:space="preserve">
+  <data name="DesktopBackdropMode" xml:space="preserve">
     <value>Window background</value>
   </data>
-  <data name="LinuxBackdropSolid" xml:space="preserve">
+  <data name="DesktopBackdropSolid" xml:space="preserve">
     <value>Solid</value>
   </data>
-  <data name="LinuxBackdropTransparent" xml:space="preserve">
+  <data name="DesktopBackdropTransparent" xml:space="preserve">
     <value>Transparent</value>
   </data>
-  <data name="LinuxBackdropBlur" xml:space="preserve">
+  <data name="DesktopBackdropBlur" xml:space="preserve">
     <value>Blur</value>
   </data>
-  <data name="LinuxBackdropDescription" xml:space="preserve">
+  <data name="DesktopBackdropDescription" xml:space="preserve">
     <value>A translucent background keeps text and icons opaque. Blur requires the KWin X11 blur effect. Renderer support may vary.</value>
   </data>
-  <data name="LinuxBackdropSolidDescription" xml:space="preserve">
+  <data name="DesktopBackdropSolidDescription" xml:space="preserve">
     <value>Use an opaque background. Background transparency and KWin blur depend on the compositor.</value>
   </data>
-  <data name="LinuxBackdropFallback" xml:space="preserve">
+  <data name="DesktopBackdropFallback" xml:space="preserve">
     <value>This compositor or bridge does not advertise the requested effect, or high contrast is enabled. Using a solid background.</value>
   </data>
-  <data name="LinuxBackgroundOpacity" xml:space="preserve">
+  <data name="DesktopBackgroundOpacity" xml:space="preserve">
     <value>Background opacity</value>
   </data>
-  <data name="LinuxBackgroundOpacityDescription" xml:space="preserve">
+  <data name="DesktopBackgroundOpacityDescription" xml:space="preserve">
     <value>Opacity of the background tint in Transparent or Blur mode. Text, icons and popups stay opaque.</value>
   </data>
-  <data name="LinuxOpacitySatellite" xml:space="preserve">
+  <data name="DesktopOpacitySatellite" xml:space="preserve">
     <value>xwayland-satellite does not forward whole-window opacity. This control is unavailable.</value>
   </data>
-  <data name="LinuxOpacityUnknown" xml:space="preserve">
+  <data name="DesktopOpacityUnknown" xml:space="preserve">
     <value>Whole-window opacity support is unknown for this compositor or bridge. This control is unavailable.</value>
   </data>
-  <data name="LinuxOpacityNoCompositor" xml:space="preserve">
+  <data name="DesktopOpacityNoCompositor" xml:space="preserve">
     <value>No X11 compositing manager was detected. Whole-window opacity is unavailable.</value>
   </data>
-  <data name="LinuxOpacitySupported" xml:space="preserve">
+  <data name="DesktopOpacitySupported" xml:space="preserve">
     <value>Fades the entire window, including text and icons. Requires compositor support.</value>
   </data>
-  <data name="LinuxOpacityHighContrast" xml:space="preserve">
+  <data name="DesktopOpacityHighContrast" xml:space="preserve">
     <value>High contrast keeps the window opaque. Your opacity choice is retained.</value>
   </data>
-  <data name="LinuxDetectCompositorDisplayScale" xml:space="preserve">
+  <data name="DesktopDetectCompositorDisplayScale" xml:space="preserve">
     <value>Detect display scale from the compositor (experimental)</value>
   </data>
-  <data name="LinuxDetectCompositorDisplayScaleDescription" xml:space="preserve">
+  <data name="DesktopDetectCompositorDisplayScaleDescription" xml:space="preserve">
     <value>Requires a restart. Uses the niri output scale when no display or toolkit scale is configured. May double-scale on some setups.</value>
   </data>
 </root>

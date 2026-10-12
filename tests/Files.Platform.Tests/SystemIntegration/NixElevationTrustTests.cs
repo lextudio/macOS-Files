@@ -17,8 +17,8 @@ namespace Files.Platform.Tests.SystemIntegration
 	[TestClass]
 	public sealed class NixElevationTrustTests
 	{
-		private const string Package = "/nix/store/00000000000000000000000000000000-linuxfiles";
-		private const string Helper = Package + "/lib/linuxfiles/elevation-helper/files-elevation-helper";
+		private const string Package = "/nix/store/00000000000000000000000000000000-desktopfiles";
+		private const string Helper = Package + "/lib/desktopfiles/elevation-helper/files-elevation-helper";
 		private const string Policy = Package + "/share/polkit-1/actions/io.github.memergamer.LinuxFiles.root-actions.policy";
 		private const string Pkexec = "/run/wrappers/bin/pkexec";
 		private const UnixFileMode Immutable = (UnixFileMode)0x16D; // 0555
@@ -208,7 +208,7 @@ namespace Files.Platform.Tests.SystemIntegration
 			StringAssert.Contains(preview, HelperAuthorization.Arguments(plan.Commands[0].Arguments[0])[1]);
 			StringAssert.Contains(preview, "stdin (JSON)");
 			Assert.IsTrue((await service.RunAsync(plan)).Succeeded);
-			var replacement = Helper.Replace("-linuxfiles/", "-linuxfiles-next/");
+			var replacement = Helper.Replace("-desktopfiles/", "-desktopfiles-next/");
 			fs.Add(replacement, false, Immutable);
 			fs.Contents[SystemToolResolver.DeploymentPath] = replacement + "\n" + Policy + "\n";
 			fs.Contents[Policy] = PolicyText(replacement);

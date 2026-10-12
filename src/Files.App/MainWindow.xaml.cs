@@ -34,7 +34,7 @@ namespace Files.App
 			InitializeComponent();
 
 			ExtendsContentIntoTitleBar = UseClientSideDecorations;
-			Title = OperatingSystem.IsLinux() ? Strings.LinuxAppDisplayName.GetLocalizedResource() : "Files";
+			Title = OperatingSystem.IsLinux() ? Strings.DesktopAppDisplayName.GetLocalizedResource() : "Files";
 			Title = FormatRootModeTitle(Title);
 			AppWindow.TitleBar.ButtonBackgroundColor = Colors.Transparent;
 			AppWindow.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;

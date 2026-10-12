@@ -19,7 +19,7 @@ namespace Files.App.Services
 		{
 			UpdateAppearanceResources();
 #if HAS_UNO
-			InitializeLinuxAppearance();
+			InitializeDesktopAppearance();
 #endif
 			UserSettingsService.AppearanceSettingsService.PropertyChanged += AppearanceSettingsService_PropertyChanged;
 
@@ -102,7 +102,7 @@ namespace Files.App.Services
 #if HAS_UNO
 			if (OperatingSystem.IsLinux())
 			{
-				SetLinuxManualColor("App.Theme.BackgroundBrush", appThemeBackgroundColor);
+				SetDesktopManualColor("App.Theme.BackgroundBrush", appThemeBackgroundColor);
 				return;
 			}
 #endif
@@ -115,7 +115,7 @@ namespace Files.App.Services
 #if HAS_UNO
 			if (OperatingSystem.IsLinux())
 			{
-				SetLinuxManualColor("App.Theme.AddressBar.BackgroundBrush", appThemeAddressBarBackgroundColor);
+				SetDesktopManualColor("App.Theme.AddressBar.BackgroundBrush", appThemeAddressBarBackgroundColor);
 				return;
 			}
 #endif
@@ -131,7 +131,7 @@ namespace Files.App.Services
 #if HAS_UNO
 			if (OperatingSystem.IsLinux())
 			{
-				SetLinuxManualColor("App.Theme.Toolbar.BackgroundBrush", appThemeToolbarBackgroundColor);
+				SetDesktopManualColor("App.Theme.Toolbar.BackgroundBrush", appThemeToolbarBackgroundColor);
 				return;
 			}
 #endif
@@ -144,7 +144,7 @@ namespace Files.App.Services
 #if HAS_UNO
 			if (OperatingSystem.IsLinux())
 			{
-				SetLinuxManualColor("App.Theme.Sidebar.BackgroundBrush", appThemeSidebarBackgroundColor);
+				SetDesktopManualColor("App.Theme.Sidebar.BackgroundBrush", appThemeSidebarBackgroundColor);
 				return;
 			}
 #endif
@@ -157,7 +157,7 @@ namespace Files.App.Services
 #if HAS_UNO
 			if (OperatingSystem.IsLinux())
 			{
-				SetLinuxManualColor("App.Theme.FileArea.BackgroundBrush", appThemeFileAreaBackgroundColor);
+				SetDesktopManualColor("App.Theme.FileArea.BackgroundBrush", appThemeFileAreaBackgroundColor);
 				return;
 			}
 #endif
@@ -170,7 +170,7 @@ namespace Files.App.Services
 #if HAS_UNO
 			if (OperatingSystem.IsLinux())
 			{
-				SetLinuxManualColor("App.Theme.FileArea.SecondaryBackgroundBrush", appThemeFileAreaSecondaryBackgroundColor);
+				SetDesktopManualColor("App.Theme.FileArea.SecondaryBackgroundBrush", appThemeFileAreaSecondaryBackgroundColor);
 				return;
 			}
 #endif
@@ -183,7 +183,7 @@ namespace Files.App.Services
 #if HAS_UNO
 			if (OperatingSystem.IsLinux())
 			{
-				SetLinuxManualColor("App.Theme.InfoPane.BackgroundBrush", appThemeInfoPaneBackgroundColor);
+				SetDesktopManualColor("App.Theme.InfoPane.BackgroundBrush", appThemeInfoPaneBackgroundColor);
 				return;
 			}
 #endif
@@ -206,7 +206,7 @@ namespace Files.App.Services
 		public void ApplyResources()
 		{
 #if HAS_UNO
-			UpdateLinuxAppearanceResources();
+			UpdateDesktopAppearanceResources();
 #endif
 			AppThemeModeService.ApplyResources();
 		}

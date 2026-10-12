@@ -189,7 +189,7 @@ namespace Files.App.Views.Layouts
 		/// </summary>
 		// LINUX-TODO(listing): fall back to CollectionViewSource.View once Uno's CollectionView handles bulk Reset
 		public object? LayoutItemsSource
-			=> linuxGroupedItemsSource?.Items ?? CollectionViewSource.Source;
+			=> desktopGroupedItemsSource?.Items ?? CollectionViewSource.Source;
 
 		public CollectionViewSource CollectionViewSource
 		{
@@ -203,7 +203,7 @@ namespace Files.App.Views.Layouts
 					collectionViewSource.View.VectorChanged -= View_VectorChanged;
 
 				collectionViewSource = value;
-				UpdateLinuxGroupedItemsSource();
+				UpdateDesktopGroupedItemsSource();
 
 				NotifyPropertyChanged(nameof(CollectionViewSource));
 				NotifyPropertyChanged(nameof(LayoutItemsSource));
@@ -998,7 +998,7 @@ namespace Files.App.Views.Layouts
 			// Remove item jumping handler
 			CharacterReceived -= Page_CharacterReceived;
 			UnhookScrollDeferTracking();
-			DisposeLinuxGroupedItemsSource();
+			DisposeDesktopGroupedItemsSource();
 			var folderSettings = FolderSettings
 				?? throw new InvalidOperationException("The layout does not have folder settings.");
 			folderSettings.LayoutModeChangeRequested -= BaseFolderSettings_LayoutModeChangeRequested;
@@ -1678,7 +1678,7 @@ namespace Files.App.Views.Layouts
 			UnhookBaseEvents();
 			UnhookScrollDeferTracking();
 			StatusBarViewModel.Dispose();
-			DisposeLinuxGroupedItemsSource();
+			DisposeDesktopGroupedItemsSource();
 			dragOverItem = null;
 			hoveredItem = null;
 			preRenamingItem = null;
@@ -1704,7 +1704,7 @@ namespace Files.App.Views.Layouts
 			{
 				// Replacing the source rebuilds the list from scratch (a visible empty flash), so keep it when unchanged
 				if (CollectionViewSource.IsSourceGrouped && ReferenceEquals(CollectionViewSource.Source, shellViewModel.FilesAndFolders.GroupedCollection)
-					&& linuxGroupedItemsSource is not null
+					&& desktopGroupedItemsSource is not null
 				)
 					return;
 

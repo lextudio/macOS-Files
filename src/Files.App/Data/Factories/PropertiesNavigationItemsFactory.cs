@@ -66,7 +66,7 @@ namespace Files.App.Data.Factories
 			{
 				var isShortcut = listedItem.IsShortcut;
 				if (OperatingSystem.IsLinux() && !isShortcut)
-					isShortcut = LinuxShortcutHelper.IsShortcutLike(listedItem.ItemPath);
+					isShortcut = DesktopShortcutHelper.IsShortcutLike(listedItem.ItemPath);
 				var isLibrary = listedItem.IsLibrary;
 				var fileExt = listedItem.FileExtension;
 				var isFolder = listedItem.PrimaryItemAttribute == Windows.Storage.StorageItemTypes.Folder;

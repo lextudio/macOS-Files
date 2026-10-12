@@ -47,7 +47,7 @@ namespace Files.Platform.Linux.Elevation
 			foreach (var argument in arguments)
 				startInfo.ArgumentList.Add(argument);
 
-			using var process = Files.Platform.Linux.Launching.TracedProcess.Start(startInfo) ?? throw new InvalidOperationException("The process could not be started.");
+			using var process = Files.Platform.Posix.Launching.TracedProcess.Start(startInfo) ?? throw new InvalidOperationException("The process could not be started.");
 			process.StandardInput.Close();
 			var stdout = process.StandardOutput.ReadToEndAsync(cancellationToken);
 			var stderr = process.StandardError.ReadToEndAsync(cancellationToken);
@@ -91,7 +91,7 @@ namespace Files.Platform.Linux.Elevation
 			info.Environment["LANG"] = "C";
 			info.ArgumentList.Add(helper);
 			foreach (var argument in HelperAuthorization.Arguments(json)) info.ArgumentList.Add(argument);
-			using var process = Files.Platform.Linux.Launching.TracedProcess.Start(info) ?? throw new IOException("Unable to start authorization.");
+			using var process = Files.Platform.Posix.Launching.TracedProcess.Start(info) ?? throw new IOException("Unable to start authorization.");
 			var output = ReadBoundedAsync(process.StandardOutput, CancellationToken.None, Stop);
 			var error = ReadBoundedAsync(process.StandardError, CancellationToken.None, Stop);
 			var send = SendAsync();

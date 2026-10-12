@@ -2,9 +2,11 @@
 // Licensed under the MIT License.
 
 using Files.Platform.Abstractions.Instance;
-using Files.Platform.Linux.Instance;
+#if !HAS_UNO_SKIA_MACOS
 using Files.Platform.Linux.Elevation;
+using Files.Platform.Linux.Instance;
 using Files.Platform.Linux.Windowing;
+#endif
 using System.Text;
 using Uno.UI.Hosting;
 
@@ -22,23 +24,34 @@ namespace Files.App
 		public static Semaphore? Pool { get; set; }
 
 		/// <summary>
+		/// The working directory the app was launched from (captured before any chdir, for relative command-line paths).
+		/// </summary>
+		private static readonly string _launchCwd = Environment.CurrentDirectory;
+
+		/// <summary>
 		/// Returns the working directory the app was launched from. TODO: capture it for redirected activations.
 		/// </summary>
-		public static string ConsumeLaunchCwd() => Environment.CurrentDirectory;
+		public static string ConsumeLaunchCwd() => _launchCwd;
 
 		/// <summary>
 		/// Gets the command line arguments (without the program name) this process was started with.
 		/// </summary>
 		public static string[] LaunchArguments { get; private set; } = [];
 
+#if !HAS_UNO_SKIA_MACOS
 		/// <summary>
 		/// Gets the single instance service this process owns. Null when single instance handling is disabled.
 		/// </summary>
 		internal static LinuxSingleInstanceService? SingleInstance { get; private set; }
+#endif
 
 		[STAThread]
 		public static int Main(string[] args)
 		{
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+			LaunchArguments = args;
+
 			try
 			{
 				RootStartupEnvironment.Apply();
@@ -50,12 +63,8 @@ namespace Files.App
 			}
 			RootActionsAvailability.Configure(args);
 
-			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
 			// Selawik weights (Regular/Semibold/Bold/Light) are matched by family name + weight through fontconfig
 			Files.Platform.Linux.Native.FontConfigNative.RegisterFontDirectory(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "Linux"));
-
-			LaunchArguments = args;
 
 			// Uno reads Xft.dpi itself; this covers sessions that only export GDK/Qt scale variables
 			Files.Platform.Linux.Windowing.DisplayScaleResolver.ApplyToProcess();

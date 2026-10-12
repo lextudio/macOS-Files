@@ -17,14 +17,14 @@ namespace Files.App
 		/// Gets invoked when the application is launched. Single instance handling and activation redirection are TODO
 		/// (planned behind <c>ISingleInstanceService</c>).
 		/// </summary>
-		protected override void OnLaunched(LaunchActivatedEventArgs e)
+		protected override async void OnLaunched(LaunchActivatedEventArgs e)
 		{
 			UiDispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
 			// Constructed on the UI thread: the ctor subscribes the UI-thread-only Clipboard.ContentChanged
 			AppModel = new AppModel();
 
-			ActivateAsync().ContinueWith(
+			_ = ActivateAsync().ContinueWith(
 				t => Console.Error.WriteLine($"[Files] Startup failed: {t.Exception?.GetBaseException()}"),
 				TaskContinuationOptions.OnlyOnFaulted);
 
@@ -55,7 +55,7 @@ namespace Files.App
 				Logger.LogInformation("App launched (desktop).");
 
 				// Command line (paths, --select, -t, -n) of this process; later launches arrive through ISingleInstanceService
-				var launchOptions = Files.App.Utils.CommandLine.DesktopCommandLine.Parse(Program.LaunchArguments, Environment.CurrentDirectory);
+				var launchOptions = Files.App.Utils.CommandLine.DesktopCommandLine.Parse(Program.LaunchArguments, Program.ConsumeLaunchCwd());
 				if (launchOptions.IsEmpty)
 					await MainWindow.Instance.InitializeApplicationAsync(null);
 				else

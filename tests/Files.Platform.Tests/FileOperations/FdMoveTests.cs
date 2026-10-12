@@ -7,7 +7,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.FileOperations
@@ -25,7 +25,7 @@ namespace Files.Platform.Tests.FileOperations
 			var link = Path.Combine(Root, "destination-link");
 			Directory.CreateSymbolicLink(link, Dst);
 
-			var result = await new LinuxFileOperationsService((_, _) => !crossDevice).MoveAsync([source], link);
+			var result = await new PosixFileOperationsService((_, _) => !crossDevice).MoveAsync([source], link);
 
 			Assert.IsTrue(result[0].Succeeded, result[0].ErrorMessage);
 			Assert.AreEqual("data", File.ReadAllText(Path.Combine(Dst, "a")));
@@ -58,7 +58,7 @@ namespace Files.Platform.Tests.FileOperations
 					Directory.CreateSymbolicLink(Dst, outsideDestination);
 				}),
 			};
-			var service = new LinuxFileOperationsService((_, _) => !crossDevice);
+			var service = new PosixFileOperationsService((_, _) => !crossDevice);
 
 			var result = copy ? await service.CopyAsync([source], Dst, options) : await service.MoveAsync([source], Dst, options);
 
@@ -87,7 +87,7 @@ namespace Files.Platform.Tests.FileOperations
 			var outsideDestination = Path.Combine(Root, "outside-destination");
 			Directory.CreateDirectory(outsideDestination);
 			var swapped = false;
-			var service = new LinuxFileOperationsService((_, _) => !crossDevice, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => !crossDevice, new PosixFileOperationsHooks
 			{
 				BeforeMoveEntry = (_, _) =>
 				{
@@ -126,7 +126,7 @@ namespace Files.Platform.Tests.FileOperations
 			else
 				Write(source, "data");
 			var destination = Path.Combine(Dst, "a");
-			var service = new LinuxFileOperationsService((_, _) => !crossDevice, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => !crossDevice, new PosixFileOperationsHooks
 			{
 				BeforeMoveEntry = (_, _) =>
 				{
@@ -155,7 +155,7 @@ namespace Files.Platform.Tests.FileOperations
 			Directory.CreateDirectory(Path.Combine(Dst, "tree", "sub"));
 			var outside = Path.Combine(Root, "outside");
 			var precious = Write(Path.Combine(outside, "secret"), "keep");
-			var service = new LinuxFileOperationsService((_, _) => !crossDevice, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => !crossDevice, new PosixFileOperationsHooks
 			{
 				BeforeOpenSource = path =>
 				{
@@ -185,7 +185,7 @@ namespace Files.Platform.Tests.FileOperations
 			var outside = Path.Combine(Root, "outside");
 			Directory.CreateDirectory(outside);
 			var mode = File.GetUnixFileMode(outside);
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				DirectoryCreated = path =>
 				{
@@ -213,7 +213,7 @@ namespace Files.Platform.Tests.FileOperations
 			Directory.CreateDirectory(destination);
 			var outside = Path.Combine(Root, "outside");
 			var precious = Write(Path.Combine(outside, "a"), "keep");
-			var service = new LinuxFileOperationsService((_, _) => !crossDevice, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => !crossDevice, new PosixFileOperationsHooks
 			{
 				BeforeMoveEntry = (_, path) =>
 				{
@@ -251,7 +251,7 @@ namespace Files.Platform.Tests.FileOperations
 					Directory.CreateSymbolicLink(destination, outside);
 				}
 			}
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				BeforeMoveEntry = (from, _) => Swap(from),
 				BeforeOpenSource = Swap,
@@ -276,7 +276,7 @@ namespace Files.Platform.Tests.FileOperations
 			Directory.CreateDirectory(outside);
 			string precious = null!;
 			using var cancellation = new CancellationTokenSource();
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				TemporaryFileCreated = path =>
 				{
@@ -300,7 +300,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var source = Write(Path.Combine(Src, "a"), "data");
 			var precious = Write(Path.Combine(Root, "precious"), "keep");
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				BeforeDeleteEntry = path =>
 				{
@@ -337,7 +337,7 @@ namespace Files.Platform.Tests.FileOperations
 				},
 			};
 
-			var result = await new LinuxFileOperationsService((_, _) => !crossDevice).MoveAsync([source], Dst, options);
+			var result = await new PosixFileOperationsService((_, _) => !crossDevice).MoveAsync([source], Dst, options);
 
 			Assert.IsTrue(result[0].Succeeded, result[0].ErrorMessage);
 			Assert.AreEqual(Path.Combine(Dst, "a (3).txt"), result[0].ResultPath);
@@ -357,7 +357,7 @@ namespace Files.Platform.Tests.FileOperations
 			var precious = Write(Path.Combine(outside, "a"), "keep");
 			Directory.CreateSymbolicLink(Path.Combine(Dst, "tree"), outside);
 
-			var result = await new LinuxFileOperationsService((_, _) => !crossDevice).MoveAsync([tree], Dst, Resolving(ConflictAction.Overwrite));
+			var result = await new PosixFileOperationsService((_, _) => !crossDevice).MoveAsync([tree], Dst, Resolving(ConflictAction.Overwrite));
 
 			Assert.AreEqual(FileOperationErrorKind.TypeMismatch, result[0].ErrorKind);
 			Assert.AreEqual("keep", File.ReadAllText(precious));
@@ -370,7 +370,7 @@ namespace Files.Platform.Tests.FileOperations
 			var source = Write(Path.Combine(Src, "a"), "data");
 			var outside = Path.Combine(Root, "outside");
 			var precious = Write(Path.Combine(outside, "a"), "keep");
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				BeforeMoveEntry = (_, _) =>
 				{

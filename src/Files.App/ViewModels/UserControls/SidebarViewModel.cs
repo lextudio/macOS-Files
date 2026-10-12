@@ -1197,19 +1197,19 @@ namespace Files.App.ViewModels.UserControls
 				},
 				new ContextMenuFlyoutItemViewModel()
 				{
-					Text = Strings.LinuxMountDrive.GetLocalizedResource(),
+					Text = Strings.DesktopMountDrive.GetLocalizedResource(),
 					Command = MountDeviceCommand,
 					ShowItem = options.ShowMountDevice
 				},
 				new ContextMenuFlyoutItemViewModel()
 				{
-					Text = Strings.LinuxUnmountDrive.GetLocalizedResource(),
+					Text = Strings.DesktopUnmountDrive.GetLocalizedResource(),
 					Command = UnmountDeviceCommand,
 					ShowItem = options.ShowUnmountDevice
 				},
 				new ContextMenuFlyoutItemViewModel()
 				{
-					Text = Strings.LinuxDisconnectLocation.GetLocalizedResource(),
+					Text = Strings.DesktopDisconnectLocation.GetLocalizedResource(),
 					Command = EjectDeviceCommand,
 					ShowItem = options.ShowDisconnectLocation
 				},

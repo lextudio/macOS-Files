@@ -22,7 +22,7 @@ namespace Files.Platform.Abstractions.Elevation
 
 	public static class ElevationHelperProtocol
 	{
-		public const string HelperPath = "/usr/lib/linuxfiles/files-elevation-helper";
+		public const string HelperPath = "/usr/lib/desktopfiles/files-elevation-helper";
 		public const string PolicyPath = "/usr/share/polkit-1/actions/io.github.memergamer.LinuxFiles.root-actions.policy";
 		public const int MaximumBytes = 65536;
 		public const int MaximumItems = 64;

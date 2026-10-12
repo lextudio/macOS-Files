@@ -19,7 +19,7 @@ namespace Files.Platform.Tests.SystemIntegration
 	{
 		[TestMethod]
 		[DataRow(0, false, ElevationHelperProtocol.HelperPath)]
-		[DataRow(0, false, "/nix/store/00000000000000000000000000000000-linuxfiles/lib/linuxfiles/elevation-helper/files-elevation-helper")]
+		[DataRow(0, false, "/nix/store/00000000000000000000000000000000-desktopfiles/lib/desktopfiles/elevation-helper/files-elevation-helper")]
 		[DataRow(1, true, ElevationHelperProtocol.HelperPath)]
 		[DataRow(2, false, ElevationHelperProtocol.HelperPath)]
 		public async Task CancellationWithEpermWaitsAndReturnsActualExitAndOutput(int exitCode, bool processTree, string helper)

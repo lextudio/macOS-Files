@@ -1,0 +1,319 @@
+<!--  Copyright (c) Files Community. Licensed under the MIT License.  -->
+<!--
+	Desktop (Uno Skia) resource overrides. Merged last in App.xaml so they win over the WinUI defaults.
+	Segoe UI / Segoe Fluent Icons are not redistributable, so text uses the OFL-licensed Selawik (Segoe UI metrics)
+	and icons use Uno.Fonts.Fluent (Segoe Fluent Icons code points). See docs/linux-port/third-party-fonts.md.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linux/selawk.ttf#Selawik</FontFamily>
+	<FontFamily x:Key="SymbolThemeFontFamily">ms-appx:///Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf#Symbols</FontFamily>
+	<FontFamily x:Key="Files.Desktop.IconFontFamily">ms-appx:///Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf#Symbols</FontFamily>
+	<FontFamily x:Key="Files.Desktop.MonospaceFontFamily">DejaVu Sans Mono, Liberation Mono, monospace</FontFamily>
+
+	<!--  ListViewItem template: Uno's default presenter paints no selected or hover background, so draw them here  -->
+	<ControlTemplate x:Key="Files.ListViewItemTemplate" TargetType="ListViewItem">
+		<Grid x:Name="RootGrid" Background="Transparent">
+			<Border
+				x:Name="SelectionBackground"
+				Margin="2,1"
+				Background="Transparent"
+				BorderBrush="Transparent"
+				BorderThickness="1"
+				CornerRadius="{TemplateBinding CornerRadius}"
+				IsHitTestVisible="False" />
+			<Border
+				x:Name="SelectionIndicator"
+				Width="3"
+				Height="16"
+				Margin="4,0,0,0"
+				HorizontalAlignment="Left"
+				VerticalAlignment="Center"
+				Background="{ThemeResource Files.Item.AccentBrush}"
+				CornerRadius="1.5"
+				IsHitTestVisible="False"
+				Visibility="Collapsed" />
+			<ContentPresenter
+				x:Name="ContentPresenter"
+				Padding="{TemplateBinding Padding}"
+				HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+				VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+				Background="{TemplateBinding Background}"
+				Content="{TemplateBinding Content}"
+				ContentTemplate="{TemplateBinding ContentTemplate}"
+				ContentTransitions="{TemplateBinding ContentTransitions}" />
+			<VisualStateManager.VisualStateGroups>
+				<VisualStateGroup x:Name="CommonStates">
+					<VisualState x:Name="Normal" />
+					<VisualState x:Name="PointerOver">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Item.BackgroundPointerOver}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="Pressed">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Item.BackgroundPressed}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="Selected">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Item.BackgroundSelected}" />
+							<Setter Target="SelectionIndicator.Visibility" Value="Visible" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="PointerOverSelected">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Item.BackgroundSelectedPointerOver}" />
+							<Setter Target="SelectionIndicator.Visibility" Value="Visible" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="PressedSelected">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Item.BackgroundSelectedPressed}" />
+							<Setter Target="SelectionIndicator.Visibility" Value="Visible" />
+						</VisualState.Setters>
+					</VisualState>
+				</VisualStateGroup>
+			</VisualStateManager.VisualStateGroups>
+		</Grid>
+	</ControlTemplate>
+
+	<!--  GridViewItem template: Uno's default presenter paints no selected or hover background, so draw them here  -->
+	<ControlTemplate x:Key="Files.GridViewItemTemplate" TargetType="GridViewItem">
+		<Grid x:Name="RootGrid" Background="Transparent">
+			<Border
+				x:Name="SelectionBackground"
+				Margin="2,1"
+				Background="Transparent"
+				BorderBrush="Transparent"
+				BorderThickness="1"
+				CornerRadius="{TemplateBinding CornerRadius}"
+				IsHitTestVisible="False" />
+			<ContentPresenter
+				x:Name="ContentPresenter"
+				Padding="{TemplateBinding Padding}"
+				HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+				VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+				Background="{TemplateBinding Background}"
+				Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+				Content="{TemplateBinding Content}"
+				ContentTemplate="{TemplateBinding ContentTemplate}"
+				ContentTransitions="{TemplateBinding ContentTransitions}" />
+			<VisualStateManager.VisualStateGroups>
+				<VisualStateGroup x:Name="CommonStates">
+					<VisualState x:Name="Normal" />
+					<VisualState x:Name="PointerOver">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Item.BackgroundPointerOver}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="Pressed">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Item.BackgroundPressed}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="Selected">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Tile.BackgroundSelected}" />
+							<Setter Target="SelectionBackground.BorderBrush" Value="{ThemeResource Files.Tile.BorderSelected}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="PointerOverSelected">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Tile.BackgroundSelectedPointerOver}" />
+							<Setter Target="SelectionBackground.BorderBrush" Value="{ThemeResource Files.Tile.BorderSelected}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="PressedSelected">
+						<VisualState.Setters>
+							<Setter Target="SelectionBackground.Background" Value="{ThemeResource Files.Tile.BackgroundSelectedPressed}" />
+							<Setter Target="SelectionBackground.BorderBrush" Value="{ThemeResource Files.Tile.BorderSelected}" />
+						</VisualState.Setters>
+					</VisualState>
+				</VisualStateGroup>
+			</VisualStateManager.VisualStateGroups>
+		</Grid>
+	</ControlTemplate>
+
+	<!--
+		Selection CheckBox of file items. Uno's default CheckBox template builds an AnimatedIcon (Lottie visual) per instance,
+		which was about a third of the time spent realizing item containers in software rendering; this one is a plain box and glyph.
+	-->
+	<ControlTemplate x:Key="Files.SelectionCheckBoxTemplate" TargetType="CheckBox">
+		<Grid x:Name="RootGrid" Background="Transparent">
+			<Border
+				x:Name="CheckBoxBorder"
+				Width="20"
+				Height="20"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				Background="{ThemeResource CheckBoxCheckBackgroundFillUnchecked}"
+				BorderBrush="{ThemeResource CheckBoxCheckBackgroundStrokeUnchecked}"
+				BorderThickness="1"
+				CornerRadius="4" />
+			<Path
+				x:Name="CheckGlyph"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				Data="M0,5 L4,9 L12,0"
+				IsHitTestVisible="False"
+				Opacity="0"
+				Stroke="{ThemeResource CheckBoxCheckGlyphForegroundChecked}"
+				StrokeEndLineCap="Round"
+				StrokeLineJoin="Round"
+				StrokeStartLineCap="Round"
+				StrokeThickness="1.5" />
+			<VisualStateManager.VisualStateGroups>
+				<VisualStateGroup x:Name="CommonStates">
+					<VisualState x:Name="UncheckedNormal">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillUnchecked}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeUnchecked}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundUnchecked}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="UncheckedPointerOver">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillUncheckedPointerOver}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeUncheckedPointerOver}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundUncheckedPointerOver}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="UncheckedPressed">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillUncheckedPressed}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeUncheckedPressed}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundUncheckedPressed}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="UncheckedDisabled">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillUncheckedDisabled}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeUncheckedDisabled}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundUncheckedDisabled}" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="CheckedNormal">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillChecked}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeChecked}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundChecked}" />
+							<Setter Target="CheckGlyph.Opacity" Value="1" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="CheckedPointerOver">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillCheckedPointerOver}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeCheckedPointerOver}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundCheckedPointerOver}" />
+							<Setter Target="CheckGlyph.Opacity" Value="1" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="CheckedPressed">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillCheckedPressed}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeCheckedPressed}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundCheckedPressed}" />
+							<Setter Target="CheckGlyph.Opacity" Value="1" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="CheckedDisabled">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillCheckedDisabled}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeCheckedDisabled}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundCheckedDisabled}" />
+							<Setter Target="CheckGlyph.Opacity" Value="1" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="IndeterminateNormal">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillIndeterminate}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeIndeterminate}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundIndeterminate}" />
+							<Setter Target="CheckGlyph.Opacity" Value="1" />
+							<Setter Target="CheckGlyph.Data" Value="M0,0 L12,0" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="IndeterminatePointerOver">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillIndeterminatePointerOver}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeIndeterminatePointerOver}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundIndeterminatePointerOver}" />
+							<Setter Target="CheckGlyph.Opacity" Value="1" />
+							<Setter Target="CheckGlyph.Data" Value="M0,0 L12,0" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="IndeterminatePressed">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillIndeterminatePressed}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeIndeterminatePressed}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundIndeterminatePressed}" />
+							<Setter Target="CheckGlyph.Opacity" Value="1" />
+							<Setter Target="CheckGlyph.Data" Value="M0,0 L12,0" />
+						</VisualState.Setters>
+					</VisualState>
+					<VisualState x:Name="IndeterminateDisabled">
+						<VisualState.Setters>
+							<Setter Target="CheckBoxBorder.Background" Value="{ThemeResource CheckBoxCheckBackgroundFillIndeterminateDisabled}" />
+							<Setter Target="CheckBoxBorder.BorderBrush" Value="{ThemeResource CheckBoxCheckBackgroundStrokeIndeterminateDisabled}" />
+							<Setter Target="CheckGlyph.Stroke" Value="{ThemeResource CheckBoxCheckGlyphForegroundIndeterminateDisabled}" />
+							<Setter Target="CheckGlyph.Opacity" Value="1" />
+							<Setter Target="CheckGlyph.Data" Value="M0,0 L12,0" />
+						</VisualState.Setters>
+					</VisualState>
+				</VisualStateGroup>
+			</VisualStateManager.VisualStateGroups>
+		</Grid>
+	</ControlTemplate>
+
+	<Style x:Key="Files.SelectionCheckBoxStyle" TargetType="CheckBox">
+		<Setter Property="UseSystemFocusVisuals" Value="True" />
+		<Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource SystemControlFocusVisualPrimaryBrush}" />
+		<Setter Property="FocusVisualSecondaryBrush" Value="{ThemeResource SystemControlFocusVisualSecondaryBrush}" />
+		<Setter Property="Template" Value="{StaticResource Files.SelectionCheckBoxTemplate}" />
+	</Style>
+
+	<ResourceDictionary.ThemeDictionaries>
+		<!--  No Mica on Linux: the window backdrop is a solid fill equal to the Mica base colour, so the translucent Files layers on top keep their look  -->
+		<ResourceDictionary x:Key="Light">
+			<SolidColorBrush x:Key="App.Theme.FileArea.BackgroundBrush" Color="#C0FCFCFC" />
+			<SolidColorBrush x:Key="TabViewItemHeaderBackgroundPointerOver" Color="#0F000000" />
+			<SolidColorBrush x:Key="TabViewItemHeaderBackgroundPressed" Color="#0A000000" />
+			<SolidColorBrush x:Key="Files.Desktop.FlyoutSurfaceBrush" Color="#F9F9F9" />
+			<SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#33000000" />
+			<SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#33000000" />
+			<SolidColorBrush x:Key="App.Theme.BackgroundBrush" Color="#F3F3F3" />
+			<SolidColorBrush x:Key="Files.Item.AccentBrush" Color="{ThemeResource SystemAccentColor}" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundPointerOver" Color="#0A000000" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundPressed" Color="#06000000" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundSelected" Color="#14000000" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundSelectedPointerOver" Color="#1A000000" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundSelectedPressed" Color="#10000000" />
+			<SolidColorBrush x:Key="Files.Item.BorderSelected" Color="Transparent" />
+			<SolidColorBrush x:Key="Files.Tile.BackgroundSelected" Color="{ThemeResource SystemAccentColor}" Opacity="0.16" />
+			<SolidColorBrush x:Key="Files.Tile.BackgroundSelectedPointerOver" Color="{ThemeResource SystemAccentColor}" Opacity="0.22" />
+			<SolidColorBrush x:Key="Files.Tile.BackgroundSelectedPressed" Color="{ThemeResource SystemAccentColor}" Opacity="0.12" />
+			<SolidColorBrush x:Key="Files.Tile.BorderSelected" Color="{ThemeResource SystemAccentColor}" Opacity="0.5" />
+		</ResourceDictionary>
+		<ResourceDictionary x:Key="Dark">
+			<SolidColorBrush x:Key="TabViewItemHeaderBackgroundPointerOver" Color="#14FFFFFF" />
+			<SolidColorBrush x:Key="TabViewItemHeaderBackgroundPressed" Color="#0DFFFFFF" />
+			<SolidColorBrush x:Key="Files.Desktop.FlyoutSurfaceBrush" Color="#2B2B2B" />
+			<SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#26FFFFFF" />
+			<SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#26FFFFFF" />
+			<SolidColorBrush x:Key="App.Theme.BackgroundBrush" Color="#202020" />
+			<SolidColorBrush x:Key="Files.Item.AccentBrush" Color="{ThemeResource SystemAccentColor}" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundPointerOver" Color="#0FFFFFFF" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundPressed" Color="#0AFFFFFF" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundSelected" Color="#1AFFFFFF" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundSelectedPointerOver" Color="#22FFFFFF" />
+			<SolidColorBrush x:Key="Files.Item.BackgroundSelectedPressed" Color="#14FFFFFF" />
+			<SolidColorBrush x:Key="Files.Item.BorderSelected" Color="Transparent" />
+			<SolidColorBrush x:Key="Files.Tile.BackgroundSelected" Color="{ThemeResource SystemAccentColor}" Opacity="0.28" />
+			<SolidColorBrush x:Key="Files.Tile.BackgroundSelectedPointerOver" Color="{ThemeResource SystemAccentColor}" Opacity="0.34" />
+			<SolidColorBrush x:Key="Files.Tile.BackgroundSelectedPressed" Color="{ThemeResource SystemAccentColor}" Opacity="0.22" />
+			<SolidColorBrush x:Key="Files.Tile.BorderSelected" Color="{ThemeResource SystemAccentColor}" Opacity="0.6" />
+		</ResourceDictionary>
+	</ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

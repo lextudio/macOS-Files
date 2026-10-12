@@ -158,7 +158,7 @@ namespace Files.Platform.Tests.AppData
 		public void Settings_RoundTripsSupportedTypes_AcrossInstances()
 		{
 			var file = Path.Combine(_root, "sub", "local.json");
-			var s = new LinuxLocalSettingsStore(file);
+			var s = new PosixLocalSettingsStore(file);
 
 			s.Set("str", "hello");
 			s.Set("flag", true);
@@ -166,7 +166,7 @@ namespace Files.Platform.Tests.AppData
 			s.Set("big", 5_000_000_000L);
 			s.Set("time", 12.5);
 
-			var other = new LinuxLocalSettingsStore(file);
+			var other = new PosixLocalSettingsStore(file);
 			Assert.AreEqual("hello", other.Get("str", ""));
 			Assert.IsTrue(other.Get("flag", false));
 			Assert.AreEqual(-1234, other.Get("pid", 0));
@@ -178,7 +178,7 @@ namespace Files.Platform.Tests.AppData
 		[TestMethod]
 		public void Settings_MissingOrWrongType_ReturnsDefault()
 		{
-			var s = new LinuxLocalSettingsStore(Path.Combine(_root, "l.json"));
+			var s = new PosixLocalSettingsStore(Path.Combine(_root, "l.json"));
 			s.Set("n", 3);
 
 			Assert.AreEqual(-1, s.Get("missing", -1));
@@ -191,7 +191,7 @@ namespace Files.Platform.Tests.AppData
 		[TestMethod]
 		public void Settings_RemoveAndContains()
 		{
-			var s = new LinuxLocalSettingsStore(Path.Combine(_root, "l.json"));
+			var s = new PosixLocalSettingsStore(Path.Combine(_root, "l.json"));
 			s.Set("k", true);
 
 			Assert.IsTrue(s.ContainsKey("k"));
@@ -203,7 +203,7 @@ namespace Files.Platform.Tests.AppData
 		[TestMethod]
 		public void Settings_Containers_AreIsolated_AndDeletable()
 		{
-			var s = new LinuxLocalSettingsStore(Path.Combine(_root, "l.json"));
+			var s = new PosixLocalSettingsStore(Path.Combine(_root, "l.json"));
 			var c = s.GetContainer("Files");
 			c.Set("MainWindowPlacementData", "abc");
 			s.Set("MainWindowPlacementData", "root");
@@ -221,7 +221,7 @@ namespace Files.Platform.Tests.AppData
 		{
 			var file = Path.Combine(_root, "l.json");
 			File.WriteAllText(file, "{ not json");
-			var s = new LinuxLocalSettingsStore(file);
+			var s = new PosixLocalSettingsStore(file);
 
 			Assert.IsFalse(s.ContainsKey("a"));
 			s.Set("a", 1);
@@ -231,7 +231,7 @@ namespace Files.Platform.Tests.AppData
 		[TestMethod]
 		public void Settings_UnsupportedType_Throws()
 		{
-			var s = new LinuxLocalSettingsStore(Path.Combine(_root, "l.json"));
+			var s = new PosixLocalSettingsStore(Path.Combine(_root, "l.json"));
 
 			Assert.ThrowsExactly<NotSupportedException>(() => s.Set("x", new object()));
 			Assert.ThrowsExactly<NotSupportedException>(() => s.TryGetValue<DateTime>("x", out _));
@@ -240,7 +240,7 @@ namespace Files.Platform.Tests.AppData
 		[TestMethod]
 		public void Settings_ConcurrentWrites_AreAllPersisted()
 		{
-			var s = new LinuxLocalSettingsStore(Path.Combine(_root, "l.json"));
+			var s = new PosixLocalSettingsStore(Path.Combine(_root, "l.json"));
 
 			Parallel.For(0, 50, i => s.Set($"k{i}", i));
 
@@ -255,7 +255,7 @@ namespace Files.Platform.Tests.AppData
 
 			Assert.IsInstanceOfType<LinuxAppDataPaths>(provider.GetRequiredService<IAppDataPaths>());
 			Assert.IsInstanceOfType<LinuxUserDirectories>(provider.GetRequiredService<IUserDirectories>());
-			Assert.IsInstanceOfType<LinuxLocalSettingsStore>(provider.GetRequiredService<ILocalSettingsStore>());
+			Assert.IsInstanceOfType<PosixLocalSettingsStore>(provider.GetRequiredService<ILocalSettingsStore>());
 		}
 	}
 }

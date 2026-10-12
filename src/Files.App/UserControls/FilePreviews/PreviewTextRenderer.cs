@@ -33,7 +33,7 @@ namespace Files.App.UserControls.FilePreviews
 
 		public static FontFamily GetMonospaceFont()
 		{
-			if (Application.Current?.Resources.TryGetValue("Files.Linux.MonospaceFontFamily", out var value) == true && value is FontFamily family)
+			if (Application.Current?.Resources.TryGetValue("Files.Desktop.MonospaceFontFamily", out var value) == true && value is FontFamily family)
 				return family;
 
 			return new FontFamily("Consolas");

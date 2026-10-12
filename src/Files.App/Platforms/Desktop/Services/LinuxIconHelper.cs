@@ -127,7 +127,7 @@ namespace Files.App.Utils.Storage
 			try
 			{
 				byte[]? data;
-				using (var stream = Files.Platform.Linux.Previews.PreviewFile.OpenRead(iconPath))
+				using (var stream = Files.Platform.Posix.Previews.PreviewFile.OpenRead(iconPath))
 					data = DesktopEntryDisplay.ReadBounded(stream, MaxIconFileSize);
 
 				if (data is null)

@@ -89,12 +89,16 @@
         <PackageReference Include="Markdig" />
         <PackageReference Include="ColorCode.Core" />
         <PackageReference Include="Uno.WinUI" />
-        <PackageReference Include="Uno.WinUI.Runtime.Skia.X11" />
         <PackageReference Include="Uno.Microsoft.Xaml.Behaviors.WinUI.Managed" />
         <ProjectReference Include="..\Files.App.UnoVirtualization\Files.App.UnoVirtualization.csproj" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)'">
+    <!--  Desktop rendering backend: X11  -->
+    <ItemGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)' And '$(FilesDesktopOS)' != 'macOS'">
+        <PackageReference Include="Uno.WinUI.Runtime.Skia.X11" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)' And '$(FilesDesktopOS)' != 'macOS'">
         <ProjectReference Include="..\Files.Platform.Linux\Files.Platform.Linux.csproj" />
     </ItemGroup>
 
@@ -105,6 +109,21 @@
         <ProjectReference Include="..\Files.Platform.Abstractions\Files.Platform.Abstractions.csproj" />
         <ProjectReference Include="..\Files.Shared\Files.Shared.csproj" />
         <ProjectReference Include="..\Files.Core.SourceGenerator\Files.Core.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' != '$(DesktopTargetFramework)'">
+        <Compile Remove="Services\Storage\StorageArchiveService.Desktop.cs" />
+        <Compile Remove="Utils\Storage\Helpers\DriveHelpers.Desktop.cs" />
+        <Compile Remove="Utils\Storage\Helpers\FontFileHelper.Desktop.cs" />
+        <Compile Remove="Data\Commands\HotKey\HotKeyHelpers.Desktop.cs" />
+        <Compile Remove="Utils\Global\DesktopStorageDeviceWatcher.cs" />
+        <Compile Remove="Utils\Global\DesktopDriveCatalog.cs" />
+        <Compile Remove="Services\Storage\StorageNetworkService.Linux.cs" />
+        <Compile Remove="Helpers\Application\AppToastNotificationHelper.Desktop.cs" />
+        <Compile Remove="Helpers\Layout\LayoutPreferencesDatabase.Desktop.cs" />
+        <Compile Remove="Services\SizeProvider\CachedSizeProvider.Desktop.cs" />
+        <Compile Remove="Utils\Storage\Operations\FileSizeCalculator.Desktop.cs" />
+        <Compile Remove="Utils\Storage\Helpers\SyncRootHelpers.Desktop.cs" />
     </ItemGroup>
 
     <!--  Uno's late asset globs also honor DefaultItemExcludes; keep packaging inputs on disk.  -->
@@ -121,8 +140,43 @@
         <Compile Include="Utils\Shell\ShellHelpers.cs" />
     </ItemGroup>
 
+    <!--  macOS-only sources (*.MacOS.cs) build only for the macOS desktop target  -->
+    <ItemGroup Condition="'$(TargetFramework)' != '$(DesktopTargetFramework)' Or '$(FilesDesktopOS)' != 'macOS'">
+        <Compile Remove="**\*.MacOS.cs" />
+    </ItemGroup>
+
+    <!--  Linux-only App-layer sources: replaced by a *.MacOS.cs counterpart on macOS  -->
+    <ItemGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)' And '$(FilesDesktopOS)' == 'macOS'">
+        <Compile Remove="Services\Storage\StorageNetworkService.Linux.cs" />
+        <Compile Remove="MainWindow.Linux.cs" />
+        <Compile Remove="Services\App\AppResourcesService.Linux.cs" />
+        <!--  macOS uses MacOSIconHelper (NSWorkspace), never the freedesktop icon theme.  -->
+        <Compile Remove="Platforms\Desktop\Services\LinuxIconHelper.cs" />
+        <!--  Inbound drag/drop uses Uno storage items, not the XDND uri-list clipboard format.  -->
+        <Compile Remove="Utils\Storage\Operations\FilesystemHelpers.Linux.cs" />
+    </ItemGroup>
+
     <ItemGroup>
         <AdditionalFiles Include="Strings\en-US\Resources.resw" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Using Include="Files.Platform.Posix" />
+        <Using Include="Files.Platform.Posix.AppData" />
+        <Using Include="Files.Platform.Posix.Archives" />
+        <Using Include="Files.Platform.Posix.Elevation" />
+        <Using Include="Files.Platform.Posix.Enumeration" />
+        <Using Include="Files.Platform.Posix.FileOperations" />
+        <Using Include="Files.Platform.Posix.FileStat" />
+        <Using Include="Files.Platform.Posix.Icons" />
+        <Using Include="Files.Platform.Posix.Launching" />
+        <Using Include="Files.Platform.Posix.Mime" />
+        <Using Include="Files.Platform.Posix.Native" />
+        <Using Include="Files.Platform.Posix.Permissions" />
+        <Using Include="Files.Platform.Posix.Previews" />
+        <Using Include="Files.Platform.Posix.Search" />
+        <Using Include="Files.Platform.Posix.Thumbnails" />
+        <Using Include="Files.Platform.Posix.Volumes" />
+        <Using Include="Files.Platform.Posix.Watching" />
+    </ItemGroup>
 </Project>

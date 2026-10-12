@@ -85,7 +85,7 @@ namespace Files.App.ViewModels.UserControls
 
 		public string BreadcrumbHomeLabel => !OperatingSystem.IsLinux() || PathComponents.LastOrDefault()?.Path?.StartsWith('/') != true
 			? string.Empty
-			: IsBreadcrumbRootFileSystem ? Strings.LinuxFileSystemRoot.GetLocalizedResource() : Strings.Home.GetLocalizedResource();
+			: IsBreadcrumbRootFileSystem ? Strings.DesktopFileSystemRoot.GetLocalizedResource() : Strings.Home.GetLocalizedResource();
 
 		/// <summary>
 		/// Gets whether the breadcrumb root stands for the file system root (the path is outside the home folder).

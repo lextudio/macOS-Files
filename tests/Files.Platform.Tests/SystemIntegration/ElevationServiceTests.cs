@@ -26,7 +26,7 @@ namespace Files.Platform.Tests.SystemIntegration
 			public static FakeFs Standard()
 			{
 				var fs = new FakeFs();
-				foreach (var directory in new[] { "/", "/usr", "/usr/bin", "/usr/lib", "/usr/lib/linuxfiles", "/usr/share", "/usr/share/polkit-1", "/usr/share/polkit-1/actions", "/home", "/home/u", "/root" }) fs.Dir(directory);
+				foreach (var directory in new[] { "/", "/usr", "/usr/bin", "/usr/lib", "/usr/lib/desktopfiles", "/usr/share", "/usr/share/polkit-1", "/usr/share/polkit-1/actions", "/home", "/home/u", "/root" }) fs.Dir(directory);
 				fs.File("/usr/bin/pkexec"); fs.File(ElevationHelperProtocol.HelperPath); fs.File(ElevationHelperProtocol.PolicyPath);
 				return fs;
 			}
@@ -138,9 +138,9 @@ namespace Files.Platform.Tests.SystemIntegration
 			Assert.IsTrue(Service(fs, runner).IsAvailable);
 			Assert.IsFalse(Service(fs, runner, sandbox: true).IsAvailable);
 			fs.Entries.Remove(ElevationHelperProtocol.PolicyPath); Assert.IsFalse(Service(fs, runner).IsAvailable);
-			fs.File(ElevationHelperProtocol.PolicyPath); fs.Dir("/usr/lib/linuxfiles", 1000);
+			fs.File(ElevationHelperProtocol.PolicyPath); fs.Dir("/usr/lib/desktopfiles", 1000);
 			Assert.IsFalse(Service(fs, runner).IsAvailable);
-			fs.Dir("/usr/lib/linuxfiles"); fs.File(ElevationHelperProtocol.HelperPath, 1000);
+			fs.Dir("/usr/lib/desktopfiles"); fs.File(ElevationHelperProtocol.HelperPath, 1000);
 			Assert.IsFalse(Service(fs, runner).IsAvailable);
 		}
 

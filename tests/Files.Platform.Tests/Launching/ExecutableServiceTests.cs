@@ -43,7 +43,7 @@ namespace Files.Platform.Tests.Launching
 				File.WriteAllText(executable, string.Empty);
 				File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserExecute);
 				var starter = new RecordingStarter();
-				var service = new LinuxExecutableService(new PathExecutableLocator(_ => directory), starter);
+				var service = new PosixExecutableService(new PathExecutableLocator(_ => directory), starter);
 				Assert.AreEqual(executable, service.Locate(Path.GetFileName(executable)));
 				Assert.AreEqual(executable, service.Locate(executable));
 				Assert.IsNull(service.Locate(directory));

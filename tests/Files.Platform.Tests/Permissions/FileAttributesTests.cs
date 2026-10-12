@@ -1,7 +1,7 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
-using Files.Platform.Linux.Permissions;
+using Files.Platform.Posix.Permissions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -14,14 +14,14 @@ namespace Files.Platform.Tests.Permissions
 	public sealed class FileAttributesTests
 	{
 		private string _root = null!;
-		private LinuxFileAttributesService _service = null!;
+		private PosixFileAttributesService _service = null!;
 
 		[TestInitialize]
 		public void Setup()
 		{
 			_root = Path.Combine(Path.GetTempPath(), "files-attr-" + Guid.NewGuid().ToString("N"));
 			Directory.CreateDirectory(_root);
-			_service = new LinuxFileAttributesService(new LinuxFilePermissionsService());
+			_service = new PosixFileAttributesService(new PosixFilePermissionsService());
 		}
 
 		[TestCleanup]

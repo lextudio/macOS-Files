@@ -25,7 +25,7 @@ namespace Files.Platform.Tests.Mime
 
 		private static ServiceMenuEntry? Parse(string text) => ServiceMenuParser.ParseStrict(text.Split('\n'), "/menu.desktop", CultureInfo.GetCultureInfo("fr-FR"));
 
-		private static LinuxServiceMenuService Service(XdgFixture fx) =>
+		private static PosixServiceMenuService Service(XdgFixture fx) =>
 			new(fx.Directories, new LinuxMimeTypeService(fx.Directories, CultureInfo.InvariantCulture), CultureInfo.GetCultureInfo("fr-FR"));
 
 		[TestMethod]
@@ -143,12 +143,12 @@ namespace Files.Platform.Tests.Mime
 			using var fx = new XdgFixture();
 			var file = fx.Write("home/file.png", "image");
 			var archive = fx.Write("home/archive.zip", "archive");
-			Assert.IsTrue(LinuxServiceMenuService.IsLocalFileSystemTarget(file));
-			Assert.IsTrue(LinuxServiceMenuService.IsLocalFileSystemTarget(fx.Home));
-			Assert.IsTrue(LinuxServiceMenuService.IsLocalFileSystemTarget(archive));
-			Assert.IsFalse(LinuxServiceMenuService.IsLocalFileSystemTarget(archive + "/file.png"));
-			Assert.IsFalse(LinuxServiceMenuService.IsLocalFileSystemTarget(fx.Home + "/missing.png"));
-			Assert.IsFalse(LinuxServiceMenuService.IsLocalFileSystemTarget("/" + file));
+			Assert.IsTrue(PosixServiceMenuService.IsLocalFileSystemTarget(file));
+			Assert.IsTrue(PosixServiceMenuService.IsLocalFileSystemTarget(fx.Home));
+			Assert.IsTrue(PosixServiceMenuService.IsLocalFileSystemTarget(archive));
+			Assert.IsFalse(PosixServiceMenuService.IsLocalFileSystemTarget(archive + "/file.png"));
+			Assert.IsFalse(PosixServiceMenuService.IsLocalFileSystemTarget(fx.Home + "/missing.png"));
+			Assert.IsFalse(PosixServiceMenuService.IsLocalFileSystemTarget("/" + file));
 		}
 
 		[TestMethod]
@@ -162,7 +162,7 @@ namespace Files.Platform.Tests.Mime
 		[DataRow("Shell:RecycleBinFolder")]
 		[DataRow("file:///tmp/file.png")]
 		[DataRow("/tmp/file\0.png")]
-		public void LocalTargets_RejectVirtualAndInvalidPaths(string? path) => Assert.IsFalse(LinuxServiceMenuService.IsLocalFileSystemTarget(path));
+		public void LocalTargets_RejectVirtualAndInvalidPaths(string? path) => Assert.IsFalse(PosixServiceMenuService.IsLocalFileSystemTarget(path));
 
 		[TestMethod]
 		public async Task Scan_UserOverridesSystem_AndFindsOldDirectories_AndOrdersPriority()
@@ -210,7 +210,7 @@ namespace Files.Platform.Tests.Mime
 			try
 			{
 				var logger = new MenuLogger();
-				var service = new LinuxServiceMenuService(fx.Directories, new LinuxMimeTypeService(fx.Directories, CultureInfo.InvariantCulture),
+				var service = new PosixServiceMenuService(fx.Directories, new LinuxMimeTypeService(fx.Directories, CultureInfo.InvariantCulture),
 					CultureInfo.GetCultureInfo("fr-FR"), logger);
 				var actions = await service.GetActionsAsync(["/a.png"]);
 				Assert.AreEqual(1, actions.Count);
@@ -242,7 +242,7 @@ namespace Files.Platform.Tests.Mime
 			var original = fx.Write("home/original.desktop", Text());
 			File.CreateSymbolicLink(Path.Combine(fx.DataHome, "kio/servicemenus/link.desktop"), original);
 			Assert.AreEqual(0, (await Service(fx).GetActionsAsync(["/a.png"])).Count);
-			Assert.AreEqual(0, (await Service(fx).GetActionsAsync(Enumerable.Repeat("/a.png", LinuxServiceMenuService.MaxSelection + 1).ToArray())).Count);
+			Assert.AreEqual(0, (await Service(fx).GetActionsAsync(Enumerable.Repeat("/a.png", PosixServiceMenuService.MaxSelection + 1).ToArray())).Count);
 		}
 
 		[TestMethod]
@@ -250,11 +250,11 @@ namespace Files.Platform.Tests.Mime
 		{
 			using var fx = new XdgFixture();
 			fx.Write("usr-share/mime/globs2", "50:image/png:*.png\n");
-			for (var i = 0; i < LinuxServiceMenuService.MaxActions + 5; i++)
+			for (var i = 0; i < PosixServiceMenuService.MaxActions + 5; i++)
 				fx.Write($"data/kio/servicemenus/{i}.desktop", Text());
-			Assert.AreEqual(LinuxServiceMenuService.MaxActions, (await Service(fx).GetActionsAsync(["/a.png"])).Count);
+			Assert.AreEqual(PosixServiceMenuService.MaxActions, (await Service(fx).GetActionsAsync(["/a.png"])).Count);
 			Directory.Delete(Path.Combine(fx.DataHome, "kio/servicemenus"), true);
-			for (var i = 0; i < LinuxServiceMenuService.MaxScannedFiles + 1; i++)
+			for (var i = 0; i < PosixServiceMenuService.MaxScannedFiles + 1; i++)
 				fx.Write($"data/kio/servicemenus/{i}.desktop", "invalid");
 			fx.Write("usr-share/kio/servicemenus/valid.desktop", Text());
 			Assert.AreEqual(0, (await Service(fx).GetActionsAsync(["/a.png"])).Count);
@@ -384,7 +384,7 @@ namespace Files.Platform.Tests.Mime
 			using var fx = new XdgFixture();
 			foreach (var name in new[] { "10-rootactions-folders", "11-rootactions-files", "com.mitchellh.ghostty", "converseen_import", "installfont", "konsolerun", "mat2" })
 				fx.Write("data/kio/servicemenus/" + name + ".desktop", Fixture(name));
-			var service = new LinuxServiceMenuService(fx.Directories, new LinuxMimeTypeService(fx.Directories, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+			var service = new PosixServiceMenuService(fx.Directories, new LinuxMimeTypeService(fx.Directories, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
 			var folders = await service.GetActionsAsync([fx.Home]);
 			var rootFolders = folders.Where(a => a.Submenu == "Root Actions").ToArray();
 			Assert.AreEqual(11, rootFolders.Length);
@@ -471,7 +471,7 @@ namespace Files.Platform.Tests.Mime
 			Assert.IsFalse(menu.Matches(["/a.png", "/b.png"], ["image/png", "image/png"], hierarchy));
 		}
 
-		private sealed class MenuLogger : ILogger<LinuxServiceMenuService>
+		private sealed class MenuLogger : ILogger<PosixServiceMenuService>
 		{
 			public List<(Exception? Exception, string Message)> Warnings { get; } = [];
 			public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;

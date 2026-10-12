@@ -141,7 +141,7 @@ namespace Files.Platform.Linux.Elevation
 	/// <summary>Resolves privileged tools only through root-controlled system paths, never PATH.</summary>
 	public sealed class SystemToolResolver : ITrustedToolResolver
 	{
-		public const string DeploymentPath = "/etc/linuxfiles/root-actions";
+		public const string DeploymentPath = "/etc/desktopfiles/root-actions";
 		private static readonly HashSet<string> Allowed = new(StringComparer.Ordinal) { "run0", "sudo", "pkexec" };
 		private static readonly string[] Directories = ["/run/wrappers/bin", "/run/current-system/sw/bin", "/usr/bin", "/bin"];
 		private readonly ElevationPathChecker checker;
@@ -191,7 +191,7 @@ namespace Files.Platform.Linux.Elevation
 				var helper = lines[0];
 				var policy = lines[1];
 				if (!IsStorePath(helper) || !IsStorePath(policy)
-					|| !helper.EndsWith("/lib/linuxfiles/elevation-helper/files-elevation-helper", StringComparison.Ordinal)
+					|| !helper.EndsWith("/lib/desktopfiles/elevation-helper/files-elevation-helper", StringComparison.Ordinal)
 					|| !policy.EndsWith("/share/polkit-1/actions/io.github.memergamer.LinuxFiles.root-actions.policy", StringComparison.Ordinal)
 					|| ResolveRootOwned(helper) != helper || ResolveRootOwned(policy) != policy
 					|| !checker.Inspector.TryGetInfo(helper, out var info) || (info.Mode & UnixFileMode.UserExecute) == 0)

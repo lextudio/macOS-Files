@@ -409,3 +409,7 @@ FodyWeavers.xsd
 
 # Shared opt-in Linux publish analysis profile
 !src/Files.App/Properties/PublishProfiles/linux-analysis.pubxml
+
+# macOS packaging output (scripts/macos/pack-app.sh)
+/dist/
+*.dmg

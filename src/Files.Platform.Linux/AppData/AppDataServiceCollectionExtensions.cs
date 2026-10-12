@@ -12,14 +12,13 @@ namespace Files.Platform.Linux
 	public static class AppDataServiceCollectionExtensions
 	{
 		/// <summary>
-		/// Registers app data paths, user directories and the local settings store.
+		/// Registers app data paths and user directories (the settings store is registered by AddPosixPlatform).
 		/// </summary>
 		public static IServiceCollection AddLinuxAppData(this IServiceCollection services)
 		{
 			return services
 				.AddSingleton<IAppDataPaths, LinuxAppDataPaths>()
-				.AddSingleton<IUserDirectories, LinuxUserDirectories>()
-				.AddSingleton<ILocalSettingsStore>(sp => new LinuxLocalSettingsStore(sp.GetRequiredService<IAppDataPaths>()));
+				.AddSingleton<IUserDirectories, LinuxUserDirectories>();
 		}
 	}
 }

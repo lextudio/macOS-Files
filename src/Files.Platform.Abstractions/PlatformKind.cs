@@ -13,5 +13,8 @@ namespace Files.Platform.Abstractions
 
 		/// <summary>Linux.</summary>
 		Linux,
+
+		/// <summary>Apple macOS.</summary>
+		MacOS,
 	}
 }

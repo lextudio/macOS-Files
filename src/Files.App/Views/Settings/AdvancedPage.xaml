@@ -137,13 +137,13 @@
 
 			<!--  Use Files as default file manager (Linux: FileManager1)  -->
 			<wctcontrols:SettingsCard
-				Description="{helpers:ResourceString Key=SettingsLinuxDefaultFileManagerDescription}"
-				Header="{helpers:ResourceString Key=SettingsLinuxDefaultFileManager}"
+				Description="{helpers:ResourceString Key=SettingsDesktopDefaultFileManagerDescription}"
+				Header="{helpers:ResourceString Key=SettingsDesktopDefaultFileManager}"
 				Visibility="{x:Bind ViewModel.LinuxOnlyVisibility}">
 				<wctcontrols:SettingsCard.HeaderIcon>
 					<FontIcon Glyph="&#xEC50;" />
 				</wctcontrols:SettingsCard.HeaderIcon>
-				<ToggleSwitch AutomationProperties.Name="{helpers:ResourceString Key=SettingsLinuxDefaultFileManager}" IsOn="{x:Bind ViewModel.UseAsDefaultFileManager, Mode=TwoWay}" />
+				<ToggleSwitch AutomationProperties.Name="{helpers:ResourceString Key=SettingsDesktopDefaultFileManager}" IsOn="{x:Bind ViewModel.UseAsDefaultFileManager, Mode=TwoWay}" />
 			</wctcontrols:SettingsCard>
 
 			<!--  Replace Open File Dialog  -->

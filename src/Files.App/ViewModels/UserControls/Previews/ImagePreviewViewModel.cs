@@ -49,7 +49,7 @@ namespace Files.App.ViewModels.Previews
 						throw new InvalidOperationException("The image is too large to preview.");
 					using var timeout = CancellationTokenSource.CreateLinkedTokenSource(LoadCancelledTokenSource.Token);
 					timeout.CancelAfter(TimeSpan.FromSeconds(5));
-					using var stream = new Files.Platform.Linux.Previews.PreviewReadStream(source, MaxImageFileBytes, timeout.Token);
+					using var stream = new Files.Platform.Posix.Previews.PreviewReadStream(source, MaxImageFileBytes, timeout.Token);
 					using var buffer = new MemoryStream();
 					await stream.CopyToAsync(buffer, timeout.Token);
 					var bytes = buffer.ToArray();

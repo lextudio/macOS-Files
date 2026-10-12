@@ -2150,16 +2150,16 @@ namespace Files.App.ViewModels
 				case 3:
 					PageTypeUpdated?.Invoke(this, new PageTypeUpdatedEventArgs() { IsTypeCloudDrive = false, IsTypeGitRepository = IsValidGitDirectory });
 					if (!HasNoWatcher)
-						WatchForLinuxFolderChanges(path);
+						WatchForDesktopFolderChanges(path);
 					if (IsValidGitDirectory)
-						WatchForLinuxRepositoryChanges();
+						WatchForDesktopRepositoryChanges();
 					break;
 
 				// Trash listed through IStorageTrashBinService (Linux)
 				case 4:
 					PageTypeUpdated?.Invoke(this, new PageTypeUpdatedEventArgs() { IsTypeCloudDrive = false, IsTypeRecycleBin = true });
 					if (!HasNoWatcher)
-						WatchForLinuxTrashChanges();
+						WatchForDesktopTrashChanges();
 					break;
 
 				// Archive listed through IStorableResolver (Linux); read-only, so no watcher
@@ -2190,7 +2190,7 @@ namespace Files.App.ViewModels
 
 			watcher?.Dispose();
 			watcher = null;
-			CloseLinuxWatcher();
+			CloseDesktopWatcher();
 
 			aProcessQueueAction = null;
 			gitProcessQueueAction = null;
@@ -2202,7 +2202,7 @@ namespace Files.App.ViewModels
 		{
 			enumeratedCloudSyncStatus = null;
 
-			return await EnumerateLinuxFolderAsync(path, cancellationToken, library);
+			return await EnumerateDesktopFolderAsync(path, cancellationToken, library);
 		}
 
 		private void CheckForSolutionFile()

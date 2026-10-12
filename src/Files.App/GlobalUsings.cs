@@ -74,7 +74,9 @@ global using global::OwlCore.Storage;
 // Files.Platform
 
 global using global::Files.Platform.Abstractions;
+#if !DESKTOP_MACOS
 global using global::Files.Platform.Linux;
+#endif
 
 // Files.App.Storage
 

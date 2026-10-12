@@ -615,7 +615,7 @@ namespace Files.App.Views.Layouts
 		protected bool TryHandleGroupedArrowKey(KeyRoutedEventArgs e)
 		{
 			if (e.Key is not (VirtualKey.Up or VirtualKey.Down or VirtualKey.Left or VirtualKey.Right) ||
-				!IsLinuxGrouped ||
+				!IsDesktopGrouped ||
 				ListViewBase.Items.Count == 0 ||
 				FocusManager.GetFocusedElement(MainWindow.Instance.Content.XamlRoot) is TextBox ||
 				InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down) ||
@@ -638,7 +638,7 @@ namespace Files.App.Views.Layouts
 				return true;
 			}
 
-			var panel = ListViewBase.ItemsPanelRoot as LinuxGroupedWrapPanel;
+			var panel = ListViewBase.ItemsPanelRoot as DesktopGroupedWrapPanel;
 			if (panel is null && e.Key is VirtualKey.Left or VirtualKey.Right)
 				return false;
 

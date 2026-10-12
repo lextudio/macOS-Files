@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.Trash;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.Trash
@@ -33,7 +33,7 @@ namespace Files.Platform.Tests.Trash
 				WriteFile(_home, "entry", "data");
 			var item = Single(await _service.TrashAsync([original])).Item!;
 			_service.Watcher.Dispose();
-			_service = CreateService(Uid, fileOperationsHooks: new LinuxFileOperationsHooks { RenameError = (_, _, _) => errno });
+			_service = CreateService(Uid, fileOperationsHooks: new PosixFileOperationsHooks { RenameError = (_, _, _) => errno });
 
 			var result = Single(await _service.RestoreAsync([item]));
 
@@ -79,7 +79,7 @@ namespace Files.Platform.Tests.Trash
 				Directory.CreateSymbolicLink(parent, outside);
 				Directory.Move(files, files + ".saved");
 				Directory.CreateSymbolicLink(files, outside);
-			}, fileOperationsHooks: new LinuxFileOperationsHooks
+			}, fileOperationsHooks: new PosixFileOperationsHooks
 			{
 				RenameError = (source, _, _) => source == Path.GetFileName(item.TrashedPath) ? 18 : copyRenameError,
 			});
@@ -111,7 +111,7 @@ namespace Files.Platform.Tests.Trash
 			var original = WriteFile(_home, "entry", "data");
 			var item = Single(await _service.TrashAsync([original])).Item!;
 			_service.Watcher.Dispose();
-			_service = CreateService(Uid, fileOperationsHooks: new LinuxFileOperationsHooks
+			_service = CreateService(Uid, fileOperationsHooks: new PosixFileOperationsHooks
 			{
 				RenameError = (source, _, _) => source == Path.GetFileName(item.TrashedPath) ? 18 : lateConflict ? null : 13,
 				TemporaryFileCreated = _ => { if (lateConflict) File.WriteAllText(original, "keep"); },
@@ -136,7 +136,7 @@ namespace Files.Platform.Tests.Trash
 			var item = Single(await _service.TrashAsync([original])).Item!;
 			using var cancellation = new CancellationTokenSource();
 			_service.Watcher.Dispose();
-			_service = CreateService(Uid, fileOperationsHooks: new LinuxFileOperationsHooks
+			_service = CreateService(Uid, fileOperationsHooks: new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => 18,
 				TemporaryFileCreated = _ => cancellation.Cancel(),

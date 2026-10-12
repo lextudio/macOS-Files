@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System.IO;
-using Files.Platform.Linux.Native;
+using Files.Platform.Posix.Native;
 
 namespace Files.App.Utils.Serialization.Implementation
 {

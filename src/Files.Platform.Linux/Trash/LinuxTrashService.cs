@@ -5,7 +5,7 @@
 #pragma warning disable CA1416
 
 using Files.Platform.Abstractions.Trash;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Files.Platform.Linux.Native;
 using System;
 using System.Collections.Generic;
@@ -491,7 +491,7 @@ namespace Files.Platform.Linux.Trash
 				if (!PosixNative.IsCrossDevice(errno))
 					throw PosixNative.CreateException(errno, destination);
 				var sourceStat = PosixNative.StatAt(files.Descriptor, name, item.TrashedPath);
-				var operations = new LinuxFileOperationsService(null, _options.FileOperationsHooks);
+				var operations = new PosixFileOperationsService(null, _options.FileOperationsHooks);
 				await operations.CopyRestoreEntryAsync(item.TrashedPath, destination, files, parent, cancellationToken).ConfigureAwait(false);
 				copiedSource = sourceStat;
 			}
