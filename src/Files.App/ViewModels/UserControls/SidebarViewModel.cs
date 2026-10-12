@@ -420,6 +420,12 @@ namespace Files.App.ViewModels.UserControls
 			items.Add(CreateMacOSLocationItem(GetComputerName(), Constants.UserEnvironmentPaths.MyComputerPath, "SidebariMac.icns"));
 			items.AddRange(drivesViewModel.Drives.Cast<DriveItem>());
 
+			// Connected iOS devices (iPad/iPhone) are listed like Finder; they cannot be browsed.
+			foreach (var device in Files.Platform.MacOS.MacOSDeviceEnumerator.Enumerate())
+			{
+				items.Add(CreateMacOSLocationItem(device.Name, "device:///" + device.Id, device.IsPhone ? "SidebariPhone.icns" : "SidebariPad.icns"));
+			}
+
 			var trash = LocationItem.Create<RecycleBinLocationItem>();
 			trash.Text = Strings.RecycleBin.GetLocalizedResource();
 			trash.Path = Constants.UserEnvironmentPaths.RecycleBinPath;
