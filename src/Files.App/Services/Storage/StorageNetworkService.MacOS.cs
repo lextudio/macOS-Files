@@ -20,7 +20,31 @@ namespace Files.App.Services
 		{
 		}
 
-		private IEnumerable<IFolder> GetPlatformNetworkItems() => [];
+		private IEnumerable<IFolder> GetPlatformNetworkItems()
+		{
+			// Servers discovered on the local network (Bonjour), like Finder's Network.
+			foreach (var server in Files.Platform.MacOS.MacOSNetworkDiscovery.DiscoverServers())
+			{
+				var item = new DriveItem
+				{
+					Text = server,
+					Path = $"smb://{server}",
+					DeviceID = server,
+					Type = DriveType.Network,
+					ItemType = NavigationControlItemType.Drive,
+				};
+
+				item.MenuOptions = new ContextMenuOptions
+				{
+					IsLocationItem = true,
+					ShowEjectDevice = false,
+					ShowShellItems = true,
+					ShowProperties = true,
+				};
+
+				yield return item;
+			}
+		}
 
 		/// <inheritdoc/>
 		public Task<NetworkAvailability?> GetNetworkAvailabilityAsync()
