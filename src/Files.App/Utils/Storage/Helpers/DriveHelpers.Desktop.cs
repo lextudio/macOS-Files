@@ -564,15 +564,20 @@ namespace Files.App.Utils.Storage
 		public static async Task<byte[]?> GetDriveIconAsync(Data.Items.DriveType? type, uint size)
 		{
 #if DESKTOP_MACOS
-			if (type is null)
+			// Finder's sidebar icons from the CoreTypes bundle (the ~/.Trash path only yields a generic
+			// document icon through NSWorkspace iconForFile:).
+			const string coreTypes = "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/";
+			var coreTypesIcon = type switch
 			{
-				// Finder's Trash icon from the CoreTypes bundle. The ~/.Trash path only yields a generic
-				// document icon through NSWorkspace iconForFile:, so use the system Trash resource.
-				const string trashIconPath = "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/TrashIcon.icns";
-				var trashIcon = Files.Platform.MacOS.MacOSFileIcon.ExtractImageFile(trashIconPath, (int)size);
-				if (trashIcon is not null)
-					return trashIcon;
-			}
+				null => "TrashIcon.icns",
+				Data.Items.DriveType.Removable => "SidebarRemovableDisk.icns",
+				Data.Items.DriveType.CDRom => "SidebarOpticalDisk.icns",
+				Data.Items.DriveType.Network => "SidebarNetwork.icns",
+				_ => "SidebarInternalDisk.icns",
+			};
+			var coreTypesImage = Files.Platform.MacOS.MacOSFileIcon.ExtractImageFile(coreTypes + coreTypesIcon, (int)size);
+			if (coreTypesImage is not null)
+				return coreTypesImage;
 #endif
 
 			string[] names = type switch

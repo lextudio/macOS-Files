@@ -132,7 +132,14 @@ namespace Files.App.Utils
 					return null;
 				}
 
-				var item = await DriveItem.CreateFromPropertiesAsync(res.Result!, volume?.Id ?? mount.MountPoint, info.Label, info.Type);
+				// Show the volume name, not a path; the macOS boot volume is "Macintosh HD".
+				var label = info.Label;
+				if (OperatingSystem.IsMacOS() && mount.MountPoint == "/")
+					label = volume?.Label is { Length: > 0 } rootLabel ? rootLabel : "Macintosh HD";
+				else if (string.IsNullOrWhiteSpace(label) || label.StartsWith('/'))
+					label = System.IO.Path.GetFileName(mount.MountPoint.TrimEnd('/'));
+
+				var item = await DriveItem.CreateFromPropertiesAsync(res.Result!, volume?.Id ?? mount.MountPoint, label, info.Type);
 				if (item.MenuOptions is { } options)
 					options.ShowUnmountDevice = volume is { IsRemovable: true };
 
