@@ -145,7 +145,17 @@ namespace Files.App.Data.Models
 		{
 			try
 			{
-				var result = await FileThumbnailHelper.GetIconAsync(
+				byte[]? result = null;
+#if DESKTOP_MACOS
+				// iCloud Drive uses Finder's sidebar cloud icon rather than a plain folder icon.
+				if (string.Equals(path, Constants.UserEnvironmentPaths.ICloudDrivePath, StringComparison.Ordinal))
+				{
+					result = Files.Platform.MacOS.MacOSFileIcon.ExtractImageFile(
+						"/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/SidebariCloud.icns",
+						(int)Constants.ShellIconSizes.Small);
+				}
+#endif
+				result ??= await FileThumbnailHelper.GetIconAsync(
 					path,
 					Constants.ShellIconSizes.Small,
 					isFolder,

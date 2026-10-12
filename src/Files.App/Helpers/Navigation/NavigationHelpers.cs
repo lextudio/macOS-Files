@@ -286,6 +286,12 @@ namespace Files.App.Helpers
 				if (!OperatingSystem.IsWindows())
 					iconSource = new FontIconSource { Glyph = "\uE74D" };
 			}
+			else if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ICloudDrivePath) &&
+				currentPath.Equals(Constants.UserEnvironmentPaths.ICloudDrivePath, StringComparison.OrdinalIgnoreCase))
+			{
+				tabLocationHeader = Strings.ICloudDrive.GetLocalizedResource();
+				iconSource = new FontIconSource { Glyph = "\uE753" };
+			}
 			else if (currentPath.Equals(Constants.UserEnvironmentPaths.MyComputerPath, StringComparison.OrdinalIgnoreCase))
 				tabLocationHeader = Strings.ThisPC.GetLocalizedResource();
 			else if (currentPath.Equals(Constants.UserEnvironmentPaths.NetworkFolderPath, StringComparison.OrdinalIgnoreCase))

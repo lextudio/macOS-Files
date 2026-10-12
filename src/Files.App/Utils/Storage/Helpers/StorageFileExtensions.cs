@@ -99,6 +99,26 @@ namespace Files.App.Utils.Storage
 			if (value.StartsWith(Constants.UserEnvironmentPaths.RecycleBinPath, StringComparison.Ordinal))
 				return [GetPathItem(Constants.UserEnvironmentPaths.RecycleBinPath, Constants.UserEnvironmentPaths.RecycleBinPath)];
 
+			// iCloud Drive is shown as a single location root, not its real path under ~/Library
+			if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ICloudDrivePath))
+			{
+				var iCloud = Constants.UserEnvironmentPaths.ICloudDrivePath;
+				if (value.Equals(iCloud, StringComparison.OrdinalIgnoreCase))
+					return [GetPathItem(iCloud, iCloud)];
+
+				if (value.StartsWith(iCloud + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+				{
+					var items = new List<PathBoxItem> { GetPathItem(iCloud, iCloud) };
+					var accumulated = iCloud;
+					foreach (var segment in value[(iCloud.Length + 1)..].Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries))
+					{
+						accumulated = Path.Combine(accumulated, segment);
+						items.Add(GetPathItem(segment, accumulated));
+					}
+					return items;
+				}
+			}
+
 			// POSIX paths start at the root directory, which the separator scan below would skip
 			if (value.StartsWith('/'))
 				pathBoxItems.Add(new PathBoxItem() { Title = "/", Path = "/", ChevronToolTip = string.Format(Strings.BreadcrumbBarChevronButtonToolTip.GetLocalizedResource(), "/") });
@@ -158,7 +178,8 @@ namespace Files.App.Utils.Storage
 					var path = item.Path!;
 					var folder = (await StorageHelpers.GetFolderAsync(path)).Result;
 
-					if (!string.IsNullOrEmpty(folder?.Name))
+					// iCloud Drive keeps its "iCloud Drive" title instead of the folder's real name.
+					if (!string.IsNullOrEmpty(folder?.Name) && !folder.Name.Equals("com~apple~CloudDocs", StringComparison.OrdinalIgnoreCase))
 						item.Title = folder.Name;
 				}
 
@@ -181,6 +202,12 @@ namespace Files.App.Utils.Storage
 			{
 				// Handle the recycle bin: use the localized folder name
 				title = Strings.RecycleBin.GetLocalizedResource();
+			}
+			else if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ICloudDrivePath) &&
+				(component.Equals(Constants.UserEnvironmentPaths.ICloudDrivePath, StringComparison.OrdinalIgnoreCase) ||
+				 component.Equals("com~apple~CloudDocs", StringComparison.OrdinalIgnoreCase)))
+			{
+				title = Strings.ICloudDrive.GetLocalizedResource();
 			}
 			else if (component.StartsWith(Constants.UserEnvironmentPaths.MyComputerPath, StringComparison.Ordinal))
 			{
