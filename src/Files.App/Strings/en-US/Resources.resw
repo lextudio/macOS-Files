@@ -5144,4 +5144,7 @@
   <data name="ICloudDrive" xml:space="preserve">
     <value>iCloud Drive</value>
   </data>
+  <data name="Applications" xml:space="preserve">
+    <value>Applications</value>
+  </data>
 </root>

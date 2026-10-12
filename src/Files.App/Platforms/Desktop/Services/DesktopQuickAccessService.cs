@@ -64,6 +64,14 @@ namespace Files.App.Services.Desktop
 					defaults.Add(Constants.UserEnvironmentPaths.ICloudDrivePath);
 				}
 
+				// Applications is a sidebar location on macOS
+				if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ApplicationsPath) &&
+					Directory.Exists(Constants.UserEnvironmentPaths.ApplicationsPath) &&
+					!defaults.Contains(Constants.UserEnvironmentPaths.ApplicationsPath))
+				{
+					defaults.Add(Constants.UserEnvironmentPaths.ApplicationsPath);
+				}
+
 				// The trash is pinned by default like on other desktops
 				var foundFolders = defaults.Count > 1 || defaults.Count == 1 && defaults[0] != Constants.UserEnvironmentPaths.RecycleBinPath;
 				defaults.Add(Constants.UserEnvironmentPaths.RecycleBinPath);

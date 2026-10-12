@@ -229,10 +229,13 @@ namespace Files.App.Utils
 				if (DisplayNameOverride is not null)
 					return DisplayNameOverride;
 
-				if (PrimaryItemAttribute == StorageItemTypes.File)
+				// macOS application bundles are folders but Finder hides the ".app" and shows the app icon.
+				var isAppBundle = itemNameRaw?.EndsWith(".app", StringComparison.OrdinalIgnoreCase) ?? false;
+				if (PrimaryItemAttribute == StorageItemTypes.File || isAppBundle)
 				{
 					var nameWithoutExtension = Path.GetFileNameWithoutExtension(itemNameRaw);
-					if (!string.IsNullOrEmpty(nameWithoutExtension) && !UserSettingsService.FoldersSettingsService.ShowFileExtensions)
+					if (!string.IsNullOrEmpty(nameWithoutExtension) &&
+						(isAppBundle || !UserSettingsService.FoldersSettingsService.ShowFileExtensions))
 					{
 						return nameWithoutExtension;
 					}

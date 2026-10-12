@@ -238,6 +238,11 @@ namespace Files.App
 				: string.Empty;
 
 			/// <summary>
+			/// The Applications folder, or an empty string when not on macOS.
+			/// </summary>
+			public static readonly string ApplicationsPath = OperatingSystem.IsMacOS() ? "/Applications" : string.Empty;
+
+			/// <summary>
 			/// Gets the localized display name for a well-known location that does not use its folder name,
 			/// or <see langword="null"/> when the path is not special.
 			/// </summary>
@@ -245,6 +250,9 @@ namespace Files.App
 			{
 				if (!string.IsNullOrEmpty(ICloudDrivePath) && string.Equals(path, ICloudDrivePath, StringComparison.Ordinal))
 					return Strings.ICloudDrive.GetLocalizedResource();
+
+				if (!string.IsNullOrEmpty(ApplicationsPath) && string.Equals(path, ApplicationsPath, StringComparison.Ordinal))
+					return Strings.Applications.GetLocalizedResource();
 
 				return null;
 			}
