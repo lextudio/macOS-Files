@@ -26,15 +26,14 @@ namespace Files.Platform.MacOS
 			{
 				foreach (var line in Browse(serviceType))
 				{
-					// "... Add 3 14 local. _smb._tcp. DXP4800PLUS-35F"
-					if (!line.Contains(" Add ", StringComparison.Ordinal))
+					// "... local. _smb._tcp. LeXtudio Mac mini"; the instance name is everything after
+					// the service type (it may contain spaces).
+					var marker = serviceType + ".";
+					var index = line.IndexOf(marker, StringComparison.Ordinal);
+					if (index < 0)
 						continue;
 
-					var fields = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-					if (fields.Length < 2)
-						continue;
-
-					var name = fields[^1];
+					var name = line[(index + marker.Length)..].Trim();
 					if (name.Length > 0 && !names.Contains(name))
 						names.Add(name);
 				}
