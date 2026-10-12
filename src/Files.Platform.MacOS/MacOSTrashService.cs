@@ -108,7 +108,7 @@ namespace Files.Platform.MacOS
 					var deleted = DateTimeOffset.Now;
 					var trashedPath = TrashViaFileManager(path) ?? await TrashViaMoveAsync(path, cancellationToken).ConfigureAwait(false);
 					var isDirectory = Directory.Exists(trashedPath);
-					var size = await SizeOfAsync(trashedPath, cancellationToken).ConfigureAwait(false);
+					var size = isDirectory ? 0 : FileLengthOrZero(trashedPath);
 					UpsertIndex(new TrashIndexEntry(trashedPath, path, deleted, size, isDirectory));
 
 					var item = new TrashItem(trashedPath, path, deleted, size, isDirectory, trashedPath);
@@ -124,7 +124,7 @@ namespace Files.Platform.MacOS
 		}
 
 		/// <inheritdoc/>
-		public async Task<IReadOnlyList<TrashItem>> ListAsync(CancellationToken cancellationToken = default)
+		public Task<IReadOnlyList<TrashItem>> ListAsync(CancellationToken cancellationToken = default)
 		{
 			var items = new List<TrashItem>();
 			var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -144,6 +144,8 @@ namespace Files.Platform.MacOS
 			}
 
 			// Items trashed by other apps: only visible with Full Disk Access; the original path is unknown.
+			// Their size is not computed here (it can be an arbitrarily large tree, and following symlinks
+			// could loop), which keeps listing cheap.
 			foreach (var entry in EnumerateTrash())
 			{
 				cancellationToken.ThrowIfCancellationRequested();
@@ -156,13 +158,13 @@ namespace Files.Platform.MacOS
 					entry,
 					name,
 					LastWrite(entry),
-					await SizeOfAsync(entry, cancellationToken).ConfigureAwait(false),
+					isDirectory ? 0 : FileLengthOrZero(entry),
 					isDirectory,
 					entry,
 					"The original location is unknown (trashed outside this app)."));
 			}
 
-			return items;
+			return Task.FromResult<IReadOnlyList<TrashItem>>(items);
 		}
 
 		/// <inheritdoc/>
@@ -263,8 +265,22 @@ namespace Files.Platform.MacOS
 		}
 
 		/// <inheritdoc/>
-		public async Task<bool> HasItemsAsync(CancellationToken cancellationToken = default)
-			=> (await ListAsync(cancellationToken).ConfigureAwait(false)).Count > 0;
+		public Task<bool> HasItemsAsync(CancellationToken cancellationToken = default)
+		{
+			foreach (var entry in LoadIndex())
+			{
+				if (File.Exists(entry.TrashedPath) || Directory.Exists(entry.TrashedPath))
+					return Task.FromResult(true);
+			}
+
+			foreach (var entry in EnumerateTrash())
+			{
+				if (Path.GetFileName(entry) is not (".DS_Store" or ".localized"))
+					return Task.FromResult(true);
+			}
+
+			return Task.FromResult(false);
+		}
 
 		/// <summary>
 		/// Moves <paramref name="path"/> to the trash with <c>NSFileManager -trashItemAtURL:resultingItemURL:error:</c>
@@ -502,29 +518,10 @@ namespace Files.Platform.MacOS
 			}
 		}
 
-		private static async Task<long> SizeOfAsync(string path, CancellationToken cancellationToken)
+		private static long FileLengthOrZero(string path)
 		{
-			try
-			{
-				if (File.Exists(path))
-					return new FileInfo(path).Length;
-
-				if (!Directory.Exists(path))
-					return 0;
-
-				long total = 0;
-				foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
-				{
-					cancellationToken.ThrowIfCancellationRequested();
-					try { total += new FileInfo(file).Length; }
-					catch (IOException) { }
-				}
-				return total;
-			}
-			catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-			{
-				return 0;
-			}
+			try { return new FileInfo(path).Length; }
+			catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return 0; }
 		}
 
 		private static DateTimeOffset LastWrite(string path)
