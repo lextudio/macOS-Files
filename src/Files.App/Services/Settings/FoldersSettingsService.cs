@@ -70,7 +70,7 @@ namespace Files.App.Services.Settings
 
 		public bool ShowDotFiles
 		{
-			get => Get(true);
+			get => Get(false);
 			set => Set(value);
 		}
 
