@@ -10,8 +10,9 @@ namespace Files.Platform.MacOS
 {
 	/// <summary>
 	/// Extracts a file/folder icon as PNG bytes through AppKit
-	/// (<c>[NSWorkspace sharedWorkspace] iconForFile:]</c>). This is the macOS equivalent of the shell
-	/// icon extraction: the OS returns the associated application/document icon for the path.
+	/// (<c>[NSWorkspace sharedWorkspace] iconForFile:]</c>), or a system image file such as an
+	/// <c>.icns</c> (<c>[[NSImage alloc] initWithContentsOfFile:]</c>). This is the macOS equivalent of
+	/// shell icon extraction: the OS returns the associated application/document icon for the path.
 	/// </summary>
 	public static unsafe partial class MacOSFileIcon
 	{
@@ -51,6 +52,16 @@ namespace Files.Platform.MacOS
 			return Cache.GetOrAdd((path, pixelSize), static key => ExtractCore(key.Path, key.Size));
 		}
 
+		/// <summary>Returns a system image file (for example an <c>.icns</c>) as PNG bytes, or null.</summary>
+		public static byte[]? ExtractImageFile(string imagePath, int pixelSize)
+		{
+			if (string.IsNullOrEmpty(imagePath))
+				return null;
+
+			pixelSize = Math.Clamp(pixelSize, 8, 1024);
+			return Cache.GetOrAdd(("\u0000img:" + imagePath, pixelSize), static key => ExtractImageCore(key.Path["\u0000img:".Length..], key.Size));
+		}
+
 		private static byte[]? ExtractCore(string path, int pixelSize)
 		{
 			if (!FrameworksLoaded)
@@ -60,9 +71,7 @@ namespace Files.Platform.MacOS
 			var nsPath = IntPtr.Zero;
 			try
 			{
-				var nsString = objc_getClass("NSString");
-				nsPath = Marshal.StringToCoTaskMemUTF8(path);
-				var pathString = MsgSend(nsString, Sel("stringWithUTF8String:"), nsPath);
+				var pathString = CreateNSString(path, ref nsPath);
 				if (pathString == IntPtr.Zero)
 					return null;
 
@@ -71,42 +80,7 @@ namespace Files.Platform.MacOS
 					return null;
 
 				var image = MsgSend(workspace, Sel("iconForFile:"), pathString);
-				if (image == IntPtr.Zero)
-					return null;
-
-				MsgSendSetSize(image, Sel("setSize:"), pixelSize, pixelSize);
-
-				var tiff = MsgSend(image, Sel("TIFFRepresentation"));
-				if (tiff == IntPtr.Zero)
-					return null;
-
-				var repClass = objc_getClass("NSBitmapImageRep");
-				var rep = MsgSend(repClass, Sel("alloc"));
-				if (rep == IntPtr.Zero)
-					return null;
-				try
-				{
-					rep = MsgSend(rep, Sel("initWithData:"), tiff);
-					if (rep == IntPtr.Zero)
-						return null;
-
-					var pngData = MsgSend2(rep, Sel("representationUsingType:properties:"), NsBitmapImageFileTypePng, IntPtr.Zero);
-					if (pngData == IntPtr.Zero)
-						return null;
-
-					var length = (long)MsgSend(pngData, Sel("length"));
-					var bytes = MsgSend(pngData, Sel("bytes"));
-					if (length <= 0 || bytes == IntPtr.Zero || length > int.MaxValue)
-						return null;
-
-					var result = new byte[length];
-					Marshal.Copy(bytes, result, 0, (int)length);
-					return ScalePng(result, pixelSize);
-				}
-				finally
-				{
-					MsgSend(rep, Sel("release"));
-				}
+				return RasterizeToPng(image, pixelSize);
 			}
 			catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
 			{
@@ -117,6 +91,85 @@ namespace Files.Platform.MacOS
 				if (nsPath != IntPtr.Zero)
 					Marshal.FreeCoTaskMem(nsPath);
 				objc_autoreleasePoolPop(pool);
+			}
+		}
+
+		private static byte[]? ExtractImageCore(string imagePath, int pixelSize)
+		{
+			if (!FrameworksLoaded)
+				return null;
+
+			var pool = objc_autoreleasePoolPush();
+			var nsPath = IntPtr.Zero;
+			try
+			{
+				var pathString = CreateNSString(imagePath, ref nsPath);
+				if (pathString == IntPtr.Zero)
+					return null;
+
+				var imageClass = objc_getClass("NSImage");
+				var image = MsgSend(imageClass, Sel("alloc"));
+				if (image == IntPtr.Zero)
+					return null;
+
+				image = MsgSend(image, Sel("initWithContentsOfFile:"), pathString);
+				return RasterizeToPng(image, pixelSize);
+			}
+			catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+			{
+				return null;
+			}
+			finally
+			{
+				if (nsPath != IntPtr.Zero)
+					Marshal.FreeCoTaskMem(nsPath);
+				objc_autoreleasePoolPop(pool);
+			}
+		}
+
+		private static IntPtr CreateNSString(string value, ref IntPtr buffer)
+		{
+			buffer = Marshal.StringToCoTaskMemUTF8(value);
+			return MsgSend(objc_getClass("NSString"), Sel("stringWithUTF8String:"), buffer);
+		}
+
+		private static byte[]? RasterizeToPng(IntPtr image, int pixelSize)
+		{
+			if (image == IntPtr.Zero)
+				return null;
+
+			MsgSendSetSize(image, Sel("setSize:"), pixelSize, pixelSize);
+
+			var tiff = MsgSend(image, Sel("TIFFRepresentation"));
+			if (tiff == IntPtr.Zero)
+				return null;
+
+			var rep = MsgSend(objc_getClass("NSBitmapImageRep"), Sel("alloc"));
+			if (rep == IntPtr.Zero)
+				return null;
+
+			try
+			{
+				rep = MsgSend(rep, Sel("initWithData:"), tiff);
+				if (rep == IntPtr.Zero)
+					return null;
+
+				var pngData = MsgSend2(rep, Sel("representationUsingType:properties:"), NsBitmapImageFileTypePng, IntPtr.Zero);
+				if (pngData == IntPtr.Zero)
+					return null;
+
+				var length = (long)MsgSend(pngData, Sel("length"));
+				var bytes = MsgSend(pngData, Sel("bytes"));
+				if (length <= 0 || bytes == IntPtr.Zero || length > int.MaxValue)
+					return null;
+
+				var result = new byte[length];
+				Marshal.Copy(bytes, result, 0, (int)length);
+				return ScalePng(result, pixelSize);
+			}
+			finally
+			{
+				MsgSend(rep, Sel("release"));
 			}
 		}
 

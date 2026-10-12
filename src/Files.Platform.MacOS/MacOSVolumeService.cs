@@ -128,10 +128,9 @@ namespace Files.Platform.MacOS
 				if (string.IsNullOrEmpty(mount))
 					continue;
 
-				// The APFS system volume group mounts several read-only system volumes; only the
-				// data/root volumes and anything under /Volumes are interesting to the user.
-				if (mount.StartsWith("/System/", StringComparison.Ordinal) ||
-					mount.StartsWith("/private/", StringComparison.Ordinal))
+				// Only the boot volume and user volumes mounted under /Volumes are user visible; skip
+				// devfs, the read-only APFS system volumes and other mounts the OS makes internally.
+				if (mount != "/" && !mount.StartsWith("/Volumes/", StringComparison.Ordinal))
 					continue;
 
 				var isReady = false;

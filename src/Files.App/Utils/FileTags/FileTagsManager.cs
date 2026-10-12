@@ -63,6 +63,32 @@ namespace Files.App.Utils.FileTags
 					}
 					DataChanged?.Invoke(SectionType.FileTag, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, tagItem));
 				}
+
+#if DESKTOP_MACOS
+				// Merge the tags Finder shows (FavoriteTagNames) so the section matches Finder's.
+				foreach (var (name, color) in Files.Platform.MacOS.MacOSFinderTags.ReadTags())
+				{
+					var path = FolderSearch.FormatTagQuery(name);
+					lock (fileTags)
+					{
+						if (fileTags.Any(x => x.Path == path))
+							continue;
+					}
+
+					var tagItem = new FileTagItem
+					{
+						Text = name,
+						Path = path,
+						FileTag = new TagViewModel(name, color, "finder:" + name),
+						MenuOptions = new ContextMenuOptions { IsLocationItem = true },
+					};
+
+					lock (fileTags)
+						fileTags.Add(tagItem);
+
+					DataChanged?.Invoke(SectionType.FileTag, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, tagItem));
+				}
+#endif
 			}
 			catch (Exception ex)
 			{

@@ -102,7 +102,7 @@ namespace Files.App.Data.Models
 				ShowEmptyRecycleBin = string.Equals(path, Constants.UserEnvironmentPaths.RecycleBinPath, StringComparison.OrdinalIgnoreCase)
 			};
 			locationItem.IsDefaultLocation = false;
-			locationItem.Text = libraryDisplayName ?? res?.Result?.DisplayName ?? Path.GetFileName(path.TrimEnd('\\'));
+			locationItem.Text = libraryDisplayName ?? Constants.UserEnvironmentPaths.GetSpecialDisplayName(path) ?? res?.Result?.DisplayName ?? Path.GetFileName(path.TrimEnd('\\'));
 
 			if (locationItem is RecycleBinLocationItem)
 			{

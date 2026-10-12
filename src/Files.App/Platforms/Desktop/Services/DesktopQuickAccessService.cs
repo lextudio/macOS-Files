@@ -56,6 +56,14 @@ namespace Files.App.Services.Desktop
 
 				defaults.AddRange(ReadGtkBookmarks().Where(p => !defaults.Contains(p)));
 
+				// iCloud Drive is a sidebar location on macOS
+				if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ICloudDrivePath) &&
+					Directory.Exists(Constants.UserEnvironmentPaths.ICloudDrivePath) &&
+					!defaults.Contains(Constants.UserEnvironmentPaths.ICloudDrivePath))
+				{
+					defaults.Add(Constants.UserEnvironmentPaths.ICloudDrivePath);
+				}
+
 				// The trash is pinned by default like on other desktops
 				var foundFolders = defaults.Count > 1 || defaults.Count == 1 && defaults[0] != Constants.UserEnvironmentPaths.RecycleBinPath;
 				defaults.Add(Constants.UserEnvironmentPaths.RecycleBinPath);
@@ -142,7 +150,8 @@ namespace Files.App.Services.Desktop
 			{
 				IsFolder = true,
 				FilePath = path,
-				FileName = path == Constants.UserEnvironmentPaths.RecycleBinPath ? Strings.RecycleBin.GetLocalizedResource() : Path.GetFileName(path.TrimEnd('/')),
+				FileName = Constants.UserEnvironmentPaths.GetSpecialDisplayName(path)
+					?? (path == Constants.UserEnvironmentPaths.RecycleBinPath ? Strings.RecycleBin.GetLocalizedResource() : Path.GetFileName(path.TrimEnd('/'))),
 				Properties = new() { ["System.Home.IsPinned"] = true }
 			}).ToList();
 

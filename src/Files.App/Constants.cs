@@ -223,6 +223,32 @@ namespace Files.App
 			// Virtual location of the freedesktop.org trash; listed through ITrashService
 			public const string RecycleBinPath = @"trash:///";
 
+			/// <summary>
+			/// Determines whether <paramref name="path"/> refers to the trash, tolerating both the
+			/// <c>trash:///</c> and normalized <c>trash:</c> forms.
+			/// </summary>
+			public static bool IsRecycleBinPath(string? path)
+				=> !string.IsNullOrEmpty(path) && path.StartsWith("trash:", StringComparison.OrdinalIgnoreCase);
+
+			/// <summary>
+			/// The iCloud Drive folder, or an empty string when not on macOS.
+			/// </summary>
+			public static readonly string ICloudDrivePath = OperatingSystem.IsMacOS()
+				? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Mobile Documents", "com~apple~CloudDocs")
+				: string.Empty;
+
+			/// <summary>
+			/// Gets the localized display name for a well-known location that does not use its folder name,
+			/// or <see langword="null"/> when the path is not special.
+			/// </summary>
+			public static string? GetSpecialDisplayName(string? path)
+			{
+				if (!string.IsNullOrEmpty(ICloudDrivePath) && string.Equals(path, ICloudDrivePath, StringComparison.Ordinal))
+					return Strings.ICloudDrive.GetLocalizedResource();
+
+				return null;
+			}
+
 			public const string NetworkFolderPath = @"Shell:NetworkPlacesFolder";
 
 			public const string MyComputerPath = @"Shell:MyComputerFolder";

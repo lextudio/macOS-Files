@@ -54,6 +54,16 @@ namespace Files.App.Utils
 			}
 
 			var mounts = await Task.Run(DriveHelpers.GetMounts).ConfigureAwait(false);
+
+			// macOS has no /proc/self/mountinfo, so GetMounts() is empty there; the mounted volumes
+			// (discovered with DriveInfo) are the drives instead.
+			if (mounts.Count == 0 && volumes.Count > 0)
+			{
+				mounts = volumes
+					.SelectMany(v => v.MountPoints.Select(mp => new DesktopMount(mp, v.FileSystem ?? string.Empty, v.Id, v.Id)))
+					.ToList();
+			}
+
 			var shown = new HashSet<string>(StringComparer.Ordinal);
 			foreach (var mount in mounts)
 			{

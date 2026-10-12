@@ -177,7 +177,7 @@ namespace Files.App.Utils.Storage
 		private static PathBoxItem GetPathItem(string component, string path)
 		{
 			var title = string.Empty;
-			if (component.StartsWith(Constants.UserEnvironmentPaths.RecycleBinPath, StringComparison.Ordinal))
+			if (Constants.UserEnvironmentPaths.IsRecycleBinPath(component))
 			{
 				// Handle the recycle bin: use the localized folder name
 				title = Strings.RecycleBin.GetLocalizedResource();

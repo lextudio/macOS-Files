@@ -280,10 +280,10 @@ namespace Files.App.Helpers
 				tabLocationHeader = Strings.Desktop.GetLocalizedResource();
 			else if (currentPath.Equals(Constants.UserEnvironmentPaths.DownloadsPath, StringComparison.OrdinalIgnoreCase))
 				tabLocationHeader = Strings.Downloads.GetLocalizedResource();
-			else if (currentPath.Equals(Constants.UserEnvironmentPaths.RecycleBinPath, StringComparison.OrdinalIgnoreCase))
+			else if (Constants.UserEnvironmentPaths.IsRecycleBinPath(currentPath))
 			{
 				tabLocationHeader = Strings.RecycleBin.GetLocalizedResource();
-				if (OperatingSystem.IsLinux())
+				if (!OperatingSystem.IsWindows())
 					iconSource = new FontIconSource { Glyph = "\uE74D" };
 			}
 			else if (currentPath.Equals(Constants.UserEnvironmentPaths.MyComputerPath, StringComparison.OrdinalIgnoreCase))

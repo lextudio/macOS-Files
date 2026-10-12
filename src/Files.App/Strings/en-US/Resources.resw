@@ -3115,7 +3115,7 @@
     <value>This PC</value>
   </data>
   <data name="RecycleBin" xml:space="preserve">
-    <value>Recycle Bin</value>
+    <value>Trash</value>
   </data>
   <data name="Untagged" xml:space="preserve">
     <value>Untagged</value>
@@ -5140,5 +5140,8 @@
   </data>
   <data name="RecycleBinAccessOpenSettings" xml:space="preserve">
     <value>Open System Settings</value>
+  </data>
+  <data name="ICloudDrive" xml:space="preserve">
+    <value>iCloud Drive</value>
   </data>
 </root>

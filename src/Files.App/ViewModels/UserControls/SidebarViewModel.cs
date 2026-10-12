@@ -595,7 +595,9 @@ namespace Files.App.ViewModels.UserControls
 					break;
 
 				case SectionType.Network:
-					if (!ShowNetworkSection)
+					// macOS mounts network shares under /Volumes, which the Drives section already lists,
+					// and has no network discovery, so the section would only repeat the Drives entries.
+					if (!ShowNetworkSection || OperatingSystem.IsMacOS())
 						break;
 					section = BuildSection(Strings.Network.GetLocalizedResource(), sectionType, new ContextMenuOptions { ShowHideSection = true }, false);
 					section.IsHeader = true;
