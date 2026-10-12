@@ -417,7 +417,8 @@ namespace Files.App.ViewModels.UserControls
 			}
 
 			// "Mac" is the computer (a This PC view); the boot volume itself appears as "Macintosh HD".
-			items.Add(CreateMacOSLocationItem(GetComputerName(), Constants.UserEnvironmentPaths.MyComputerPath, "SidebariMac.icns"));
+			// "Mac" opens the Home page, which already lists the drives and network locations.
+			items.Add(CreateMacOSLocationItem(GetComputerName(), "Home", "SidebariMac.icns"));
 			items.AddRange(drivesViewModel.Drives.Cast<DriveItem>());
 
 			// Connected iOS devices (iPad/iPhone) are listed like Finder; they cannot be browsed.
