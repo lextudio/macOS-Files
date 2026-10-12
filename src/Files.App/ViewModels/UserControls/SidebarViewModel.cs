@@ -407,7 +407,8 @@ namespace Files.App.ViewModels.UserControls
 #if DESKTOP_MACOS
 			var items = new List<INavigationControlItem>
 			{
-				CreateMacOSLocationItem(Strings.Home.GetLocalizedResource(), "Home", "SidebarHomeFolder.icns"),
+				// The user's home: labelled with the user name and opening the real home directory.
+				CreateMacOSLocationItem(Environment.UserName, Constants.UserEnvironmentPaths.HomePath, "SidebarHomeFolder.icns"),
 			};
 
 			if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ICloudDrivePath) &&
