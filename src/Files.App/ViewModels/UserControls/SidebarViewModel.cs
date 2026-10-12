@@ -416,7 +416,8 @@ namespace Files.App.ViewModels.UserControls
 				items.Add(CreateMacOSLocationItem(Strings.ICloudDrive.GetLocalizedResource(), Constants.UserEnvironmentPaths.ICloudDrivePath, "SidebariCloud.icns"));
 			}
 
-			items.Add(CreateMacOSLocationItem(GetComputerName(), "/", "SidebariMac.icns"));
+			// "Mac" is the computer (a This PC view); the boot volume itself appears as "Macintosh HD".
+			items.Add(CreateMacOSLocationItem(GetComputerName(), Constants.UserEnvironmentPaths.MyComputerPath, "SidebariMac.icns"));
 			items.AddRange(drivesViewModel.Drives.Cast<DriveItem>());
 
 			var trash = LocationItem.Create<RecycleBinLocationItem>();

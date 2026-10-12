@@ -153,7 +153,9 @@ namespace Files.Platform.MacOS
 				{
 					try
 					{
-						label = string.IsNullOrEmpty(drive.VolumeLabel) ? null : drive.VolumeLabel;
+						// On macOS .NET returns the mount path from VolumeLabel, not the volume name.
+						var volumeLabel = drive.VolumeLabel;
+						label = !string.IsNullOrEmpty(volumeLabel) && !volumeLabel.StartsWith('/') ? volumeLabel : null;
 						fileSystem = string.IsNullOrEmpty(drive.DriveFormat) ? null : drive.DriveFormat;
 						size = (ulong)Math.Max(0, drive.TotalSize);
 					}
