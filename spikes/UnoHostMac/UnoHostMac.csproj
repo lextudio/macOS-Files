@@ -1,0 +1,21 @@
+<!--  Throwaway macOS spike (docs/linux-port/spikes.md). Not part of Files.slnx.  -->
+<Project Sdk="Uno.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>$(DesktopTargetFramework)</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <UnoSingleProject>true</UnoSingleProject>
+        <ApplicationTitle>UnoHostMac</ApplicationTitle>
+        <ApplicationId>com.files.unohostmac</ApplicationId>
+        <UnoFeatures>SkiaRenderer;</UnoFeatures>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <WarningsAsErrors></WarningsAsErrors>
+        <NoWarn>$(NoWarn);NU1507;NETSDK1201;PRI257</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="LeXtudio.DevFlow.Agent.Uno" />
+    </ItemGroup>
+
+</Project>

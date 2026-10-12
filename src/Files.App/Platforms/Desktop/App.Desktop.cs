@@ -21,6 +21,12 @@ namespace Files.App
 		{
 			UiDispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
+#if DESKTOP_MACOS
+			// Uno loads ms-appx fonts asynchronously; in Release the first layout can win the race and
+			// leave early FontIcons (nav bar, tab strip) as tofu boxes. Load them before any content.
+			await PreloadFontsAsync();
+#endif
+
 			// Constructed on the UI thread: the ctor subscribes the UI-thread-only Clipboard.ContentChanged
 			AppModel = new AppModel();
 
@@ -54,6 +60,10 @@ namespace Files.App
 
 				Logger.LogInformation("App launched (desktop).");
 
+#if DESKTOP_MACOS
+				DevFlowHost.Start();
+#endif
+
 				// Command line (paths, --select, -t, -n) of this process; later launches arrive through ISingleInstanceService
 				var launchOptions = Files.App.Utils.CommandLine.DesktopCommandLine.Parse(Program.LaunchArguments, Program.ConsumeLaunchCwd());
 				if (launchOptions.IsEmpty)
@@ -67,6 +77,7 @@ namespace Files.App
 			}
 		}
 
+#if !DESKTOP_MACOS
 		private void StartInstanceRequestListener()
 		{
 			var singleInstance = Program.SingleInstance;
@@ -91,6 +102,7 @@ namespace Files.App
 			};
 
 			// FileManager1 shares the single-instance guard above: root-mode and uid-0 processes never claim it.
+#if !DESKTOP_MACOS
 			_ = Task.Run(async () =>
 			{
 				try
@@ -118,7 +130,14 @@ namespace Files.App
 					Logger?.LogWarning(ex, "Could not set up the FileManager1 service.");
 				}
 			});
+#endif
 		}
+#else
+		// macOS single instance is handled by Launch Services; nothing to listen for.
+		private void StartInstanceRequestListener()
+		{
+		}
+#endif
 
 		private void Window_Activated(object sender, WindowActivatedEventArgs args)
 		{
@@ -152,5 +171,37 @@ namespace Files.App
 			FilePropertiesHelpers.DestroyCachedWindows();
 			FileOperationsHelpers.WaitForCompletion();
 		}
+
+#if DESKTOP_MACOS
+		/// <summary>
+		/// Preloads the bundled fonts Uno resolves from <c>ms-appx:///</c> so the Fluent icon glyphs and
+		/// Selawik are ready before the first layout (avoids the Release font-loading race).
+		/// </summary>
+		private static async Task PreloadFontsAsync()
+		{
+			string[] fontUris =
+			[
+				"ms-appx:///Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf#Symbols",
+				"ms-appx:///Assets/Fonts/Linux/selawk.ttf#Selawik",
+			];
+
+			foreach (var uri in fontUris)
+			{
+				try
+				{
+					var family = new Microsoft.UI.Xaml.Media.FontFamily(uri);
+					await Uno.UI.Xaml.Media.FontFamilyHelper.PreloadAsync(
+						family,
+						Microsoft.UI.Text.FontWeights.Normal,
+						Windows.UI.Text.FontStretch.Normal,
+						Windows.UI.Text.FontStyle.Normal);
+				}
+				catch (Exception ex)
+				{
+					Console.Error.WriteLine($"[Files] Font preload failed for {uri}: {ex.Message}");
+				}
+			}
+		}
+#endif
 	}
 }

@@ -315,9 +315,13 @@ namespace Files.App.Helpers
 
 			services
 					// Platform services
+#if DESKTOP_MACOS
+					.AddMacOSPlatform()
+#else
 					.AddLinuxPlatform()
 					.AddSingleton<Files.Platform.Linux.Instance.LinuxSingleInstanceService>(_ => Program.SingleInstance ?? new Files.Platform.Linux.Instance.LinuxSingleInstanceService())
 					.AddLinuxSystemIntegration()
+#endif
 					// Settings services
 					.AddSingleton<IUserSettingsService, UserSettingsService>()
 					.AddSingleton<IAppearanceSettingsService, AppearanceSettingsService>(sp => new AppearanceSettingsService(((UserSettingsService)sp.GetRequiredService<IUserSettingsService>()).GetSharingContext()))

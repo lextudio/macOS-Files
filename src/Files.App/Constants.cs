@@ -208,15 +208,16 @@ namespace Files.App
 
 		public static class UserEnvironmentPaths
 		{
-			private static readonly Files.Platform.Linux.LinuxUserDirectories _userDirectories = new();
+			public static readonly string DesktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
-			public static readonly string DesktopPath = _userDirectories.Desktop;
+			public static readonly string DownloadsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
 
-			public static readonly string DownloadsPath = _userDirectories.Downloads;
-
-			public static readonly string LocalAppDataPath = Environment.GetEnvironmentVariable("XDG_DATA_HOME") is { Length: > 0 } dataHome && System.IO.Path.IsPathRooted(dataHome)
-				? dataHome
-				: System.IO.Path.Combine(_userDirectories.Home, ".local", "share");
+			// macOS: ~/Library/Application Support; Linux: XDG data home (~/.local/share)
+			public static readonly string LocalAppDataPath = OperatingSystem.IsMacOS()
+				? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support")
+				: Environment.GetEnvironmentVariable("XDG_DATA_HOME") is { Length: > 0 } dataHome && System.IO.Path.IsPathRooted(dataHome)
+					? dataHome
+					: System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
 
 			// Currently is the command to open the folder from cmd ("cmd /c start Shell:RecycleBinFolder")
 			// Virtual location of the freedesktop.org trash; listed through ITrashService

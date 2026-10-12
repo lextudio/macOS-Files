@@ -25,9 +25,15 @@ namespace Files.App.Utils.Storage
 				? Math.Max(1u, (uint)Math.Round(scaledSize))
 				: _standardSizes.FirstOrDefault(s => s >= scaledSize, _standardSizes[^1]);
 
+#if DESKTOP_MACOS
+			// macOS thumbnails (Skia/Quick Look) and NSWorkspace icons accept the actual pixel size.
+			size = Math.Clamp((uint)Math.Ceiling(scaledSize), 1u, 1024u);
+			return await MacOSIconHelper.GetIconAsync(path, size, isFolder, iconOptions, cancellationToken);
+#else
 			// Linux theme SVGs and thumbnailers accept the actual pixel size, including HiDPI cells above 256px.
 			size = Math.Clamp((uint)Math.Ceiling(scaledSize), 1u, 1024u);
 			return await LinuxIconHelper.GetIconAsync(path, size, isFolder, iconOptions, cancellationToken);
+#endif
 		}
 
 		/// <summary>
@@ -39,9 +45,14 @@ namespace Files.App.Utils.Storage
 		public static async Task<byte[]?> GetIconOverlayAsync(string? path, uint requestedSize, bool isFolder)
 		{
 			// Overlays render at 32px in thumbnail layouts and 16px in details/columns; scale by DPI so the badge isn't upscaled at fractional scaling
+#if DESKTOP_MACOS
+			var overlaySize = (requestedSize >= 48 ? 32u : 16u) * App.AppModel.AppWindowDPI;
+			return await MacOSIconHelper.GetOverlayAsync(path, (uint)overlaySize);
+#else
 			// Only the symlink emblem exists on Linux; cloud/sync status has no freedesktop equivalent
 			var overlaySize = (requestedSize >= 48 ? 32u : 16u) * App.AppModel.AppWindowDPI;
 			return await LinuxIconHelper.GetOverlayAsync(path, (uint)overlaySize);
+#endif
 		}
 
 		[Obsolete]

@@ -77,6 +77,9 @@ global using global::Files.Platform.Abstractions;
 #if !DESKTOP_MACOS
 global using global::Files.Platform.Linux;
 #endif
+#if DESKTOP_MACOS
+global using global::Files.Platform.MacOS;
+#endif
 
 // Files.App.Storage
 

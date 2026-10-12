@@ -13,7 +13,7 @@ using Uno.UI.Hosting;
 namespace Files.App
 {
 	/// <summary>
-	/// Represents the entry point of the Files app on Uno Platform (Skia desktop, X11).
+	/// Represents the entry point of the Files app on Uno Platform (Skia desktop, X11 / macOS).
 	/// Replaces <c>Program.cs</c>, which is built for Windows only (WinAppSDK AppInstance redirection).
 	/// </summary>
 	internal sealed class Program
@@ -52,6 +52,35 @@ namespace Files.App
 
 			LaunchArguments = args;
 
+#if HAS_UNO_SKIA_MACOS
+			// Uno resolves ms-appx:/// resources (fonts, assets) against the process working directory. A
+			// bundle launched from Finder/Dock has an arbitrary cwd, so run from the bundle directory;
+			// relative command-line paths keep using the captured launch cwd.
+			Environment.CurrentDirectory = AppContext.BaseDirectory;
+
+			// Register the bundled fonts with CoreText so the Fluent icon glyphs and Selawik are available
+			// before the first layout (avoids a Release-time font-loading race that renders tofu boxes).
+			Files.Platform.MacOS.MacOSFontRegistration.Register(System.IO.Path.Combine(AppContext.BaseDirectory, "Uno.Fonts.Fluent", "Fonts", "uno-fluentui-assets.ttf"));
+			Files.Platform.MacOS.MacOSFontRegistration.Register(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "Linux", "selawk.ttf"));
+
+			// macOS (AppKit) head. macOS owns windows, the menu bar and fonts, so none of the X11
+			// startup work (root mode, fontconfig, display scaling, cursor theme, renderer probing) applies.
+			var host = UnoPlatformHostBuilder.Create()
+				.App(() => new App())
+				.UseMacOS()
+				.Build();
+
+			try
+			{
+				host.Run();
+			}
+			finally
+			{
+				FileTagsHelper.DrainPendingWritesAsync().GetAwaiter().GetResult();
+			}
+
+			return 0;
+#else
 			try
 			{
 				RootStartupEnvironment.Apply();
@@ -132,6 +161,7 @@ namespace Files.App
 			SingleInstance?.DisposeAsync().AsTask().GetAwaiter().GetResult();
 
 			return 0;
+#endif
 		}
 	}
 }

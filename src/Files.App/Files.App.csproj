@@ -93,11 +93,26 @@
         <ProjectReference Include="..\Files.App.UnoVirtualization\Files.App.UnoVirtualization.csproj" />
     </ItemGroup>
 
-    <!--  Desktop rendering backend: X11  -->
+    <!--  Desktop rendering backend: X11 on Linux, AppKit on macOS  -->
     <ItemGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)' And '$(FilesDesktopOS)' != 'macOS'">
         <PackageReference Include="Uno.WinUI.Runtime.Skia.X11" />
     </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)' And '$(FilesDesktopOS)' == 'macOS'">
+        <PackageReference Include="Uno.WinUI.Runtime.Skia.MacOS" />
+    </ItemGroup>
 
+    <ItemGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)' And '$(FilesDesktopOS)' == 'macOS'">
+        <ProjectReference Include="..\Files.Platform.MacOS\Files.Platform.MacOS.csproj" />
+        <PackageReference Include="LeXtudio.DevFlow.Agent.Uno" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)' And '$(FilesDesktopOS)' == 'macOS'">
+        <DefineConstants>$(DefineConstants);DESKTOP_MACOS</DefineConstants>
+        <!--  DevFlow's Core and Uno packages both ship the same CliclickSharp helper at publish time.  -->
+        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+        <!--  Uno's Skia font/asset resolution is not trim-safe: trimming drops it and icon glyphs render as tofu.  -->
+        <PublishTrimmed>false</PublishTrimmed>
+    </PropertyGroup>
     <ItemGroup Condition="'$(TargetFramework)' == '$(DesktopTargetFramework)' And '$(FilesDesktopOS)' != 'macOS'">
         <ProjectReference Include="..\Files.Platform.Linux\Files.Platform.Linux.csproj" />
     </ItemGroup>

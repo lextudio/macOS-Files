@@ -17,6 +17,7 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Triggers" Version="8.2.251219" />
     <PackageVersion Include="DiscUtils.Udf" Version="0.16.13" />
     <PackageVersion Include="FluentFTP" Version="55.0.0" />
+    <PackageVersion Include="LeXtudio.DevFlow.Agent.Uno" Version="0.3.0" />
     <PackageVersion Include="LibGit2Sharp" Version="0.999.32" />
     <PackageVersion Include="MessageFormat" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.12" />
@@ -29,6 +30,8 @@
     <PackageVersion Include="Svg.Skia" Version="3.7.0" />
     <PackageVersion Include="Tmds.DBus.Protocol" Version="0.92.0" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="3.119.0" />
+    <PackageVersion Include="SevenZipSharp" Version="1.0.3" />
     <PackageVersion Include="SharpZipLib" Version="1.4.2" />
     <PackageVersion Include="SharpCompress" Version="1.0.0" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
@@ -36,6 +39,7 @@
     <PackageVersion Include="Krafs.Publicizer" Version="2.3.0" />
     <PackageVersion Include="Uno.WinUI" Version="6.7.135" />
     <PackageVersion Include="Uno.WinUI.Runtime.Skia.X11" Version="6.7.135" />
+    <PackageVersion Include="Uno.WinUI.Runtime.Skia.MacOS" Version="6.7.135" />
     <PackageVersion Include="Uno.Microsoft.Xaml.Behaviors.WinUI.Managed" Version="2.4.2" />
     <PackageVersion Include="UTF.Unknown" Version="2.7.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
