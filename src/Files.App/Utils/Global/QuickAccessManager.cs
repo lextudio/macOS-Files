@@ -56,7 +56,10 @@ namespace Files.App.Utils
 			PinnedItemsModified += Model.LoadAsync;
 			await Model.LoadAsync();
 
-			if (!Model.PinnedFolders.Contains(Constants.UserEnvironmentPaths.RecycleBinPath) && AppLifecycleHelper.IsFirstRun)
+			// On macOS the Trash lives in the Locations section, not Pinned.
+			if (!OperatingSystem.IsMacOS() &&
+				!Model.PinnedFolders.Contains(Constants.UserEnvironmentPaths.RecycleBinPath) &&
+				AppLifecycleHelper.IsFirstRun)
 				await QuickAccessService.PinToSidebarAsync(Constants.UserEnvironmentPaths.RecycleBinPath);
 		}
 	}

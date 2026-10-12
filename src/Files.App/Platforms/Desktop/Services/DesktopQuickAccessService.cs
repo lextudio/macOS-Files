@@ -56,15 +56,7 @@ namespace Files.App.Services.Desktop
 
 				defaults.AddRange(ReadGtkBookmarks().Where(p => !defaults.Contains(p)));
 
-				// iCloud Drive is a sidebar location on macOS
-				if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ICloudDrivePath) &&
-					Directory.Exists(Constants.UserEnvironmentPaths.ICloudDrivePath) &&
-					!defaults.Contains(Constants.UserEnvironmentPaths.ICloudDrivePath))
-				{
-					defaults.Add(Constants.UserEnvironmentPaths.ICloudDrivePath);
-				}
-
-				// Applications is a sidebar location on macOS
+				// Applications is pinned on macOS (Finder shows it in the sidebar)
 				if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ApplicationsPath) &&
 					Directory.Exists(Constants.UserEnvironmentPaths.ApplicationsPath) &&
 					!defaults.Contains(Constants.UserEnvironmentPaths.ApplicationsPath))
@@ -72,9 +64,10 @@ namespace Files.App.Services.Desktop
 					defaults.Add(Constants.UserEnvironmentPaths.ApplicationsPath);
 				}
 
-				// The trash is pinned by default like on other desktops
+				// The trash is pinned by default like on other desktops; on macOS it lives in Locations
 				var foundFolders = defaults.Count > 1 || defaults.Count == 1 && defaults[0] != Constants.UserEnvironmentPaths.RecycleBinPath;
-				defaults.Add(Constants.UserEnvironmentPaths.RecycleBinPath);
+				if (!OperatingSystem.IsMacOS())
+					defaults.Add(Constants.UserEnvironmentPaths.RecycleBinPath);
 
 				// Persist only a real seed, so a first run that could not see the user folders retries next launch.
 				if (foundFolders)

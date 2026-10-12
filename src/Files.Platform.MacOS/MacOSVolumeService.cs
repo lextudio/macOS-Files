@@ -133,6 +133,15 @@ namespace Files.Platform.MacOS
 				if (mount != "/" && !mount.StartsWith("/Volumes/", StringComparison.Ordinal))
 					continue;
 
+				// Skip TimeMachine and other hidden internal volumes.
+				if (mount.Contains("/.timemachine", StringComparison.Ordinal) ||
+					mount.Contains("com.apple.TimeMachine", StringComparison.Ordinal) ||
+					mount.Contains("Backups.backupdb", StringComparison.Ordinal) ||
+					Path.GetFileName(mount.TrimEnd('/')).StartsWith('.'))
+				{
+					continue;
+				}
+
 				var isReady = false;
 				try { isReady = drive.IsReady; }
 				catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }

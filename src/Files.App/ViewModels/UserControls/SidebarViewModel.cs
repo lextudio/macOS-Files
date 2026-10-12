@@ -386,7 +386,7 @@ namespace Files.App.ViewModels.UserControls
 				{
 					SectionType.Pinned => App.QuickAccessManager.Model.PinnedFolderItems,
 					SectionType.CloudDrives => CloudDrivesManager.Drives,
-					SectionType.Drives => drivesViewModel.Drives.Cast<DriveItem>().ToList().AsReadOnly(),
+					SectionType.Drives => GetDrivesSectionItems(),
 					SectionType.Network => NetworkService.Computers.Cast<DriveItem>().ToList().AsReadOnly(),
 					SectionType.WSL => WSLDistroManager.Distros,
 					SectionType.Library => App.LibraryManager.Libraries,
@@ -398,6 +398,101 @@ namespace Files.App.ViewModels.UserControls
 		}
 
 		private void Manager_DataChangedForDrives(object? sender, NotifyCollectionChangedEventArgs e) => Manager_DataChanged(SectionType.Drives, e);
+
+		/// <summary>
+		/// On macOS the "Drives" section is Finder's "Locations": Home, iCloud Drive, the Mac, volumes and Trash.
+		/// </summary>
+		private IReadOnlyList<INavigationControlItem> GetDrivesSectionItems()
+		{
+#if DESKTOP_MACOS
+			var items = new List<INavigationControlItem>
+			{
+				CreateMacOSLocationItem(Strings.Home.GetLocalizedResource(), "Home", "SidebarHomeFolder.icns"),
+			};
+
+			if (!string.IsNullOrEmpty(Constants.UserEnvironmentPaths.ICloudDrivePath) &&
+				System.IO.Directory.Exists(Constants.UserEnvironmentPaths.ICloudDrivePath))
+			{
+				items.Add(CreateMacOSLocationItem(Strings.ICloudDrive.GetLocalizedResource(), Constants.UserEnvironmentPaths.ICloudDrivePath, "SidebariCloud.icns"));
+			}
+
+			items.Add(CreateMacOSLocationItem(GetComputerName(), "/", "SidebariMac.icns"));
+			items.AddRange(drivesViewModel.Drives.Cast<DriveItem>());
+
+			var trash = LocationItem.Create<RecycleBinLocationItem>();
+			trash.Text = Strings.RecycleBin.GetLocalizedResource();
+			trash.Path = Constants.UserEnvironmentPaths.RecycleBinPath;
+			trash.Section = SectionType.Drives;
+			trash.MenuOptions = new ContextMenuOptions { IsLocationItem = true };
+			var trashIcon = Files.Platform.MacOS.MacOSFileIcon.ExtractImageFile(
+				"/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/TrashIcon.icns",
+				(int)Constants.ShellIconSizes.Small);
+			if (trashIcon is not null)
+			{
+				trash.IconData = trashIcon;
+				_ = SetLocationIconAsync(trash, trashIcon);
+			}
+			items.Add(trash);
+
+			return items;
+#else
+			return drivesViewModel.Drives.Cast<DriveItem>().ToList().AsReadOnly();
+#endif
+		}
+
+#if DESKTOP_MACOS
+		private LocationItem CreateMacOSLocationItem(string text, string path, string iconFile)
+		{
+			var item = LocationItem.Create<LocationItem>();
+			item.Text = text;
+			item.Path = path;
+			item.Section = SectionType.Drives;
+			item.MenuOptions = new ContextMenuOptions { IsLocationItem = true };
+
+			var data = Files.Platform.MacOS.MacOSFileIcon.ExtractImageFile(
+				"/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/" + iconFile,
+				(int)Constants.ShellIconSizes.Small);
+			if (data is not null)
+			{
+				item.IconData = data;
+				_ = SetLocationIconAsync(item, data);
+			}
+
+			return item;
+		}
+
+		private static async Task SetLocationIconAsync(LocationItem item, byte[] data)
+		{
+			try { item.Icon = await data.ToBitmapAsync(); }
+			catch (Exception) { }
+		}
+
+		private static string GetComputerName()
+		{
+			try
+			{
+				var startInfo = new System.Diagnostics.ProcessStartInfo("/usr/sbin/scutil")
+				{
+					RedirectStandardOutput = true,
+					UseShellExecute = false,
+				};
+				startInfo.ArgumentList.Add("--get");
+				startInfo.ArgumentList.Add("ComputerName");
+
+				using var process = System.Diagnostics.Process.Start(startInfo);
+				if (process is not null)
+				{
+					var name = process.StandardOutput.ReadToEnd().Trim();
+					process.WaitForExit(1000);
+					if (!string.IsNullOrEmpty(name))
+						return name;
+				}
+			}
+			catch (Exception) { }
+
+			return Environment.MachineName;
+		}
+#endif
 
 		private void Manager_DataChangedForNetworkComputers(object? sender, NotifyCollectionChangedEventArgs e) => Manager_DataChanged(SectionType.Network, e);
 
@@ -536,6 +631,9 @@ namespace Files.App.ViewModels.UserControls
 		{
 			if (parentSection == SectionType.Pinned || child is not IExpandableSidebarFolder expandable)
 				return;
+			// The macOS "Locations" section (Drives) is a flat list like Pinned, not an expandable tree.
+			if (parentSection == SectionType.Drives && OperatingSystem.IsMacOS())
+				return;
 			if (string.IsNullOrEmpty(child.Path) || !System.IO.Path.IsPathRooted(child.Path))
 				return;
 
@@ -583,7 +681,10 @@ namespace Files.App.ViewModels.UserControls
 				case SectionType.Drives:
 					if (ShowDrivesSection == false)
 						break;
-					section = BuildSection(Strings.Drives.GetLocalizedResource(), sectionType, new ContextMenuOptions { ShowHideSection = true }, false);
+					// On macOS this section is Finder's "Locations" (Home, iCloud Drive, Mac, volumes, Trash).
+					section = BuildSection(
+						OperatingSystem.IsMacOS() ? Strings.Locations.GetLocalizedResource() : Strings.Drives.GetLocalizedResource(),
+						sectionType, new ContextMenuOptions { ShowHideSection = true }, false);
 					section.IsHeader = true;
 					break;
 
