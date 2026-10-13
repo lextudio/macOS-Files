@@ -721,7 +721,7 @@ namespace Files.App.Views.Shells
 
 						var isNetwork = path.StartsWith("\\\\", StringComparison.Ordinal);
 						var isFtp = FtpHelpers.IsFtpPath(path);
-						var separator = isFtp ? "/" : "\\";
+						var separator = isFtp ? "/" : System.IO.Path.DirectorySeparatorChar.ToString();
 
 						// Get previous dir name
 						if (e.PreviousDirectory.StartsWith(separator))
