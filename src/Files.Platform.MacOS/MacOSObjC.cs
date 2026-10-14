@@ -92,6 +92,29 @@ namespace Files.Platform.MacOS
 			return utf8 == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(utf8);
 		}
 
+		/// <summary>Returns the currently key (or, failing that, main or first) <c>NSWindow</c>, or <see cref="IntPtr.Zero"/>.</summary>
+		public static IntPtr GetKeyOrMainWindow()
+		{
+			var application = Msg(Class("NSApplication"), Sel("sharedApplication"));
+			if (application == IntPtr.Zero)
+				return IntPtr.Zero;
+
+			var window = Msg(application, Sel("keyWindow"));
+			if (window == IntPtr.Zero)
+				window = Msg(application, Sel("mainWindow"));
+
+			return window != IntPtr.Zero ? window : GetFirstWindow(application);
+		}
+
+		private static IntPtr GetFirstWindow(IntPtr application)
+		{
+			var windows = Msg(application, Sel("windows"));
+			if (windows == IntPtr.Zero || MsgUInt(windows, Sel("count")) == 0)
+				return IntPtr.Zero;
+
+			return Msg(windows, Sel("objectAtIndex:"), IntPtr.Zero);
+		}
+
 		public static IntPtr AutoreleasePoolPush() => objc_autoreleasePoolPush();
 
 		public static void AutoreleasePoolPop(IntPtr pool) => objc_autoreleasePoolPop(pool);

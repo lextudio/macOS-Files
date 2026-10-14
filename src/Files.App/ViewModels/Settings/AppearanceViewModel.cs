@@ -127,7 +127,7 @@ namespace Files.App.ViewModels.Settings
 			];
 
 			BackdropMaterialTypes.Add(BackdropMaterialType.Solid, Strings.None.GetLocalizedResource());
-			if (OperatingSystem.IsWindows())
+			if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS())
 			{
 				BackdropMaterialTypes.Add(BackdropMaterialType.Acrylic, Strings.Acrylic.GetLocalizedResource());
 				BackdropMaterialTypes.Add(BackdropMaterialType.ThinAcrylic, Strings.ThinAcrylic.GetLocalizedResource());

@@ -7,8 +7,8 @@ using Files.Platform.Abstractions.Appearance;
 namespace Files.Platform.MacOS
 {
 	/// <summary>
-	/// <see cref="IAppearanceSupport"/> for macOS: windows are opaque (no compositor alpha / material),
-	/// so the backdrop is always solid.
+	/// Reports compositor opacity support for macOS. Uno's built-in SystemBackdrop materials are
+	/// applied by the XAML runtime; this service only resolves the app's separate opacity/blur mode.
 	/// </summary>
 	public sealed class MacOSAppearanceSupport : IAppearanceSupport
 	{

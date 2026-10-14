@@ -72,7 +72,7 @@ namespace Files.App.UserControls.TabBar
 		public TabBar()
 		{
 			InitializeComponent();
-			if (OperatingSystem.IsLinux())
+			if (!OperatingSystem.IsWindows())
 			{
 				Loaded += (_, _) => InitializeCaptionButtons();
 				SizeChanged += (_, _) => UpdateTitleBarInsets();
@@ -501,6 +501,16 @@ namespace Files.App.UserControls.TabBar
 				}
 				return;
 			}
+			if (OperatingSystem.IsMacOS())
+			{
+				// The TabView template draws its own bottom line under the complete TabStripHeader.
+				// Keep that template line and reserve a spacer in the header for native traffic lights.
+				var trafficLightInset = MainWindow.Instance.UseClientSideDecorations ? 78 : 0;
+				TrafficLightSpacerColumn.Width = new GridLength(trafficLightInset);
+				RightPaddingColumn.Width = new(8);
+				return;
+			}
+
 			var titleBarInset = ((AppLanguageHelper.IsPreferredLanguageRtl
 				? MainWindow.Instance.AppWindow.TitleBar.LeftInset
 				: MainWindow.Instance.AppWindow.TitleBar.RightInset) / DragAreaRectangle.XamlRoot.RasterizationScale) + 40;

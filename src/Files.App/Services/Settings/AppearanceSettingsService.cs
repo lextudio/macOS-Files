@@ -128,7 +128,9 @@ namespace Files.App.Services.Settings
 		/// <inheritdoc/>
 		public BackdropMaterialType AppThemeBackdropMaterial
 		{
-			get => OperatingSystem.IsLinux() ? BackdropMaterialType.Solid : Get(BackdropMaterialType.MicaAlt);
+			get => OperatingSystem.IsLinux()
+				? BackdropMaterialType.Solid
+				: Get(OperatingSystem.IsMacOS() ? BackdropMaterialType.Mica : BackdropMaterialType.MicaAlt);
 			set
 			{
 				if (!OperatingSystem.IsLinux())

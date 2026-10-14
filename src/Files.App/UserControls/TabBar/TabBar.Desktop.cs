@@ -12,7 +12,9 @@ namespace Files.App.UserControls.TabBar
 	{
 		private void InitializeCaptionButtons()
 		{
-			if (!OperatingSystem.IsLinux())
+			// Linux draws its own caption buttons; macOS keeps the native traffic lights but still
+			// needs the chrome initialized (content extended under the title bar).
+			if (OperatingSystem.IsWindows())
 				return;
 
 			MainWindow.Instance.InitializeChrome();

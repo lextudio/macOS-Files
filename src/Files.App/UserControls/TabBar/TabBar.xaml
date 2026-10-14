@@ -84,17 +84,24 @@
 
 			<!--  Header  -->
 			<TabView.TabStripHeader>
-				<Button
-					Width="30"
-					Height="30"
-					Margin="4,0,-2,0"
-					Padding="0"
-					VerticalAlignment="Center"
-					AutomationProperties.Name="{helpers:ResourceString Key=TabActions}"
-					Background="Transparent"
-					BorderThickness="0"
-					ToolTipService.ToolTip="{helpers:ResourceString Key=TabActions}"
-					Visibility="{x:Bind ShowTabActionsButton, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition x:Name="TrafficLightSpacerColumn" Width="0" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+					<Button
+						Grid.Column="1"
+						x:Name="TabActionsButton"
+						Width="30"
+						Height="30"
+						Margin="4,0,-2,0"
+						Padding="0"
+						VerticalAlignment="Center"
+						AutomationProperties.Name="{helpers:ResourceString Key=TabActions}"
+						Background="Transparent"
+						BorderThickness="0"
+						ToolTipService.ToolTip="{helpers:ResourceString Key=TabActions}"
+						Visibility="{x:Bind ShowTabActionsButton, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
 
 					<controls:ThemedIcon
 						Width="16"
@@ -191,7 +198,8 @@
 						</MenuFlyout>
 					</Button.Flyout>
 
-				</Button>
+					</Button>
+				</Grid>
 			</TabView.TabStripHeader>
 
 			<!--  Item Template  -->

@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
+using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -25,6 +26,7 @@ namespace Files.App
 
 		private bool CanWindowToFront { get; set; } = true;
 		private readonly Lock _canWindowToFrontLock = new();
+		private IUserSettingsService? _macBackdropSettingsService;
 		private bool _isWindowIconInitialized;
 
 		protected override bool PersistPlacement => true;
@@ -33,7 +35,8 @@ namespace Files.App
 		{
 			InitializeComponent();
 
-			ExtendsContentIntoTitleBar = UseClientSideDecorations;
+			// macOS extends the content under the native title bar through AppKit instead (see MainWindow.MacOS.cs).
+			ExtendsContentIntoTitleBar = UseClientSideDecorations && !OperatingSystem.IsMacOS();
 			Title = OperatingSystem.IsLinux() ? Strings.DesktopAppDisplayName.GetLocalizedResource() : "Files";
 			Title = FormatRootModeTitle(Title);
 			AppWindow.TitleBar.ButtonBackgroundColor = Colors.Transparent;
@@ -302,13 +305,9 @@ namespace Files.App
 					Ioc.Default.GetRequiredService<IAppThemeModeService>().SetAppThemeMode(this, callThemeModeChangedEvent: false);
 				}
 
-				if (SystemBackdrop is null)
-				{
-					// Initialize the active material directly instead of transitioning from its inactive fallback.
-					var backdrop = new AppSystemBackdrop();
-					backdrop.SetInputActive(true);
-					SystemBackdrop = backdrop;
-				}
+				SystemBackdrop ??= CreateWindowBackdrop();
+				if (OperatingSystem.IsMacOS())
+					InitializeChrome();
 
 				return rootFrame;
 			}
@@ -437,8 +436,69 @@ namespace Files.App
 		/// </summary>
 		internal Frame? EnsureRootFrame()
 		{
-			SystemBackdrop ??= new AppSystemBackdrop();
+			SystemBackdrop ??= CreateWindowBackdrop();
 			return EnsureWindowIsInitialized();
+		}
+
+		/// <summary>
+		/// Creates the window backdrop. Uno's macOS runtime only creates a native
+		/// <c>NSVisualEffectView</c> for the built-in <c>MicaBackdrop</c>/<c>DesktopAcrylicBackdrop</c>
+		/// types (see <c>MacOSWindowWrapper.SetSystemBackdrop</c>), so the controller-based
+		/// <see cref="AppSystemBackdrop"/> is a no-op on macOS.
+		/// </summary>
+		private SystemBackdrop? CreateWindowBackdrop()
+		{
+			if (OperatingSystem.IsMacOS())
+			{
+				EnsureMacBackdropSettingsSubscription();
+				return CreateMacOSBackdrop();
+			}
+
+			// Initialize the active material directly instead of transitioning from its inactive fallback.
+			var backdrop = new AppSystemBackdrop();
+			backdrop.SetInputActive(true);
+			return backdrop;
+		}
+
+		private SystemBackdrop? CreateMacOSBackdrop()
+		{
+			var material = Ioc.Default.GetRequiredService<IUserSettingsService>().AppearanceSettingsService.AppThemeBackdropMaterial;
+			return material switch
+			{
+				BackdropMaterialType.Mica => new MicaBackdrop { Kind = MicaKind.Base },
+				BackdropMaterialType.MicaAlt => new MicaBackdrop { Kind = MicaKind.BaseAlt },
+				BackdropMaterialType.Acrylic or BackdropMaterialType.ThinAcrylic => new DesktopAcrylicBackdrop(),
+				_ => null,
+			};
+		}
+
+		private void EnsureMacBackdropSettingsSubscription()
+		{
+			if (_macBackdropSettingsService is not null)
+				return;
+
+			_macBackdropSettingsService = Ioc.Default.GetRequiredService<IUserSettingsService>();
+			_macBackdropSettingsService.OnSettingChangedEvent += OnMacBackdropSettingChanged;
+			Closed += OnMacWindowClosed;
+		}
+
+		private void OnMacBackdropSettingChanged(object? sender, SettingChangedEventArgs e)
+		{
+			if (e.SettingName != nameof(IAppearanceSettingsService.AppThemeBackdropMaterial))
+				return;
+
+			DispatcherQueue.TryEnqueue(() => SystemBackdrop = CreateMacOSBackdrop());
+		}
+
+		private void OnMacWindowClosed(object sender, WindowEventArgs e)
+		{
+			if (_macBackdropSettingsService is not null)
+			{
+				_macBackdropSettingsService.OnSettingChangedEvent -= OnMacBackdropSettingChanged;
+				_macBackdropSettingsService = null;
+			}
+
+			Closed -= OnMacWindowClosed;
 		}
 
 		private void BringToForeground()
