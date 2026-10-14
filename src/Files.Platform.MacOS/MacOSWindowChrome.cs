@@ -16,6 +16,8 @@ namespace Files.Platform.MacOS
 	{
 		private const ulong NSWindowStyleMaskFullSizeContentView = 1UL << 15;
 		private const long NSWindowTitleHidden = 1;
+		private const string NSAppearanceNameAqua = "NSAppearanceNameAqua";
+		private const string NSAppearanceNameDarkAqua = "NSAppearanceNameDarkAqua";
 
 		private IntPtr _window;
 		private bool _extended;
@@ -70,6 +72,30 @@ namespace Files.Platform.MacOS
 			try
 			{
 				MacOSObjC.MsgVoid(_window, MacOSObjC.Sel("setTitle:"), MacOSObjC.NSString(title));
+			}
+			finally
+			{
+				MacOSObjC.AutoreleasePoolPop(pool);
+			}
+		}
+
+		/// <summary>
+		/// Sets the application-wide <c>NSAppearance</c> so the title bar and the native backdrop
+		/// follow the app theme instead of the system appearance (Uno 6.7 never sets it, see
+		/// unoplatform/uno#24667).
+		/// </summary>
+		public void SetAppearance(bool dark)
+		{
+			var pool = MacOSObjC.AutoreleasePoolPush();
+			try
+			{
+				var application = MacOSObjC.Msg(MacOSObjC.Class("NSApplication"), MacOSObjC.Sel("sharedApplication"));
+				if (application == IntPtr.Zero)
+					return;
+
+				var name = MacOSObjC.NSString(dark ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua);
+				var appearance = MacOSObjC.Msg(MacOSObjC.Class("NSAppearance"), MacOSObjC.Sel("appearanceNamed:"), name);
+				MacOSObjC.MsgVoid(application, MacOSObjC.Sel("setAppearance:"), appearance);
 			}
 			finally
 			{

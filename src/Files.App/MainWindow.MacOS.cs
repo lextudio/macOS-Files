@@ -5,6 +5,7 @@
 using Files.Platform.Abstractions;
 using Files.Platform.MacOS;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
 
 namespace Files.App
 {
@@ -17,6 +18,7 @@ namespace Files.App
 	{
 		private MacOSWindowChrome? _macChrome;
 		private string? _macWindowTitle;
+		private bool _macAppearanceHooked;
 
 		/// <inheritdoc cref="MainWindow.Linux.cs"/>
 		public bool UseClientSideDecorations => OperatingSystem.IsMacOS() &&
@@ -43,8 +45,21 @@ namespace Files.App
 			SystemBackdrop = CreateMacOSBackdrop();
 			if (_macWindowTitle is not null)
 				_macChrome?.SetTitle(_macWindowTitle);
+			ApplyMacOSAppearance();
+			if (!_macAppearanceHooked && Content is FrameworkElement root)
+			{
+				_macAppearanceHooked = true;
+				root.ActualThemeChanged += (_, _) => ApplyMacOSAppearance();
+			}
 			ChromeChanged?.Invoke(this, EventArgs.Empty);
 		}
+
+		/// <summary>
+		/// Keeps the native <c>NSAppearance</c> in sync with the app theme so the title bar and the
+		/// backdrop material match the app rather than the system appearance.
+		/// </summary>
+		private void ApplyMacOSAppearance()
+			=> _macChrome?.SetAppearance((Content as FrameworkElement)?.ActualTheme == ElementTheme.Dark);
 
 		public void SetClientSideDecorations(bool enabled)
 		{

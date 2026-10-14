@@ -106,7 +106,7 @@ namespace Files.App.Services
 				return;
 			}
 #endif
-			Application.Current.Resources["App.Theme.BackgroundBrush"] = appThemeBackgroundColor;
+			SetBrushResource("App.Theme.BackgroundBrush", appThemeBackgroundColor);
 		}
 
 		/// <inheritdoc/>
@@ -119,10 +119,10 @@ namespace Files.App.Services
 				return;
 			}
 #endif
-			Application.Current.Resources["App.Theme.AddressBar.BackgroundBrush"] = appThemeAddressBarBackgroundColor;
+			SetBrushResource("App.Theme.AddressBar.BackgroundBrush", appThemeAddressBarBackgroundColor);
 
 			// Overrides the selected tab background to match the address bar
-			Application.Current.Resources["TabViewItemHeaderBackgroundSelected"] = appThemeAddressBarBackgroundColor;
+			SetBrushResource("TabViewItemHeaderBackgroundSelected", appThemeAddressBarBackgroundColor);
 		}
 
 		/// <inheritdoc/>
@@ -135,7 +135,7 @@ namespace Files.App.Services
 				return;
 			}
 #endif
-			Application.Current.Resources["App.Theme.Toolbar.BackgroundBrush"] = appThemeToolbarBackgroundColor;
+			SetBrushResource("App.Theme.Toolbar.BackgroundBrush", appThemeToolbarBackgroundColor);
 		}
 
 		/// <inheritdoc/>
@@ -148,7 +148,7 @@ namespace Files.App.Services
 				return;
 			}
 #endif
-			Application.Current.Resources["App.Theme.Sidebar.BackgroundBrush"] = appThemeSidebarBackgroundColor;
+			SetBrushResource("App.Theme.Sidebar.BackgroundBrush", appThemeSidebarBackgroundColor);
 		}
 
 		/// <inheritdoc/>
@@ -161,7 +161,7 @@ namespace Files.App.Services
 				return;
 			}
 #endif
-			Application.Current.Resources["App.Theme.FileArea.BackgroundBrush"] = appThemeFileAreaBackgroundColor;
+			SetBrushResource("App.Theme.FileArea.BackgroundBrush", appThemeFileAreaBackgroundColor);
 		}
 
 		/// <inheritdoc/>
@@ -174,7 +174,7 @@ namespace Files.App.Services
 				return;
 			}
 #endif
-			Application.Current.Resources["App.Theme.FileArea.SecondaryBackgroundBrush"] = appThemeFileAreaSecondaryBackgroundColor;
+			SetBrushResource("App.Theme.FileArea.SecondaryBackgroundBrush", appThemeFileAreaSecondaryBackgroundColor);
 		}
 
 		/// <inheritdoc/>
@@ -187,7 +187,23 @@ namespace Files.App.Services
 				return;
 			}
 #endif
-			Application.Current.Resources["App.Theme.InfoPane.BackgroundBrush"] = appThemeInfoPaneBackgroundColor;
+			SetBrushResource("App.Theme.InfoPane.BackgroundBrush", appThemeInfoPaneBackgroundColor);
+		}
+
+		/// <summary>
+		/// Overrides a brush resource. WinUI converts a <see cref="Color"/> stored under a brush key, but Uno does
+		/// not, so on Uno the value is wrapped in a brush and a transparent colour restores the theme default.
+		/// </summary>
+		private static void SetBrushResource(string key, Color color)
+		{
+#if HAS_UNO
+			if (color.A == 0)
+				Application.Current.Resources.Remove(key);
+			else
+				Application.Current.Resources[key] = new Microsoft.UI.Xaml.Media.SolidColorBrush(color);
+#else
+			Application.Current.Resources[key] = color;
+#endif
 		}
 
 		/// <inheritdoc/>
