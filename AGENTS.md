@@ -20,6 +20,15 @@ dotnet build tests/Files.Platform.Tests
 dotnet test --project tests/Files.Platform.Tests/Files.Platform.Tests.csproj --no-build
 ```
 
+Use the .NET SDK at `/usr/local/share/dotnet` (11.0.100-rc.1). The 10.x SDKs
+(`/opt/homebrew/bin/dotnet`, `~/.dotnet`) do not run the `[GeneratedDependencyProperty]`
+source generator, so `Files.App.Controls` fails with ~118 `CS9248`/`CS0759`
+"partial property must have an implementation part" errors:
+
+```sh
+export PATH=/usr/local/share/dotnet:$PATH
+```
+
 Build affected projects first and run builds sequentially. Report checks performed and anything unverified. If the desktop toolchain is unavailable, use reference searches and state that the build was not run.
 
 Use `scripts/linux/headless-run.sh` for UI checks on a private display with a throwaway home. Do not launch against the user's display or alter their desktop settings. Clean up processes you start and never commit private home data or screenshots.

@@ -76,7 +76,7 @@ namespace Files.Platform.MacOS
 			return new SystemAppearance(isDark, null, ReadAccent(), new Dictionary<string, AppearanceColor>());
 		}
 
-		private static AppearanceColor? ReadAccent()
+		internal static AppearanceColor? ReadAccent()
 		{
 			var (raw, ran) = ReadDefault("AppleAccentColor");
 			if (!ran || !int.TryParse(raw?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
@@ -101,7 +101,7 @@ namespace Files.Platform.MacOS
 		/// Reads <c>defaults read -g &lt;key&gt;</c>. <c>ran</c> is false only when the process could not
 		/// run at all; a missing key is a successful run with a null value.
 		/// </summary>
-		private static (string? Output, bool Ran) ReadDefault(string key)
+		internal static (string? Output, bool Ran) ReadDefault(string key)
 		{
 			var startInfo = new ProcessStartInfo(DefaultsPath)
 			{

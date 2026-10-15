@@ -141,6 +141,18 @@ namespace Files.App.Data.Models
 			return null;
 		}
 
+		/// <summary>
+		/// Re-renders the pinned icons, for example when the window's focus changes the accent tint state.
+		/// </summary>
+		public async Task RefreshPinnedIconsAsync()
+		{
+			foreach (var item in PinnedFolderItems)
+			{
+				if (item is LocationItem location && !string.IsNullOrEmpty(location.Path))
+					await LoadIconForLocationItemAsync(location, location.Path);
+			}
+		}
+
 		private async Task LoadIconForLocationItemAsync(LocationItem locationItem, string path, bool isFolder = true)
 		{
 			try
@@ -148,7 +160,7 @@ namespace Files.App.Data.Models
 				byte[]? result = null;
 #if DESKTOP_MACOS
 				// Use Finder's sidebar icons for the well-known folders (Desktop, Downloads, Applications, ...).
-				result = Files.Platform.MacOS.MacOSSidebarIcons.Render(path, (int)Constants.ShellIconSizes.Small);
+				result = Files.Platform.MacOS.MacOSSidebarIcons.Render(path, Files.Platform.MacOS.MacOSSidebarAppearance.IconPixelSize);
 #endif
 				result ??= await FileThumbnailHelper.GetIconAsync(
 					path,

@@ -259,6 +259,9 @@ namespace Files.App.Utils.Storage
 		/// </summary>
 		public static async void EjectDeviceAsync(string path)
 		{
+			if (!TryBeginEject(path))
+				return;
+
 			try
 			{
 				if (await FindVolumeAsync(path) is { } volume && VolumeService is { } volumes)
@@ -290,6 +293,34 @@ namespace Files.App.Utils.Storage
 			{
 				App.Logger.LogWarning(ex, "Ejecting {Path} failed", path);
 			}
+			finally
+			{
+				EjectingPaths.Remove(path);
+			}
+		}
+
+		// Guards against the eject button being pressed again before the first eject finished (or immediately
+		// after a failed one): a double click would otherwise start two eject operations on the same device.
+		private static readonly HashSet<string> EjectingPaths = new(StringComparer.Ordinal);
+		private static readonly Dictionary<string, long> LastEjectTicks = new(StringComparer.Ordinal);
+		private const long EjectCooldownMs = 2000;
+
+		private static bool TryBeginEject(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+				return false;
+
+			// Eject is invoked from the UI thread, so the check/add pair does not need locking.
+			if (EjectingPaths.Contains(path))
+				return false;
+
+			var now = Environment.TickCount64;
+			if (LastEjectTicks.TryGetValue(path, out var last) && now - last < EjectCooldownMs)
+				return false;
+
+			EjectingPaths.Add(path);
+			LastEjectTicks[path] = now;
+			return true;
 		}
 
 		/// <summary>

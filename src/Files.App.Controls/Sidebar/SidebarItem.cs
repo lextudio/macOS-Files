@@ -146,6 +146,7 @@ namespace Files.App.Controls
 			ToolTip = presentation?.ToolTip;
 			Icon = presentation?.IconElement;
 			Decorator = presentation?.ItemDecorator;
+			IconSize = presentation?.IconSize ?? 16;
 			IsExpanded = Item?.IsExpanded ?? true;
 		}
 
@@ -235,6 +236,10 @@ namespace Files.App.Controls
 				case nameof(ISidebarItemPresentationModel.ItemDecorator):
 					if (UseItemPresentation)
 						Decorator = (Item as ISidebarItemPresentationModel)?.ItemDecorator;
+					break;
+				case nameof(ISidebarItemPresentationModel.IconSize):
+					if (UseItemPresentation)
+						IconSize = (Item as ISidebarItemPresentationModel)?.IconSize ?? 16;
 					break;
 				case nameof(ISidebarItemModel.IsExpanded):
 					if (UseItemPresentation)

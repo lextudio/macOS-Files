@@ -111,6 +111,14 @@ namespace Files.App.Controls
 		public static readonly DependencyProperty IconProperty =
 			DependencyProperty.Register(nameof(Icon), typeof(FrameworkElement), typeof(SidebarItem), new PropertyMetadata(null));
 
+		public int IconSize
+		{
+			get { return (int)GetValue(IconSizeProperty); }
+			set { SetValue(IconSizeProperty, value); }
+		}
+		public static readonly DependencyProperty IconSizeProperty =
+			DependencyProperty.Register(nameof(IconSize), typeof(int), typeof(SidebarItem), new PropertyMetadata(16, OnPropertyChanged));
+
 		public FrameworkElement? Decorator
 		{
 			[DynamicWindowsRuntimeCast(typeof(FrameworkElement))]

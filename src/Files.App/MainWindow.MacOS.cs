@@ -4,6 +4,7 @@
 #if !WINDOWS
 using Files.Platform.Abstractions;
 using Files.Platform.MacOS;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 
@@ -19,6 +20,8 @@ namespace Files.App
 		private MacOSWindowChrome? _macChrome;
 		private string? _macWindowTitle;
 		private bool _macAppearanceHooked;
+		private bool _macFocusHooked;
+		private bool _macSidebarTinted = true;
 
 		/// <inheritdoc cref="MainWindow.Linux.cs"/>
 		public bool UseClientSideDecorations => OperatingSystem.IsMacOS() &&
@@ -51,7 +54,41 @@ namespace Files.App
 				_macAppearanceHooked = true;
 				root.ActualThemeChanged += (_, _) => ApplyMacOSAppearance();
 			}
+			if (!_macFocusHooked)
+			{
+				_macFocusHooked = true;
+				Activated += OnMacWindowActivated;
+			}
 			ChromeChanged?.Invoke(this, EventArgs.Empty);
+		}
+
+		/// <summary>
+		/// The pinned sidebar icons are accent-tinted only while the window is focused; when it loses focus
+		/// they fall back to the plain template glyphs, matching how Finder dims its sidebar.
+		/// </summary>
+		private void OnMacWindowActivated(object sender, WindowActivatedEventArgs e)
+		{
+			// Uno raises this with Windows.UI.Core.CoreWindowActivationState; comparing by name avoids a
+			// dependency on that enum (which is absent from the Microsoft.UI.Xaml surface).
+			var tinted = !string.Equals(e.WindowActivationState.ToString(), "Deactivated", StringComparison.Ordinal);
+			if (_macSidebarTinted == tinted)
+				return;
+
+			_macSidebarTinted = tinted;
+			MacOSSidebarIcons.IsTinted = tinted;
+			_ = RefreshPinnedIconsAsync();
+		}
+
+		private static async Task RefreshPinnedIconsAsync()
+		{
+			try
+			{
+				await App.QuickAccessManager.Model.RefreshPinnedIconsAsync();
+			}
+			catch (Exception ex)
+			{
+				App.Logger.LogWarning(ex, "Refreshing the pinned sidebar icons failed");
+			}
 		}
 
 		/// <summary>

@@ -144,8 +144,8 @@
 								<ContentPresenter
 									x:Name="IconPresenter"
 									Grid.Column="3"
-									Width="16"
-									Height="16"
+									Width="{TemplateBinding IconSize}"
+									Height="{TemplateBinding IconSize}"
 									Margin="4,0,0,0"
 									HorizontalAlignment="Center"
 									VerticalAlignment="Center"

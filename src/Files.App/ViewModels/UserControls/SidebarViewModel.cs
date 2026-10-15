@@ -435,7 +435,7 @@ namespace Files.App.ViewModels.UserControls
 			trash.MenuOptions = new ContextMenuOptions { IsLocationItem = true };
 			var trashIcon = Files.Platform.MacOS.MacOSFileIcon.ExtractImageFile(
 				"/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/TrashIcon.icns",
-				(int)Constants.ShellIconSizes.Small);
+				Files.Platform.MacOS.MacOSSidebarAppearance.IconPixelSize);
 			if (trashIcon is not null)
 			{
 				trash.IconData = trashIcon;
@@ -460,7 +460,7 @@ namespace Files.App.ViewModels.UserControls
 
 			var data = Files.Platform.MacOS.MacOSFileIcon.ExtractImageFile(
 				"/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/" + iconFile,
-				(int)Constants.ShellIconSizes.Small);
+				Files.Platform.MacOS.MacOSSidebarAppearance.IconPixelSize);
 			if (data is not null)
 			{
 				item.IconData = data;

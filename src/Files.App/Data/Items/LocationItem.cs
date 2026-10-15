@@ -100,6 +100,13 @@ namespace Files.App.Data.Items
 
 		FrameworkElement? ISidebarItemPresentationModel.IconElement => IconElement;
 
+#if DESKTOP_MACOS
+		// macOS exposes the row's icon pixel size from the "Sidebar icon size" system setting.
+		int ISidebarItemPresentationModel.IconSize => MacOSSidebarAppearance.IconPixelSize;
+#else
+		int ISidebarItemPresentationModel.IconSize => 16;
+#endif
+
 		public bool SelectsOnInvoked { get; set; } = true;
 
 		// Shared by LocationItem + DriveItem. Enumerates off the UI thread, dispatches a single AddRange (one CollectionChanged event instead of N), paints with the cached generic folder icon, then upgrades per-path icons in the background. onLoaded runs on the UI thread alongside the AddRange so callers can flip their loaded/unrealized flags atomically with the visual update.

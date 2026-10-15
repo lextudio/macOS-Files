@@ -14,6 +14,12 @@ namespace Files.App.Controls
 		FrameworkElement? IconElement { get; }
 
 		FrameworkElement? ItemDecorator { get; }
+
+		/// <summary>
+		/// The size, in pixels, at which the row's icon is rendered. Defaults to 16. On macOS this
+		/// follows the "Sidebar icon size" setting from System Settings.
+		/// </summary>
+		int IconSize => 16;
 	}
 
 	public interface ISidebarItemModel : INotifyPropertyChanged
