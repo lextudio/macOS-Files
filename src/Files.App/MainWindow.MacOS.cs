@@ -21,6 +21,7 @@ namespace Files.App
 		private string? _macWindowTitle;
 		private bool _macAppearanceHooked;
 		private bool _macFocusHooked;
+		private bool _macCloseHooked;
 		private bool _macSidebarTinted = true;
 
 		/// <inheritdoc cref="MainWindow.Linux.cs"/>
@@ -59,7 +60,24 @@ namespace Files.App
 				_macFocusHooked = true;
 				Activated += OnMacWindowActivated;
 			}
+			if (!_macCloseHooked)
+			{
+				_macCloseHooked = true;
+				AppWindow.Closing += OnMacAppWindowClosing;
+			}
 			ChromeChanged?.Invoke(this, EventArgs.Empty);
+		}
+
+		/// <summary>
+		/// Closing the window from the traffic-light button (or Cmd+W) minimises it instead, so an
+		/// accidental close does not quit the app. Quitting from the Dock's Quit item terminates the
+		/// application directly and never raises <see cref="AppWindow.Closing"/>, so it still quits.
+		/// </summary>
+		private void OnMacAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+		{
+			args.Cancel = true;
+			if (AppWindow.Presenter is OverlappedPresenter presenter)
+				presenter.Minimize();
 		}
 
 		/// <summary>
