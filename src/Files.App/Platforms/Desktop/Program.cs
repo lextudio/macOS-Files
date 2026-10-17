@@ -63,6 +63,12 @@ namespace Files.App
 			Files.Platform.MacOS.MacOSFontRegistration.Register(System.IO.Path.Combine(AppContext.BaseDirectory, "Uno.Fonts.Fluent", "Fonts", "uno-fluentui-assets.ttf"));
 			Files.Platform.MacOS.MacOSFontRegistration.Register(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "Linux", "selawk.ttf"));
 
+			// Uno 6.8's Metal path presents its retained layer onto recycled drawables without clearing them, so
+			// areas that become transparent over the window backdrop (e.g. a closed tab) keep stale pixels that
+			// reappear as frames rotate. The software renderer has no drawable rotation. FILES_MAC_METAL=1 opts back in.
+			if (Environment.GetEnvironmentVariable("FILES_MAC_METAL") != "1")
+				Uno.UI.FeatureConfiguration.Rendering.UseMetalOnMacOS = false;
+
 			// macOS (AppKit) head. macOS owns windows, the menu bar and fonts, so none of the X11
 			// startup work (root mode, fontconfig, display scaling, cursor theme, renderer probing) applies.
 			var host = UnoPlatformHostBuilder.Create()

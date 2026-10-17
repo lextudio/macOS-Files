@@ -5,6 +5,7 @@
 using Files.Platform.Abstractions;
 using Files.Platform.MacOS;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 
@@ -23,6 +24,11 @@ namespace Files.App
 		private bool _macFocusHooked;
 		private bool _macCloseHooked;
 		private bool _macSidebarTinted = true;
+		private Windows.UI.Color _macBackgroundTint;
+		private DispatcherQueueTimer? _macBackdropTimer;
+
+		/// <summary>The NSVisualEffectView material used for Mica: the translucent title-bar material (Uno's default is near-opaque).</summary>
+		private const long MacMicaMaterial = 3;
 
 		/// <inheritdoc cref="MainWindow.Linux.cs"/>
 		public bool UseClientSideDecorations => OperatingSystem.IsMacOS() &&
@@ -66,6 +72,58 @@ namespace Files.App
 				AppWindow.Closing += OnMacAppWindowClosing;
 			}
 			ChromeChanged?.Invoke(this, EventArgs.Empty);
+			ApplyMacBackdropNative();
+		}
+
+		/// <summary>
+		/// Sets the theme background colour. With a backdrop it is drawn natively between the backdrop and the
+		/// content (see <see cref="MacOSWindowChrome.SetBackdropTint"/>); without one it stays a XAML brush.
+		/// </summary>
+		internal void SetMacBackgroundTint(Windows.UI.Color color)
+		{
+			_macBackgroundTint = color;
+			ApplyMacBackgroundTint();
+		}
+
+		private void ApplyMacBackgroundTint()
+		{
+			const string key = "App.Theme.BackgroundBrush";
+			var resources = Application.Current.Resources;
+			var native = SystemBackdrop is not null && _macChrome is not null;
+			if (native || _macBackgroundTint.A == 0)
+				resources.Remove(key);
+			else
+				resources[key] = new Microsoft.UI.Xaml.Media.SolidColorBrush(_macBackgroundTint);
+
+			var tint = native ? _macBackgroundTint : default;
+			_macChrome?.SetBackdropTint(tint.A, tint.R, tint.G, tint.B);
+		}
+
+		/// <summary>
+		/// Applies the native backdrop customisations once Uno has created its effect view, which happens
+		/// asynchronously after <see cref="Window.SystemBackdrop"/> is set.
+		/// </summary>
+		private void ApplyMacBackdropNative()
+		{
+			ApplyMacBackgroundTint();
+			var material = Ioc.Default.GetRequiredService<IUserSettingsService>().AppearanceSettingsService.AppThemeBackdropMaterial;
+			if (_macChrome is null || material is not (BackdropMaterialType.Mica or BackdropMaterialType.MicaAlt))
+				return;
+
+			_macBackdropTimer?.Stop();
+			_macBackdropTimer = DispatcherQueue.CreateTimer();
+			_macBackdropTimer.Interval = TimeSpan.FromMilliseconds(100);
+			var attempts = 0;
+			_macBackdropTimer.Tick += (timer, _) =>
+			{
+				if (_macChrome?.SetBackdropMaterial(MacMicaMaterial) != false || ++attempts >= 30)
+				{
+					timer.Stop();
+					// The tint has to sit above the effect view, which may not have existed on the first pass.
+					ApplyMacBackgroundTint();
+				}
+			};
+			_macBackdropTimer.Start();
 		}
 
 		/// <summary>

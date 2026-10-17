@@ -3,6 +3,9 @@
 
 #if HAS_UNO
 using Files.Platform.Abstractions.Appearance;
+using Microsoft.UI;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 
 namespace Files.App.Services
@@ -17,8 +20,25 @@ namespace Files.App.Services
 
 		private void InitializeDesktopAppearance()
 		{
+			MakeWindowBackgroundTransparent(Application.Current.Resources);
 			SystemAppearance.Changed += (_, _) => MainWindow.Instance.DispatcherQueue.TryEnqueue(ApplyResources);
 			_ = RefreshSystemAppearanceAsync();
+		}
+
+		/// <summary>
+		/// DesktopResources.xaml (Linux) fills <c>App.Theme.BackgroundBrush</c> with a solid colour, which would
+		/// cover the native NSVisualEffectView backdrop (including under the title bar) on macOS.
+		/// </summary>
+		private static void MakeWindowBackgroundTransparent(ResourceDictionary dictionary)
+		{
+			foreach (var themed in dictionary.ThemeDictionaries.Values)
+			{
+				if (themed is ResourceDictionary resources && resources.ContainsKey("App.Theme.BackgroundBrush"))
+					resources["App.Theme.BackgroundBrush"] = new SolidColorBrush(Colors.Transparent);
+			}
+
+			foreach (var merged in dictionary.MergedDictionaries)
+				MakeWindowBackgroundTransparent(merged);
 		}
 
 		private async Task RefreshSystemAppearanceAsync()

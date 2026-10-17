@@ -37,9 +37,9 @@
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
     <PackageVersion Include="TagLibSharp" Version="2.3.0" />
     <PackageVersion Include="Krafs.Publicizer" Version="2.3.0" />
-    <PackageVersion Include="Uno.WinUI" Version="6.7.135" />
-    <PackageVersion Include="Uno.WinUI.Runtime.Skia.X11" Version="6.7.135" />
-    <PackageVersion Include="Uno.WinUI.Runtime.Skia.MacOS" Version="6.7.135" />
+    <PackageVersion Include="Uno.WinUI" Version="6.8.0-dev.222" />
+    <PackageVersion Include="Uno.WinUI.Runtime.Skia.X11" Version="6.8.0-dev.222" />
+    <PackageVersion Include="Uno.WinUI.Runtime.Skia.MacOS" Version="6.8.0-dev.222" />
     <PackageVersion Include="Uno.Microsoft.Xaml.Behaviors.WinUI.Managed" Version="2.4.2" />
     <PackageVersion Include="UTF.Unknown" Version="2.7.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />

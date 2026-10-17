@@ -487,7 +487,13 @@ namespace Files.App
 			if (e.SettingName != nameof(IAppearanceSettingsService.AppThemeBackdropMaterial))
 				return;
 
-			DispatcherQueue.TryEnqueue(() => SystemBackdrop = CreateMacOSBackdrop());
+			DispatcherQueue.TryEnqueue(() =>
+			{
+				SystemBackdrop = CreateMacOSBackdrop();
+#if DESKTOP_MACOS
+				ApplyMacBackdropNative();
+#endif
+			});
 		}
 
 		private void OnMacWindowClosed(object sender, WindowEventArgs e)

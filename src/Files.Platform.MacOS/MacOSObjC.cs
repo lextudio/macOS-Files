@@ -17,6 +17,7 @@ namespace Files.Platform.MacOS
 		private const string AppKit = "/System/Library/Frameworks/AppKit.framework/AppKit";
 		private const string Foundation = "/System/Library/Frameworks/Foundation.framework/Foundation";
 		private const string LibSystem = "/usr/lib/libSystem.B.dylib";
+		private const string CoreGraphics = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
 		private const int RtldLazyGlobal = 0x1 | 0x8;
 
 		private static readonly ConcurrentDictionary<string, nint> Selectors = new(StringComparer.Ordinal);
@@ -115,6 +116,42 @@ namespace Files.Platform.MacOS
 			return Msg(windows, Sel("objectAtIndex:"), IntPtr.Zero);
 		}
 
+		public static void MsgVoid(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2, IntPtr arg3) => objc_msgSend_v3(receiver, selector, arg1, arg2, arg3);
+
+		/// <summary>Sends a message whose only argument is an <c>NSRect</c> (e.g. <c>initWithFrame:</c>).</summary>
+		public static IntPtr MsgRect(IntPtr receiver, nint selector, CGRect rect) => objc_msgSend_rect(receiver, selector, rect);
+
+		/// <summary>Returns <c>[view bounds]</c>; struct returns go through <c>objc_msgSend_stret</c> on x64.</summary>
+		public static CGRect GetBounds(IntPtr view)
+		{
+			if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
+			{
+				objc_msgSend_stret(out var rect, view, Sel("bounds"));
+				return rect;
+			}
+
+			return objc_msgSend_retRect(view, Sel("bounds"));
+		}
+
+		public static string? GetClassName(IntPtr obj)
+			=> obj == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(object_getClassName(obj));
+
+		/// <summary>Creates a retained sRGB <c>CGColorRef</c>; release it with <see cref="ReleaseCGColor"/>.</summary>
+		public static IntPtr CreateCGColor(byte a, byte r, byte g, byte b)
+			=> CGColorCreateSRGB(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
+
+		public static void ReleaseCGColor(IntPtr color)
+		{
+			if (color != IntPtr.Zero)
+				CGColorRelease(color);
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct CGRect(double x, double y, double width, double height)
+		{
+			public double X = x, Y = y, Width = width, Height = height;
+		}
+
 		public static IntPtr AutoreleasePoolPush() => objc_autoreleasePoolPush();
 
 		public static void AutoreleasePoolPop(IntPtr pool) => objc_autoreleasePoolPop(pool);
@@ -162,5 +199,26 @@ namespace Files.Platform.MacOS
 
 		[LibraryImport(ObjC, EntryPoint = "objc_msgSend")]
 		private static partial void objc_msgSend_v1(IntPtr receiver, nint selector, IntPtr arg1);
+
+		[LibraryImport(ObjC, EntryPoint = "objc_msgSend")]
+		private static partial void objc_msgSend_v3(IntPtr receiver, nint selector, IntPtr arg1, IntPtr arg2, IntPtr arg3);
+
+		[LibraryImport(ObjC, EntryPoint = "objc_msgSend")]
+		private static partial IntPtr objc_msgSend_rect(IntPtr receiver, nint selector, CGRect rect);
+
+		[LibraryImport(ObjC, EntryPoint = "objc_msgSend")]
+		private static partial CGRect objc_msgSend_retRect(IntPtr receiver, nint selector);
+
+		[LibraryImport(ObjC, EntryPoint = "objc_msgSend_stret")]
+		private static partial void objc_msgSend_stret(out CGRect result, IntPtr receiver, nint selector);
+
+		[LibraryImport(ObjC, EntryPoint = "object_getClassName")]
+		private static partial IntPtr object_getClassName(IntPtr obj);
+
+		[LibraryImport(CoreGraphics, EntryPoint = "CGColorCreateSRGB")]
+		private static partial IntPtr CGColorCreateSRGB(double red, double green, double blue, double alpha);
+
+		[LibraryImport(CoreGraphics, EntryPoint = "CGColorRelease")]
+		private static partial void CGColorRelease(IntPtr color);
 	}
 }

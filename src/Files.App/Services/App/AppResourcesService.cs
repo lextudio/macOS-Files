@@ -105,6 +105,13 @@ namespace Files.App.Services
 				SetDesktopManualColor("App.Theme.BackgroundBrush", appThemeBackgroundColor);
 				return;
 			}
+#if DESKTOP_MACOS
+			if (OperatingSystem.IsMacOS())
+			{
+				MainWindow.Instance.SetMacBackgroundTint(appThemeBackgroundColor);
+				return;
+			}
+#endif
 #endif
 			SetBrushResource("App.Theme.BackgroundBrush", appThemeBackgroundColor);
 		}
