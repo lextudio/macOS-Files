@@ -1,7 +1,7 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
-using Files.Platform.Linux.Native;
+using Files.Platform.Posix.Native;
 using LibGit2Sharp;
 using System.IO;
 using System.Reflection;

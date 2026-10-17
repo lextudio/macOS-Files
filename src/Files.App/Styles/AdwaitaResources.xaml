@@ -39,7 +39,7 @@
 			<SolidColorBrush x:Key="DividerStrokeColorDefaultBrush" Color="#26000006" />
 			<SolidColorBrush x:Key="ToolbarBackgroundBrush" Color="#FFFFFF" />
 			<SolidColorBrush x:Key="ToolbarBorderBrush" Color="#26000006" />
-			<SolidColorBrush x:Key="Files.Linux.FlyoutSurfaceBrush" Color="#FFFFFF" />
+			<SolidColorBrush x:Key="Files.Desktop.FlyoutSurfaceBrush" Color="#FFFFFF" />
 			<SolidColorBrush x:Key="FlyoutBackgroundThemeBrush" Color="#FFFFFF" />
 			<SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#26000006" />
 			<SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#FFFFFF" />
@@ -197,7 +197,7 @@
 			<SolidColorBrush x:Key="DividerStrokeColorDefaultBrush" Color="#26FFFFFF" />
 			<SolidColorBrush x:Key="ToolbarBackgroundBrush" Color="#2E2E32" />
 			<SolidColorBrush x:Key="ToolbarBorderBrush" Color="#26FFFFFF" />
-			<SolidColorBrush x:Key="Files.Linux.FlyoutSurfaceBrush" Color="#2E2E32" />
+			<SolidColorBrush x:Key="Files.Desktop.FlyoutSurfaceBrush" Color="#2E2E32" />
 			<SolidColorBrush x:Key="FlyoutBackgroundThemeBrush" Color="#2E2E32" />
 			<SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#26FFFFFF" />
 			<SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#2E2E32" />

@@ -1,8 +1,8 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
-using Files.Platform.Linux.Archives;
-using Files.Platform.Linux.Previews;
+using Files.Platform.Posix.Archives;
+using Files.Platform.Posix.Previews;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Buffers.Binary;
@@ -43,7 +43,7 @@ namespace Files.Platform.Tests.Previews
 				File.CreateSymbolicLink(link, path);
 				await Task.Run(() => Assert.Throws<IOException>(() => PreviewFile.OpenRead(link)))
 					.WaitAsync(TimeSpan.FromSeconds(2));
-				await Assert.ThrowsAsync<IOException>(() => new LinuxArchiveService().ListPreviewAsync(path)
+				await Assert.ThrowsAsync<IOException>(() => new PosixArchiveService().ListPreviewAsync(path)
 					.WaitAsync(TimeSpan.FromSeconds(2)));
 			}
 			finally { Directory.Delete(directory, recursive: true); }

@@ -1,7 +1,7 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
-using Files.Platform.Abstractions.Gvfs;
+using Files.Platform.Abstractions.Network;
 using System;
 using System.Collections.Generic;
 

@@ -25,10 +25,12 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Files.Platform.Abstractions\Files.Platform.Abstractions.csproj" />
+        <ProjectReference Include="..\Files.Platform.Posix\Files.Platform.Posix.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <InternalsVisibleTo Include="Files.Platform.Tests" />
     </ItemGroup>
 
+    <Import Project="..\Files.Platform.Posix\PosixGlobalUsings.props" />
 </Project>

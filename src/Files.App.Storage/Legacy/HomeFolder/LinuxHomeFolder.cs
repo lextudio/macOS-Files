@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using Files.Platform.Abstractions;
-using Files.Platform.Abstractions.Gvfs;
+using Files.Platform.Abstractions.Network;
 using Files.Platform.Abstractions.Recent;
 using Files.Platform.Abstractions.Volumes;
 using OwlCore.Storage.System.IO;

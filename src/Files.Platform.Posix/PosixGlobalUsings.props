@@ -1,0 +1,25 @@
+<!--  Copyright (c) Files Community. Licensed under the MIT License.  -->
+<!--  Global usings for the projects that consume Files.Platform.Posix.  -->
+<Project>
+
+    <ItemGroup>
+        <Using Include="Files.Platform.Posix" />
+        <Using Include="Files.Platform.Posix.AppData" />
+        <Using Include="Files.Platform.Posix.Archives" />
+        <Using Include="Files.Platform.Posix.Elevation" />
+        <Using Include="Files.Platform.Posix.Enumeration" />
+        <Using Include="Files.Platform.Posix.FileOperations" />
+        <Using Include="Files.Platform.Posix.FileStat" />
+        <Using Include="Files.Platform.Posix.Icons" />
+        <Using Include="Files.Platform.Posix.Launching" />
+        <Using Include="Files.Platform.Posix.Mime" />
+        <Using Include="Files.Platform.Posix.Native" />
+        <Using Include="Files.Platform.Posix.Permissions" />
+        <Using Include="Files.Platform.Posix.Previews" />
+        <Using Include="Files.Platform.Posix.Search" />
+        <Using Include="Files.Platform.Posix.Thumbnails" />
+        <Using Include="Files.Platform.Posix.Volumes" />
+        <Using Include="Files.Platform.Posix.Watching" />
+    </ItemGroup>
+
+</Project>

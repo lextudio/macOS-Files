@@ -3,6 +3,7 @@
 
 using Files.Platform.Abstractions.Elevation;
 using Files.Platform.Linux.Native;
+using Files.Platform.Posix.Native;
 using Files.Platform.Linux.Elevation;
 using System;
 using System.Globalization;

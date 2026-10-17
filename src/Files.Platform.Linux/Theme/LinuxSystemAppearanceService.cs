@@ -169,7 +169,7 @@ namespace Files.Platform.Linux.Theme
 			{
 				var info = new ProcessStartInfo("gsettings") { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
 				foreach (var arg in new[] { "get", "org.gnome.desktop.interface", "gtk-theme" }) info.ArgumentList.Add(arg);
-				using var process = Files.Platform.Linux.Launching.TracedProcess.Start(info);
+				using var process = Files.Platform.Posix.Launching.TracedProcess.Start(info);
 				if (process is null) return null;
 				try
 				{

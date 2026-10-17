@@ -7,7 +7,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.Trash
@@ -28,7 +28,7 @@ namespace Files.Platform.Tests.Trash
 			using var cancellation = new CancellationTokenSource();
 			var copiedFile = false;
 			_service.Watcher.Dispose();
-			_service = CreateService(Uid, fileOperationsHooks: new LinuxFileOperationsHooks
+			_service = CreateService(Uid, fileOperationsHooks: new PosixFileOperationsHooks
 			{
 				RenameError = (source, _, _) =>
 				{
@@ -84,7 +84,7 @@ namespace Files.Platform.Tests.Trash
 			var outside = Path.Combine(_root, "outside");
 			var precious = WriteFile(outside, "precious", "keep");
 			_service.Watcher.Dispose();
-			_service = CreateService(Uid, fileOperationsHooks: new LinuxFileOperationsHooks
+			_service = CreateService(Uid, fileOperationsHooks: new PosixFileOperationsHooks
 			{
 				RenameError = (source, _, _) => source == Path.GetFileName(item.TrashedPath) ? 18 : null,
 				DirectoryCreated = path =>
@@ -119,7 +119,7 @@ namespace Files.Platform.Tests.Trash
 				WriteFile(_home, "entry", "data");
 			var item = Single(await _service.TrashAsync([original])).Item!;
 			_service.Watcher.Dispose();
-			_service = CreateService(Uid, fileOperationsHooks: new LinuxFileOperationsHooks
+			_service = CreateService(Uid, fileOperationsHooks: new PosixFileOperationsHooks
 			{
 				RenameError = (source, _, _) => source == Path.GetFileName(item.TrashedPath) ? 18 : null,
 				BeforeDeleteEntry = _ =>

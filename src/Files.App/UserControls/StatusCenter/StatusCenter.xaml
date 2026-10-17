@@ -19,7 +19,7 @@
 		</ResourceDictionary>
 	</UserControl.Resources>
 
-	<Grid x:Name="RootGrid" Background="{ThemeResource Files.Linux.FlyoutSurfaceBrush}">
+	<Grid x:Name="RootGrid" Background="{ThemeResource Files.Desktop.FlyoutSurfaceBrush}">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />

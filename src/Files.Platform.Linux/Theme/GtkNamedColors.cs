@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using Files.Platform.Abstractions.Appearance;
-using Files.Platform.Linux.Previews;
+using Files.Platform.Posix.Previews;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

@@ -39,7 +39,7 @@
 						<ToggleMenuFlyoutItem
 							x:Name="ClientSideDecorationsMenuItem"
 							Click="ClientSideDecorationsMenuItem_Click"
-							Text="{helpers:ResourceString Key=LinuxClientSideDecorations}"
+							Text="{helpers:ResourceString Key=DesktopClientSideDecorations}"
 							Visibility="Collapsed" />
 					</MenuFlyout>
 				</ResourceDictionary>
@@ -256,12 +256,12 @@
 			</TabView.TabStripFooter>
 
 		</TabView>
-		<StackPanel x:Name="LinuxCaptionButtons" HorizontalAlignment="Right" VerticalAlignment="Top" Orientation="Horizontal" Visibility="Collapsed">
-			<Button Width="46" Height="40" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="0" Click="MinimizeWindow_Click" AutomationProperties.Name="{helpers:ResourceString Key=LinuxMinimizeWindow}" ToolTipService.ToolTip="{helpers:ResourceString Key=LinuxMinimizeWindow}">
+		<StackPanel x:Name="CaptionButtons" HorizontalAlignment="Right" VerticalAlignment="Top" Orientation="Horizontal" Visibility="Collapsed">
+			<Button Width="46" Height="40" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="0" Click="MinimizeWindow_Click" AutomationProperties.Name="{helpers:ResourceString Key=DesktopMinimizeWindow}" ToolTipService.ToolTip="{helpers:ResourceString Key=DesktopMinimizeWindow}">
 				<FontIcon FontSize="12" Glyph="&#xE921;" />
 			</Button>
-			<Button x:Name="LinuxMaximizeButton" Width="46" Height="40" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="0" Click="MaximizeWindow_Click">
-				<FontIcon x:Name="LinuxMaximizeIcon" FontSize="12" Glyph="&#xE922;" />
+			<Button x:Name="MaximizeButton" Width="46" Height="40" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="0" Click="MaximizeWindow_Click">
+				<FontIcon x:Name="MaximizeIcon" FontSize="12" Glyph="&#xE922;" />
 			</Button>
 			<Button Width="46" Height="40" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="0" Click="CloseWindow_Click" AutomationProperties.Name="{helpers:ResourceString Key=Close}" ToolTipService.ToolTip="{helpers:ResourceString Key=Close}">
 				<FontIcon FontSize="12" Glyph="&#xE8BB;" />

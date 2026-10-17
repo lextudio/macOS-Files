@@ -401,7 +401,7 @@ namespace Files.Platform.Tests.Tags
 			var service = new Files.Platform.Linux.Trash.LinuxTrashService(new()
 			{
 				DataHome = Path.Combine(root, "data"),
-				FileOperationsHooks = new Files.Platform.Linux.FileOperations.LinuxFileOperationsHooks
+				FileOperationsHooks = new Files.Platform.Posix.FileOperations.PosixFileOperationsHooks
 				{
 					RenameError = (source, _, _) => copyRestore && source == "folder" ? 18 : null
 				}

@@ -229,7 +229,7 @@ namespace Files.Platform.Tests.Trash
 			{
 				DataHome = _dataHome, UserId = Uid, OwnershipInspector = _inspector,
 				MountResolver = new FakeMountResolver(_root, _home, _usb),
-				FileOperationsHooks = new Files.Platform.Linux.FileOperations.LinuxFileOperationsHooks
+				FileOperationsHooks = new Files.Platform.Posix.FileOperations.PosixFileOperationsHooks
 				{
 					BeforeDeleteEntry = _ =>
 					{

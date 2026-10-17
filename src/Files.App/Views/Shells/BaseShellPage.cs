@@ -579,7 +579,7 @@ namespace Files.App.Views.Shells
 		{
 			var shellViewModel = this.GetRequiredShellViewModel();
 			if (shellViewModel.HasNoWatcher
-				|| shellViewModel.IsLinuxWatcherPolling
+				|| shellViewModel.IsDesktopWatcherPolling
 				)
 				await Refresh_Click();
 		}

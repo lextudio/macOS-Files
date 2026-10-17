@@ -5,7 +5,7 @@ using Files.App.Storage.Archives;
 using Files.App.Storage.Storables;
 using Files.Core.Storage.Enums;
 using Files.Platform.Abstractions.Archives;
-using Files.Platform.Linux.Archives;
+using Files.Platform.Posix.Archives;
 using Files.Shared.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OwlCore.Storage;
@@ -26,7 +26,7 @@ namespace Files.Platform.Tests.Archives
 	[SupportedOSPlatform("linux")]
 	public sealed class ArchiveBrowsingTests
 	{
-		private readonly LinuxArchiveService service = new();
+		private readonly PosixArchiveService service = new();
 		private string root = null!;
 
 		[TestInitialize]
@@ -231,7 +231,7 @@ namespace Files.Platform.Tests.Archives
 			while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "Files.slnx")))
 				repository = repository.Parent;
 			Assert.IsNotNull(repository, "Repository root not found");
-			var shell = File.ReadAllText(Path.Combine(repository.FullName, "src/Files.App/Platforms/Desktop/ViewModels/ShellViewModel.Linux.cs"));
+			var shell = File.ReadAllText(Path.Combine(repository.FullName, "src/Files.App/Platforms/Desktop/ViewModels/ShellViewModel.Desktop.cs"));
 			Assert.IsTrue(shell.Contains("FileExtensionHelpers.IsZipPath(path, isArchiveFileName: Ioc.Default.GetRequiredService<IArchiveService>().IsArchiveFileName)", StringComparison.Ordinal), "Linux enumeration must use archive service recognition.");
 			var pagePaths = File.ReadAllText(Path.Combine(repository.FullName, "src/Files.App/Utils/Storage/StorageItems/ZipStorageFolder.cs"));
 			Assert.IsTrue(pagePaths.Contains("FileExtensionHelpers.IsZipPath(path, includeRoot, Ioc.Default.GetRequiredService<IArchiveService>().IsArchiveFileName)", StringComparison.Ordinal), "Archive page classification must use archive service recognition.");

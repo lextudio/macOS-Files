@@ -314,7 +314,7 @@ namespace Files.Platform.Linux.Theme
 					UseShellExecute = false,
 				};
 
-				using var process = Files.Platform.Linux.Launching.TracedProcess.Start(info);
+				using var process = Files.Platform.Posix.Launching.TracedProcess.Start(info);
 				if (process is null)
 					return null;
 

@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using Files.Platform.Abstractions.Instance;
-using Files.Platform.Linux.Instance;
 using Files.Platform.Linux.Elevation;
+using Files.Platform.Linux.Instance;
 using Files.Platform.Linux.Windowing;
 using System.Text;
 using Uno.UI.Hosting;

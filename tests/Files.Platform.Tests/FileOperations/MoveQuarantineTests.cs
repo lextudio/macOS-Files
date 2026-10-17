@@ -5,7 +5,7 @@ using System.IO;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.FileOperations
@@ -22,7 +22,7 @@ namespace Files.Platform.Tests.FileOperations
 			var source = Write(Path.Combine(Src, child ? "tree/a" : "a"), "OLD");
 			var destination = Path.Combine(Dst, child ? "tree/a" : "a");
 			var reported = false;
-			var result = await new LinuxFileOperationsService((_, _) => false).MoveAsync(
+			var result = await new PosixFileOperationsService((_, _) => false).MoveAsync(
 				[child ? Path.GetDirectoryName(source)! : source], Dst, new FileOperationOptions
 				{
 					PathChanged = (from, to, recursive, stale) =>
@@ -50,7 +50,7 @@ namespace Files.Platform.Tests.FileOperations
 			if (directory)
 				Write(Path.Combine(source, "child"), "OLD");
 			var invoked = false;
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				AfterMoveSourceVerified = path =>
 				{
@@ -72,7 +72,7 @@ namespace Files.Platform.Tests.FileOperations
 			var source = Write(Path.Combine(Src, "a"), "OLD");
 			var precious = Write(Path.Combine(Root, "precious"), "KEEP");
 			var swapped = false;
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				RenameError = (from, to, _) =>
 				{
@@ -104,7 +104,7 @@ namespace Files.Platform.Tests.FileOperations
 			if (directory)
 				Write(Path.Combine(source, "child"), "OLD");
 			string? quarantined = null;
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				MoveSourceQuarantined = (path, hidden) =>
 				{
@@ -132,7 +132,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var source = Write(Path.Combine(Src, "a"), "OLD");
 			var edited = false;
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				RenameError = (from, to, _) =>
 				{
@@ -158,7 +158,7 @@ namespace Files.Platform.Tests.FileOperations
 			var source = Write(Path.Combine(Src, "a"), "OLD");
 			var mtime = File.GetLastWriteTimeUtc(source);
 			var edited = false;
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				RenameError = (from, to, _) =>
 				{
@@ -190,7 +190,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var source = Write(Path.Combine(Src, "a"), "OLD");
 			var invoked = false;
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				RenameError = (_, to, _) => errno != 0 && to.StartsWith(".linuxfiles-move-") ? errno : null,
 				BeforeMoveSourceUnlink = (_, entry) =>
@@ -220,7 +220,7 @@ namespace Files.Platform.Tests.FileOperations
 		public async Task UnsupportedRename_UsesVerifiedFallback(int errno)
 		{
 			var source = Write(Path.Combine(Src, "a"), "OLD");
-			var service = new LinuxFileOperationsService((_, _) => false, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => false, new PosixFileOperationsHooks
 			{
 				RenameError = (_, to, _) => to.StartsWith(".linuxfiles-move-") ? errno : null,
 			});

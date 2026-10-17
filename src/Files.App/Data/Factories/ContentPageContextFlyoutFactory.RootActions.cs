@@ -47,7 +47,7 @@ namespace Files.App.Data.Factories
 			{
 				items.Add(new ContextMenuFlyoutItemViewModel
 				{
-					Text = Strings.OpenTerminalAsRootLinux.GetLocalizedResource(),
+					Text = Strings.OpenTerminalAsRootDesktop.GetLocalizedResource(),
 					Command = new AsyncRelayCommand(() => RootActionsHelper.OpenTerminalAsync(terminalTarget)),
 				});
 			}

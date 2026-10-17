@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Files.Platform.Linux.Enumeration;
+using Files.Platform.Posix.Enumeration;
 using Files.Platform.Linux.Mime;
-using Files.Platform.Linux.Watching;
+using Files.Platform.Posix.Watching;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.Listing
@@ -183,7 +183,7 @@ namespace Files.Platform.Tests.Listing
 			File.CreateSymbolicLink(link, file);
 
 			var listed = new Dictionary<string, Files.Platform.Abstractions.Enumeration.FileSystemEntryInfo>();
-			await foreach (var e in new LinuxFileSystemEnumerator().EnumerateAsync(_root, new Files.Platform.Abstractions.Enumeration.FileSystemEnumerationOptions { IncludeHidden = true }))
+			await foreach (var e in new PosixFileSystemEnumerator().EnumerateAsync(_root, new Files.Platform.Abstractions.Enumeration.FileSystemEnumerationOptions { IncludeHidden = true }))
 				listed[e.FullPath] = e;
 			foreach (var path in new[] { file, link })
 			{

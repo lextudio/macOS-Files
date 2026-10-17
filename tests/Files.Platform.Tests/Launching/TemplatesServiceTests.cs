@@ -24,7 +24,7 @@ namespace Files.Platform.Tests.Launching
 			fx.Write("home/Templates/.hidden", "x");
 			Directory.CreateDirectory(Path.Combine(fx.Home, "Templates", "subdir"));
 
-			var list = await new LinuxTemplatesService().GetTemplatesAsync(Path.Combine(fx.Home, "Templates"));
+			var list = await new PosixTemplatesService().GetTemplatesAsync(Path.Combine(fx.Home, "Templates"));
 
 			CollectionAssert.AreEqual(new[] { "Folder", "Text Document", "Letter", "Notes" }, list.Select(t => t.Name).ToArray());
 			Assert.AreEqual(NewItemKind.TemplateFile, list[2].Kind);
@@ -34,7 +34,7 @@ namespace Files.Platform.Tests.Launching
 		[TestMethod]
 		public async Task List_MissingOrNullDirectory_ReturnsBuiltInsOnly()
 		{
-			var svc = new LinuxTemplatesService();
+			var svc = new PosixTemplatesService();
 
 			Assert.AreEqual(2, (await svc.GetTemplatesAsync(null)).Count);
 			Assert.AreEqual(2, (await svc.GetTemplatesAsync("/definitely/missing")).Count);
@@ -44,7 +44,7 @@ namespace Files.Platform.Tests.Launching
 		public async Task Create_Folder_PicksUniqueNames()
 		{
 			using var fx = new XdgFixture();
-			var svc = new LinuxTemplatesService();
+			var svc = new PosixTemplatesService();
 			var folder = (await svc.GetTemplatesAsync(null))[0];
 
 			var first = await svc.CreateFromTemplateAsync(folder, fx.Home);
@@ -59,7 +59,7 @@ namespace Files.Platform.Tests.Launching
 		public async Task Create_EmptyFile_KeepsExtensionWhenDeduplicating()
 		{
 			using var fx = new XdgFixture();
-			var svc = new LinuxTemplatesService();
+			var svc = new PosixTemplatesService();
 			var text = (await svc.GetTemplatesAsync(null))[1];
 
 			await svc.CreateFromTemplateAsync(text, fx.Home);
@@ -76,7 +76,7 @@ namespace Files.Platform.Tests.Launching
 		{
 			using var fx = new XdgFixture();
 			fx.Write("home/Templates/Notes.md", "# template");
-			var svc = new LinuxTemplatesService();
+			var svc = new PosixTemplatesService();
 			var template = (await svc.GetTemplatesAsync(Path.Combine(fx.Home, "Templates")))[2];
 			var target = Path.Combine(fx.Root, "dest");
 			Directory.CreateDirectory(target);
@@ -91,7 +91,7 @@ namespace Files.Platform.Tests.Launching
 		public async Task Create_RejectsInvalidNamesAndMissingFolder()
 		{
 			using var fx = new XdgFixture();
-			var svc = new LinuxTemplatesService();
+			var svc = new PosixTemplatesService();
 			var folder = (await svc.GetTemplatesAsync(null))[0];
 
 			await Assert.ThrowsAsync<ArgumentException>(() => svc.CreateFromTemplateAsync(folder, fx.Home, "../evil"));

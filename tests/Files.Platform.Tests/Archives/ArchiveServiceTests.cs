@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using Files.Platform.Abstractions.Archives;
 using Files.App.Storage.Archives;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.Archives;
 using Files.Platform.Linux.Native;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,7 +24,7 @@ namespace Files.Platform.Tests.Archives
 	[SupportedOSPlatform("linux")]
 	public sealed class ArchiveServiceTests
 	{
-		private readonly LinuxArchiveService service = new();
+		private readonly PosixArchiveService service = new();
 		private string root = null!;
 
 		private string Work => Path.Combine(root, "work");
@@ -53,7 +52,7 @@ namespace Files.Platform.Tests.Archives
 			var zip = ZipWith(Path.Combine(Work, "fallback.zip"),
 				("plain.txt", Encoding.UTF8.GetBytes("plain")),
 				("one/two/nested.txt", Encoding.UTF8.GetBytes("nested")));
-			ElevationNative.OpenBeneathError.Value = 38;
+			PosixSecureOpenNative.OpenBeneathError.Value = 38;
 			try
 			{
 				var result = await service.ExtractAsync(zip, Out);
@@ -61,7 +60,7 @@ namespace Files.Platform.Tests.Archives
 				Assert.AreEqual("plain", File.ReadAllText(Path.Combine(Out, "plain.txt")));
 				Assert.AreEqual("nested", File.ReadAllText(Path.Combine(Out, "one/two/nested.txt")));
 			}
-			finally { ElevationNative.OpenBeneathError.Value = null; }
+			finally { PosixSecureOpenNative.OpenBeneathError.Value = null; }
 		}
 
 		[TestMethod]
@@ -74,14 +73,14 @@ namespace Files.Platform.Tests.Archives
 			Directory.CreateDirectory(Path.Combine(Work, "child"));
 			Directory.CreateSymbolicLink(Path.Combine(Out, "link"), Work);
 			var fd = ElevationNative.Open(PosixNative.AtFdCwd, Out, PosixNative.PathFlags | PosixNative.ODirectory, true);
-			ElevationNative.OpenBeneathError.Value = 38;
+			PosixSecureOpenNative.OpenBeneathError.Value = 38;
 			try
 			{
-				Assert.ThrowsExactly<IOException>(() => ElevationNative.OpenBeneath(fd, relative, PosixNative.PathFlags));
+				Assert.ThrowsExactly<IOException>(() => PosixSecureOpenNative.OpenBeneath(fd, relative, PosixNative.PathFlags));
 			}
 			finally
 			{
-				ElevationNative.OpenBeneathError.Value = null;
+				PosixSecureOpenNative.OpenBeneathError.Value = null;
 				PosixNative.Close(fd);
 			}
 		}
@@ -89,9 +88,9 @@ namespace Files.Platform.Tests.Archives
 		[TestMethod]
 		public void OpenBeneathDoesNotFallbackForPermissionErrors()
 		{
-			ElevationNative.OpenBeneathError.Value = 13;
-			try { Assert.ThrowsExactly<UnauthorizedAccessException>(() => ElevationNative.OpenBeneath(PosixNative.AtFdCwd, ".", PosixNative.PathFlags)); }
-			finally { ElevationNative.OpenBeneathError.Value = null; }
+			PosixSecureOpenNative.OpenBeneathError.Value = 13;
+			try { Assert.ThrowsExactly<UnauthorizedAccessException>(() => PosixSecureOpenNative.OpenBeneath(PosixNative.AtFdCwd, ".", PosixNative.PathFlags)); }
+			finally { PosixSecureOpenNative.OpenBeneathError.Value = null; }
 		}
 
 		private string MakeTree()
@@ -360,11 +359,11 @@ namespace Files.Platform.Tests.Archives
 		[TestMethod]
 		public async Task SevenZipIsOnlyOfferedWhenBinaryExists()
 		{
-			Assert.IsFalse(new LinuxArchiveService(new FakeSevenZip(null)).CreatableFormats.Contains(ArchiveFormat.SevenZip));
-			Assert.IsTrue(new LinuxArchiveService(new FakeSevenZip("/usr/bin/7z")).CreatableFormats.Contains(ArchiveFormat.SevenZip));
+			Assert.IsFalse(new PosixArchiveService(new FakeSevenZip(null)).CreatableFormats.Contains(ArchiveFormat.SevenZip));
+			Assert.IsTrue(new PosixArchiveService(new FakeSevenZip("/usr/bin/7z")).CreatableFormats.Contains(ArchiveFormat.SevenZip));
 
 			var tree = MakeTree();
-			var result = await new LinuxArchiveService(new FakeSevenZip(null)).CreateAsync([tree], Path.Combine(Work, "a.7z"), new ArchiveCreateOptions { Format = ArchiveFormat.SevenZip });
+			var result = await new PosixArchiveService(new FakeSevenZip(null)).CreateAsync([tree], Path.Combine(Work, "a.7z"), new ArchiveCreateOptions { Format = ArchiveFormat.SevenZip });
 			Assert.IsFalse(result.Succeeded);
 		}
 
@@ -374,12 +373,12 @@ namespace Files.Platform.Tests.Archives
 			var tree = MakeTree();
 			var fake = new FakeSevenZip("/usr/bin/7z");
 			var archive = Path.Combine(Work, "a.7z");
-			var result = await new LinuxArchiveService(fake).CreateAsync([tree, Path.Combine(Work, "x")], archive, new ArchiveCreateOptions { Format = ArchiveFormat.SevenZip });
+			var result = await new PosixArchiveService(fake).CreateAsync([tree, Path.Combine(Work, "x")], archive, new ArchiveCreateOptions { Format = ArchiveFormat.SevenZip });
 			// source "x" does not exist, so it fails before running
 			Assert.IsFalse(result.Succeeded);
 
 			File.WriteAllText(Path.Combine(Work, "-rf"), "x");
-			result = await new LinuxArchiveService(fake).CreateAsync([tree, Path.Combine(Work, "-rf")], archive, new ArchiveCreateOptions { Format = ArchiveFormat.SevenZip });
+			result = await new PosixArchiveService(fake).CreateAsync([tree, Path.Combine(Work, "-rf")], archive, new ArchiveCreateOptions { Format = ArchiveFormat.SevenZip });
 			Assert.IsTrue(result.Succeeded, result.Error);
 			CollectionAssert.Contains(fake.Arguments.ToList(), "--");
 			CollectionAssert.Contains(fake.Arguments.ToList(), "./-rf");
@@ -395,7 +394,7 @@ namespace Files.Platform.Tests.Archives
 				Assert.Inconclusive("7z is not installed");
 
 			var tree = MakeTree();
-			var real = new LinuxArchiveService(runner);
+			var real = new PosixArchiveService(runner);
 			var archive = Path.Combine(Work, "docs.7z");
 			var created = await real.CreateAsync([tree], archive, new ArchiveCreateOptions { Format = ArchiveFormat.SevenZip });
 			Assert.IsTrue(created.Succeeded, created.Error);
@@ -688,7 +687,7 @@ namespace Files.Platform.Tests.Archives
 			ExistingFile();
 			var outside = Path.Combine(root, "moved-parent");
 			var moved = false;
-			var extracting = new LinuxArchiveService
+			var extracting = new PosixArchiveService
 			{
 				PublicationCheckpoint = phase =>
 				{

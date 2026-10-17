@@ -55,10 +55,10 @@ namespace Files.App.ViewModels.Properties
 
 		public async Task<(long size, long sizeOnDisk)> CalculateFolderSizeAsync(string path, CancellationToken token)
 		{
-			return await CalculateFolderSizeLinuxAsync(path, token);
+			return await CalculateFolderSizeDesktopAsync(path, token);
 		}
 
-		private async Task<(long size, long sizeOnDisk)> CalculateFolderSizeLinuxAsync(string path, CancellationToken token)
+		private async Task<(long size, long sizeOnDisk)> CalculateFolderSizeDesktopAsync(string path, CancellationToken token)
 		{
 			if (string.IsNullOrEmpty(path))
 				return (0, 0);
@@ -99,12 +99,12 @@ namespace Files.App.ViewModels.Properties
 		/// <summary>
 		/// Fills the stat-derived fields (sizes, timestamps, link target) and the read-only and hidden attributes of the General page on Linux.
 		/// </summary>
-		protected void ApplyLinuxStat(string path)
+		protected void ApplyDesktopStat(string path)
 		{
 			ViewModel.IsDownloadedFile = false;
 			ViewModel.CanCompressContent = false;
 			ViewModel.CompressAttributeVisibility = false;
-			ApplyLinuxAttributes(path);
+			ApplyDesktopAttributes(path);
 
 			if (!Ioc.Default.GetRequiredService<IFileStatService>().TryGetStat(path, out var stat))
 				return;
@@ -128,7 +128,7 @@ namespace Files.App.ViewModels.Properties
 				ViewModel.LinkTarget = stat.LinkTarget;
 		}
 
-		private void ApplyLinuxAttributes(string path)
+		private void ApplyDesktopAttributes(string path)
 		{
 			var attributes = Ioc.Default.GetRequiredService<IFileAttributesService>();
 			var permissions = Ioc.Default.GetRequiredService<IFilePermissionsService>();
@@ -153,7 +153,7 @@ namespace Files.App.ViewModels.Properties
 		/// <summary>
 		/// Sets the type description from the MIME database.
 		/// </summary>
-		protected async Task ApplyLinuxTypeAsync(string path)
+		protected async Task ApplyDesktopTypeAsync(string path)
 		{
 			try
 			{

@@ -12,19 +12,19 @@ namespace Files.App.Services
 	{
 		public IStorageDeviceWatcher CreateWatcher()
 		{
-			return new LinuxStorageDeviceWatcher();
+			return new DesktopStorageDeviceWatcher();
 		}
 
 		public async IAsyncEnumerable<IFolder> GetDrivesAsync()
 		{
 			// Mounted drives (mountinfo + UDisks2 labels), volumes that are not mounted yet and MTP devices (GVfs)
-			var entries = await LinuxDriveCatalog.EnumerateAsync().ConfigureAwait(false);
-			var linuxPending = entries.Select(entry => entry.CreateAsync()).ToList();
+			var entries = await DesktopDriveCatalog.EnumerateAsync().ConfigureAwait(false);
+			var desktopPending = entries.Select(entry => entry.CreateAsync()).ToList();
 
-			await foreach (var completed in Task.WhenEach(linuxPending))
+			await foreach (var completed in Task.WhenEach(desktopPending))
 			{
-				if (await completed is { } linuxItem)
-					yield return linuxItem;
+				if (await completed is { } desktopItem)
+					yield return desktopItem;
 			}
 		}
 

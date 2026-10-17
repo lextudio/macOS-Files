@@ -1,0 +1,30 @@
+<!--  Copyright (c) Files Community. Licensed under the MIT License.  -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>$(BaseTargetFramework)</TargetFramework>
+        <Nullable>enable</Nullable>
+        <IsTrimmable>true</IsTrimmable>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>x86;x64;arm64</Platforms>
+        <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
+        <IsAotCompatible>true</IsAotCompatible>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <!--  OS-neutral / POSIX desktop implementations shared by the per-OS desktop platform assemblies.
+          OS-specific code lives in those projects; this one has no OS-only native dependency.  -->
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="Microsoft.Extensions.Logging" />
+        <PackageReference Include="SharpCompress" />
+        <PackageReference Include="SkiaSharp" />
+        <PackageReference Include="Svg.Skia" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Files.Platform.Abstractions\Files.Platform.Abstractions.csproj" />
+    </ItemGroup>
+
+</Project>

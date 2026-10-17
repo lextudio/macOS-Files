@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using Files.App.ViewModels.Previews;
-using Files.Platform.Linux.Previews;
+using Files.Platform.Posix.Previews;
 using Files.Platform.Tests.Thumbnails;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SkiaSharp;
