@@ -4,8 +4,9 @@
 using Files.Platform.Abstractions.Clipboard;
 using Files.Platform.Abstractions.Launching;
 using Files.Platform.Abstractions.Elevation;
+using Files.Platform.Posix.Elevation;
+using Files.Platform.Posix.Launching;
 using Files.Platform.Linux.Elevation;
-using Files.Platform.Linux.Launching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.IO;

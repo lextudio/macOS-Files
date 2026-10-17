@@ -9,7 +9,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -19,14 +19,14 @@ namespace Files.Platform.Tests.FileOperations
 	[SupportedOSPlatform("linux")]
 	public sealed class DeleteRenameCreateTests : FileOperationsTestBase
 	{
-		private readonly IFileOperationsService _service = new LinuxFileOperationsService();
+		private readonly IFileOperationsService _service = new PosixFileOperationsService();
 
 		[TestMethod]
-		public void AddLinuxFileOperations_RegistersService()
+		public void AddPosixFileOperations_RegistersService()
 		{
-			using var provider = new ServiceCollection().AddLinuxFileOperations().BuildServiceProvider();
+			using var provider = new ServiceCollection().AddPosixFileOperations().BuildServiceProvider();
 
-			Assert.IsInstanceOfType<LinuxFileOperationsService>(provider.GetRequiredService<IFileOperationsService>());
+			Assert.IsInstanceOfType<PosixFileOperationsService>(provider.GetRequiredService<IFileOperationsService>());
 		}
 
 		[TestMethod]

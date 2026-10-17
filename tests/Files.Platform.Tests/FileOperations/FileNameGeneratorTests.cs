@@ -9,7 +9,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.FileOperations

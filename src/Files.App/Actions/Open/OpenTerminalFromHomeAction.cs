@@ -9,7 +9,7 @@ namespace Files.App.Actions
 		private IHomePageContext HomePageContext { get; } = Ioc.Default.GetRequiredService<IHomePageContext>();
 
 		public override string Label
-			=> Strings.OpenTerminalLinux.GetLocalizedResource();
+			=> Strings.OpenTerminalDesktop.GetLocalizedResource();
 
 		public override string Description
 			=> Strings.OpenTerminalDescription.GetLocalizedResource();

@@ -249,7 +249,7 @@ namespace Files.App.Views.Properties
 				var nameIsComplete = false;
 				if (OperatingSystem.IsLinux())
 				{
-					var (completeName, changed, failed) = await ApplyLinuxAttributesAsync(item, itemPath);
+					var (completeName, changed, failed) = await ApplyDesktopAttributesAsync(item, itemPath);
 					if (failed)
 						return false;
 
@@ -281,7 +281,7 @@ namespace Files.App.Views.Properties
 			}
 
 			// Applies read-only through the mode bits; a hidden change is a rename, so it is confirmed first and folded into the rename
-			async Task<(string? CompleteName, bool HiddenChanged, bool Failed)> ApplyLinuxAttributesAsync(ListedItem item, string itemPath)
+			async Task<(string? CompleteName, bool HiddenChanged, bool Failed)> ApplyDesktopAttributesAsync(ListedItem item, string itemPath)
 			{
 				var attributes = Ioc.Default.GetRequiredService<IFileAttributesService>();
 

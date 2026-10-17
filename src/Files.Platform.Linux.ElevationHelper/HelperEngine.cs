@@ -3,6 +3,7 @@
 
 using Files.Platform.Abstractions.Elevation;
 using Files.Platform.Linux.Native;
+using Files.Platform.Posix.Native;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;

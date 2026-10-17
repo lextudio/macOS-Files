@@ -74,7 +74,7 @@ namespace Files.App.UserControls.TabBar
 			InitializeComponent();
 			if (OperatingSystem.IsLinux())
 			{
-				Loaded += (_, _) => InitializeLinuxCaptionButtons();
+				Loaded += (_, _) => InitializeCaptionButtons();
 				SizeChanged += (_, _) => UpdateTitleBarInsets();
 				TabBarAddNewTabButton.SizeChanged += (_, _) => UpdateTitleBarInsets();
 				DragAreaRectangle.SizeChanged += (_, _) => UpdateTitleBarInsets();
@@ -497,7 +497,7 @@ namespace Files.App.UserControls.TabBar
 				{
 					var start = TabBarAddNewTabButton.TransformToVisual(MainWindow.Instance.Content)
 						.TransformPoint(new Windows.Foundation.Point(TabBarAddNewTabButton.ActualWidth + 4, 0));
-					MainWindow.Instance.UpdateLinuxChromeRegions((int)start.X, (int)ActualHeight);
+					MainWindow.Instance.UpdateChromeRegions((int)start.X, (int)ActualHeight);
 				}
 				return;
 			}

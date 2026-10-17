@@ -214,13 +214,12 @@ namespace Files.App
 
 		public static class UserEnvironmentPaths
 		{
-			private static readonly Files.Platform.Linux.LinuxUserDirectories _userDirectories = new();
+			private static readonly IUserDirectories _userDirectories = DesktopPlatform.CreateUserDirectories();
 
 			public static readonly string DesktopPath = _userDirectories.Desktop;
 
 			public static readonly string DownloadsPath = _userDirectories.Downloads;
 
-			// XDG data home (~/.local/share)
 			public static readonly string LocalAppDataPath = Environment.GetEnvironmentVariable("XDG_DATA_HOME") is { Length: > 0 } dataHome && System.IO.Path.IsPathRooted(dataHome)
 				? dataHome
 				: System.IO.Path.Combine(_userDirectories.Home, ".local", "share");

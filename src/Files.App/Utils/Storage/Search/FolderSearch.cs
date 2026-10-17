@@ -121,7 +121,7 @@ namespace Files.App.Utils.Storage
 
 		private async Task AddItemsForHomeAsync(IList<ListedItem> results, CancellationToken token)
 		{
-			await SearchLinuxAsync("Home", results, token);
+			await SearchDesktopAsync("Home", results, token);
 		}
 
 		public async Task<ObservableCollection<ListedItem>> SearchAsync()

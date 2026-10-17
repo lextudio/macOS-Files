@@ -3,7 +3,7 @@
 
 #if DESKTOP
 using Files.App.ViewModels.Properties;
-using Files.Platform.Linux.Previews;
+using Files.Platform.Posix.Previews;
 using System.IO;
 using Microsoft.UI.Xaml.Media.Imaging;
 

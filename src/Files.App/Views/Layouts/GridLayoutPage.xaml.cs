@@ -415,7 +415,7 @@ namespace Files.App.Views.Layouts
 			{
 				if (folderSettings.DirectoryGroupOption != GroupOption.None)
 				{
-					FileList.ItemsPanel = new ItemsPanelTemplate(() => new LinuxGroupedWrapPanel
+					FileList.ItemsPanel = new ItemsPanelTemplate(() => new DesktopGroupedWrapPanel
 					{
 						Orientation = folderSettings.LayoutMode == FolderLayoutModes.ListView ? Orientation.Vertical : Orientation.Horizontal
 					});

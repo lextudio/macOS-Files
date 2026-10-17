@@ -557,7 +557,7 @@ namespace Files.App.UserControls
 			if (group is NewItemCommandGroup)
 			{
 				// Same items as the context menu's New submenu
-				foreach (var entry in Files.App.Data.Factories.ContentPageContextFlyoutFactory.GetLinuxNewItemItems(ViewModel?.InstanceViewModel.CanCreateFileInPage == true))
+				foreach (var entry in Files.App.Data.Factories.ContentPageContextFlyoutFactory.GetDesktopNewItemItems(ViewModel?.InstanceViewModel.CanCreateFileInPage == true))
 				{
 					if (entry.ItemType is ContextMenuFlyoutItemType.Separator)
 						flyout.Items.Add(new MenuFlyoutSeparator());

@@ -48,20 +48,20 @@ namespace Files.App.Services
 			lock (_Computers)
 				_Computers.Add(networkItem);
 
-			StartLinuxWatching();
+			StartPlatformWatching();
 		}
 
 		/// <inheritdoc/>
 		public async Task<IEnumerable<IFolder>> GetComputersAsync()
 		{
 			// Connected GVfs locations (smb, sftp, ftp, dav, nfs...); LINUX-TODO(network-discovery): browse the LAN with Avahi
-			return await Task.FromResult(GetLinuxNetworkItems());
+			return await Task.FromResult(GetPlatformNetworkItems());
 		}
 
 		/// <inheritdoc/>
 		public async Task<IEnumerable<IFolder>> GetShortcutsAsync()
 		{
-			return await Task.FromResult(GetLinuxNetworkItems());
+			return await Task.FromResult(GetPlatformNetworkItems());
 		}
 
 		/// <inheritdoc/>

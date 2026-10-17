@@ -1,7 +1,7 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
-using Files.Platform.Abstractions.Gvfs;
+using Files.Platform.Abstractions.Network;
 using Files.Platform.Abstractions.Volumes;
 using Files.Platform.Linux.Gvfs;
 using Files.Platform.Linux.Launching;

@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Files.Platform.Posix.Native;
 
 namespace Files.Platform.Linux.Native
 {
@@ -207,52 +208,6 @@ namespace Files.Platform.Linux.Native
 			fd = PosixNative.OpenAt(dirfd, name, flags | PosixNative.ONofollow, out var errno, mode);
 			if (fd < 0) throw PosixNative.CreateException(errno, name);
 			return fd;
-		}
-
-		// Async-local fault injection keeps archive regression tests isolated.
-		internal static readonly System.Threading.AsyncLocal<int?> OpenBeneathError = new();
-
-		internal static int OpenBeneath(int rootFd, string relativePath, int flags)
-		{
-			var how = new OpenHow { Flags = (ulong)flags, Resolve = 0x08 | 0x04 | 0x02 }; // BENEATH | NO_SYMLINKS | NO_MAGICLINKS
-			var injectedError = OpenBeneathError.Value;
-			var fd = injectedError.HasValue ? -1 : (int)OpenAt2(437, rootFd, relativePath.Length == 0 ? "." : relativePath, ref how, 24);
-			if (fd >= 0) return fd;
-			var error = injectedError ?? Marshal.GetLastPInvokeError();
-			if (error != 38) throw PosixNative.CreateException(error, relativePath); // ENOSYS only
-
-			var components = relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-			if (relativePath.StartsWith('/') || Array.Exists(components, component => component == ".."))
-				throw new IOException("Path must remain beneath its directory handle.");
-
-			// Pin each directory and never follow symlinks, including with O_PATH.
-			var pathFlags = 0x200000 | PosixNative.ReadOnlyFlags; // O_PATH | O_CLOEXEC
-			var current = -1;
-			try
-			{
-				current = Open(rootFd, ".", pathFlags | PosixNative.ODirectory, true);
-				for (var i = 0; i < components.Length; i++)
-				{
-					var next = Open(current, components[i], i == components.Length - 1 ? flags : pathFlags | PosixNative.ODirectory, true);
-					if (!PosixNative.TryStat(next, out var stat) || stat.FileType == 0xA000)
-					{
-						PosixNative.Close(next);
-						throw new IOException("Unable to open path without symlinks.");
-					}
-					PosixNative.Close(current);
-					current = next;
-				}
-				if (components.Length == 0)
-				{
-					var next = Open(current, ".", flags, true);
-					PosixNative.Close(current);
-					current = next;
-				}
-				fd = current;
-				current = -1;
-				return fd;
-			}
-			finally { if (current >= 0) PosixNative.Close(current); }
 		}
 
 		internal static void Rename(int sourceFd, string source, int targetFd, string target)

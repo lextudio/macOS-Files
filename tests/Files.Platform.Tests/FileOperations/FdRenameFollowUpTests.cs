@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.FileOperations
@@ -28,7 +28,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var source = Write(Path.Combine(Src, "entry"), "data");
 			var destination = Path.Combine(Dst, "entry");
-			var service = new LinuxFileOperationsService((_, _) => true, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => true, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => 38,
 				LinkError = (_, _) =>
@@ -63,7 +63,7 @@ namespace Files.Platform.Tests.FileOperations
 		public async Task HardlinkFailure_DoesNotUseCheckedRename(int errno)
 		{
 			var source = Write(Path.Combine(Src, "entry"), "data");
-			var service = new LinuxFileOperationsService((_, _) => true, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => true, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => 38,
 				LinkError = (_, _) => errno,
@@ -82,7 +82,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var source = Write(Path.Combine(Src, "entry"), "data");
 			var destination = Path.Combine(Src, "renamed");
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => 38,
 				RenameUnlinkError = name =>
@@ -121,7 +121,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var source = Write(Path.Combine(Src, "entry"), "data");
 			var destination = Path.Combine(Src, "renamed");
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => 38,
 				RenameUnlinkError = name =>
@@ -164,7 +164,7 @@ namespace Files.Platform.Tests.FileOperations
 			if (RunningAsRoot())
 				Assert.Inconclusive("Permission checks require an unprivileged user.");
 			var source = Write(Path.Combine(Src, "entry"), "data");
-			var service = new LinuxFileOperationsService((_, _) => true, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => true, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => 38,
 			});
@@ -187,7 +187,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var attempts = 0;
 			var source = Write(Path.Combine(Src, "entry"), "data");
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				RenameError = (_, destination, _) =>
 				{
@@ -206,7 +206,7 @@ namespace Files.Platform.Tests.FileOperations
 		[DataRow(38)]
 		public async Task DirectoryFallback_CrossDeviceMove_CopiesAndDeletesSource(int errno)
 		{
-			var statService = new Files.Platform.Linux.FileStat.LinuxFileStatService();
+			var statService = new Files.Platform.Posix.FileStat.PosixFileStatService();
 			if (!statService.TryGetFileId(Src, out var sourceId)
 				|| !statService.TryGetFileId("/dev/shm", out var destinationId)
 				|| sourceId.Device == destinationId.Device)
@@ -220,7 +220,7 @@ namespace Files.Platform.Tests.FileOperations
 				Write(Path.Combine(tree, "nested", "child"), "preserved");
 				var attempts = 0;
 				// Simulate the same-mount assumption when mountinfo cannot be read.
-				var service = new LinuxFileOperationsService((_, _) => true, new LinuxFileOperationsHooks
+				var service = new PosixFileOperationsService((_, _) => true, new PosixFileOperationsHooks
 				{
 					RenameError = (_, _, _) => { attempts++; return errno; },
 				});
@@ -244,7 +244,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var tree = Path.Combine(Src, "tree");
 			Write(Path.Combine(tree, "child"), "preserved");
-			var service = new LinuxFileOperationsService((_, _) => true, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => true, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) =>
 				{
@@ -267,7 +267,7 @@ namespace Files.Platform.Tests.FileOperations
 			var attempts = 0;
 			var tree = Path.Combine(Src, "tree");
 			Write(Path.Combine(tree, "child"));
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => { attempts++; return 22; },
 			});
@@ -285,7 +285,7 @@ namespace Files.Platform.Tests.FileOperations
 			var attempts = 0;
 			ulong mount = 1;
 			long clock = 0;
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				RenameMountId = () => missingMountId ? null : mount,
 				RenameCacheTimeMilliseconds = () => clock,
@@ -313,7 +313,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var attempts = 0;
 			ulong mount = 0;
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				RenameMountId = () => mount,
 				RenameError = (_, _, _) => { attempts++; return 22; },

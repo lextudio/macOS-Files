@@ -257,7 +257,7 @@ namespace Files.App.Data.Items
 			// The label already is the display name (volume label, "<size> Volume" or "File System")
 			item.Text = !string.IsNullOrWhiteSpace(label) ? label : root.DisplayName;
 			if (string.IsNullOrWhiteSpace(item.Text) && root.Path is "/")
-				item.Text = Strings.LinuxFileSystemRoot.GetLocalizedResource();
+				item.Text = Strings.DesktopFileSystemRoot.GetLocalizedResource();
 			item.Type = type;
 			item.MenuOptions = new ContextMenuOptions
 			{
@@ -312,7 +312,7 @@ namespace Files.App.Data.Items
 
 				var info = await Task.Run(() =>
 				{
-					if (Files.Platform.Linux.Volumes.HeadlessDriveFixture.Find(Path) is { } synthetic)
+					if (Files.Platform.Posix.Volumes.HeadlessDriveFixture.Find(Path) is { } synthetic)
 						return (Total: (long)synthetic.TotalBytes, Free: (long)synthetic.FreeBytes, Format: synthetic.FileSystem);
 
 					var driveInfo = new SystemIO.DriveInfo(Path ?? throw new InvalidOperationException("The drive path has not been initialized."));

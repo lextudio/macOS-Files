@@ -29,6 +29,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Files.Platform.Abstractions\Files.Platform.Abstractions.csproj" />
         <ProjectReference Include="..\..\src\Files.Platform.Linux\Files.Platform.Linux.csproj" />
+        <ProjectReference Include="..\..\src\Files.Platform.Posix\Files.Platform.Posix.csproj" />
         <ProjectReference Include="../../src/Files.Platform.Linux.ElevationHelper/Files.Platform.Linux.ElevationHelper.csproj" Aliases="ElevationHelper" />
         <ProjectReference Include="..\..\src\Files.Core.Storage\Files.Core.Storage.csproj" />
     </ItemGroup>
@@ -60,8 +61,8 @@
         <Compile Include="../../src/Files.App/Utils/Serialization/Implementation/*.cs" LinkBase="Settings/Implementation" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="../../src/Files.App/Utils/FileTags/FileTagsDatabase.Linux.cs" Link="Tags/FileTagsDatabase.Linux.cs" />
-        <Compile Include="../../src/Files.App/Utils/FileTags/FileTagsHelper.Linux.cs" Link="Tags/FileTagsHelper.Linux.cs" />
+        <Compile Include="../../src/Files.App/Utils/FileTags/FileTagsDatabase.Desktop.cs" Link="Tags/FileTagsDatabase.Desktop.cs" />
+        <Compile Include="../../src/Files.App/Utils/FileTags/FileTagsHelper.Desktop.cs" Link="Tags/FileTagsHelper.Desktop.cs" />
         <Compile Include="../../src/Files.App/Data/Items/ListedItem.FileTags.cs" Link="Tags/ListedItem.FileTags.cs" />
         <Compile Include="../../src/Files.App/Utils/FileTags/TaggedFile.cs" Link="Tags/TaggedFile.cs" />
         <Compile Include="../../src/Files.App/Helpers/Navigation/InFlightOpenGate.cs" Link="Navigation/InFlightOpenGate.cs" />
@@ -71,4 +72,5 @@
     <ItemGroup>
         <None Update="Mime/Fixtures/ServiceMenus/*.desktop" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
+    <Import Project="..\..\src\Files.Platform.Posix\PosixGlobalUsings.props" />
 </Project>

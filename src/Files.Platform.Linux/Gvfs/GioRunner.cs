@@ -73,7 +73,7 @@ namespace Files.Platform.Linux.Gvfs
 
 			try
 			{
-				using var process = Files.Platform.Linux.Launching.TracedProcess.Start(startInfo);
+				using var process = Files.Platform.Posix.Launching.TracedProcess.Start(startInfo);
 				if (process is null)
 					return new GioResult(-1, "gio could not be started.");
 

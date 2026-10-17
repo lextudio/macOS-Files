@@ -16,21 +16,21 @@ namespace Files.App.Services
 	public sealed partial class ResourcesService
 	{
 		private readonly Dictionary<string, Color> _manualColors = new();
-		private readonly HashSet<string> _linuxOverrides = new();
+		private readonly HashSet<string> _desktopOverrides = new();
 		private ISystemAppearanceService SystemAppearance => Ioc.Default.GetRequiredService<ISystemAppearanceService>();
 		private bool _refreshing;
 		private static readonly string[] SurfaceKeys = ["App.Theme.BackgroundBrush", "App.Theme.AddressBar.BackgroundBrush",
 			"App.Theme.Toolbar.BackgroundBrush", "App.Theme.Sidebar.BackgroundBrush", "App.Theme.FileArea.BackgroundBrush",
 			"App.Theme.FileArea.SecondaryBackgroundBrush", "App.Theme.InfoPane.BackgroundBrush", "ToolbarBackgroundBrush", "TabViewItemHeaderBackgroundSelected"];
 
-		private void InitializeLinuxAppearance()
+		private void InitializeDesktopAppearance()
 		{
 			if (!OperatingSystem.IsLinux()) return;
 			SystemAppearance.Changed += (_, _) => MainWindow.Instance.DispatcherQueue.TryEnqueue(ApplyResources);
 			X11AppearanceSupport.Changed += (_, _) => MainWindow.Instance.DispatcherQueue.TryEnqueue(ApplyResources);
 			AppThemeModeService.AppThemeModeChanged += (_, _) =>
 			{
-				if (!_refreshing) UpdateLinuxAppearanceResources();
+				if (!_refreshing) UpdateDesktopAppearanceResources();
 			};
 			_ = RefreshSystemAppearanceAsync();
 		}
@@ -41,7 +41,7 @@ namespace Files.App.Services
 			catch (OperationCanceledException) { }
 		}
 
-		private void SetLinuxManualColor(string key, Color color)
+		private void SetDesktopManualColor(string key, Color color)
 		{
 			if (color.A == 0) _manualColors.Remove(key);
 			else _manualColors[key] = color;
@@ -58,15 +58,15 @@ namespace Files.App.Services
 			return null;
 		}
 
-		private void UpdateLinuxAppearanceResources()
+		private void UpdateDesktopAppearanceResources()
 		{
 			if (!OperatingSystem.IsLinux() || _refreshing) return;
 			_refreshing = true;
 			try
 			{
 				var resources = Application.Current.Resources;
-				foreach (var key in _linuxOverrides) resources.Remove(key);
-				_linuxOverrides.Clear();
+				foreach (var key in _desktopOverrides) resources.Remove(key);
+				_desktopOverrides.Clear();
 				var settings = UserSettingsService.AppearanceSettingsService;
 				var system = SystemAppearance.Current;
 				var dark = AppThemeModeService.AppThemeMode == ElementTheme.Dark ||
@@ -125,7 +125,7 @@ namespace Files.App.Services
 				{
 					resources[key] = key.StartsWith("SystemAccentColor", StringComparison.Ordinal) || key == "App.Theme.FillColorAttention"
 						? (object)color : new SolidColorBrush(color);
-					_linuxOverrides.Add(key);
+					_desktopOverrides.Add(key);
 				}
 			}
 			finally { _refreshing = false; }

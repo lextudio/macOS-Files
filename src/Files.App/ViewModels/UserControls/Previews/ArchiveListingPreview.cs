@@ -6,7 +6,7 @@ using TextPreview = Files.App.UserControls.FilePreviews.DesktopTextPreview;
 using Files.App.ViewModels.Properties;
 using Files.Platform.Abstractions.Archives;
 using System.Text;
-using Files.Platform.Linux.Previews;
+using Files.Platform.Posix.Previews;
 
 namespace Files.App.ViewModels.Previews
 {

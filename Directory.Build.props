@@ -5,13 +5,16 @@
     <!--  Generic properties  -->
     <BaseTargetFramework>net10.0</BaseTargetFramework>
     <DesktopTargetFramework>$(BaseTargetFramework)-desktop</DesktopTargetFramework>
+    <!-- Desktop (Uno Skia) OS target: Linux (X11). Overridable for other desktop heads. -->
+    <FilesDesktopOS Condition="'$(FilesDesktopOS)' == ''">Linux</FilesDesktopOS>
+
     <!--  Set the Linux-only Uno targets before NuGet imports Directory.Packages.props, including outer builds.  -->
     <TargetFramework Condition="'$(UsingUnoSdk)' == 'true' And '$(MSBuildProjectName)' == 'Files.App.UnoVirtualization' And '$(TargetFramework)' == '' And '$(TargetFrameworks)' == ''">$(DesktopTargetFramework)</TargetFramework>
     <TargetFrameworks Condition="'$(UsingUnoSdk)' == 'true' And '$(TargetFramework)' == '' And '$(TargetFrameworks)' == ''">$(DesktopTargetFramework)</TargetFrameworks>
-    <UseUnoWayland Condition="'$(UseUnoWayland)' == ''">true</UseUnoWayland>
+    <UseUnoWayland Condition="'$(FilesDesktopOS)' == 'Linux' And '$(UseUnoWayland)' == ''">true</UseUnoWayland>
     <!--  One effective switch for the Linux desktop target; the build machine's OS is irrelevant.  -->
     <FilesUseUnoWayland>false</FilesUseUnoWayland>
-    <FilesUseUnoWayland Condition="'$(UsingUnoSdk)' == 'true' And '$(UseUnoWayland)' == 'true' And ('$(TargetFramework)' == '$(DesktopTargetFramework)' Or ('$(TargetFramework)' == '' And '$(TargetFrameworks)' == '$(DesktopTargetFramework)')) And ('$(RuntimeIdentifier)' == '' Or $(RuntimeIdentifier.StartsWith('linux-')))">true</FilesUseUnoWayland>
+    <FilesUseUnoWayland Condition="'$(UsingUnoSdk)' == 'true' And '$(UseUnoWayland)' == 'true' And '$(FilesDesktopOS)' == 'Linux' And ('$(TargetFramework)' == '$(DesktopTargetFramework)' Or ('$(TargetFramework)' == '' And '$(TargetFrameworks)' == '$(DesktopTargetFramework)')) And ('$(RuntimeIdentifier)' == '' Or $(RuntimeIdentifier.StartsWith('linux-')))">true</FilesUseUnoWayland>
     <LangVersion>preview</LangVersion>
     <!-- Uno's nullability annotations differ from WinUI's; keep nullable diagnostics as warnings on the Linux desktop build for now. -->
     <WarningsAsErrors Condition="!$(TargetFramework.EndsWith('-desktop'))">nullable</WarningsAsErrors>

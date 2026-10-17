@@ -45,15 +45,15 @@ namespace Files.App.ViewModels.Properties
 
 			if (OperatingSystem.IsLinux())
 			{
-				SetupLinuxLink(itemPath);
+				SetupDesktopLink(itemPath);
 				return;
 			}
 
 		}
 
-		private void SetupLinuxLink(string itemPath)
+		private void SetupDesktopLink(string itemPath)
 		{
-			if (!LinuxShortcutHelper.IsSymbolicLink(itemPath, out var target))
+			if (!DesktopShortcutHelper.IsSymbolicLink(itemPath, out var target))
 				return;
 
 			var directory = Path.GetDirectoryName(itemPath) ?? "/";
@@ -65,7 +65,7 @@ namespace Files.App.ViewModels.Properties
 			ViewModel.ShortcutItemWorkingDirVisibility = false;
 			ViewModel.ShortcutItemArgumentsVisibility = false;
 			ViewModel.ShortcutItemWindowArgsVisibility = false;
-			ViewModel.IsLinuxOpenTargetAvailable = resolved is not null;
+			ViewModel.IsDesktopOpenTargetAvailable = resolved is not null;
 			ViewModel.ShortcutItemOpenLinkCommand = new RelayCommand(
 				async () =>
 				{
@@ -76,10 +76,10 @@ namespace Files.App.ViewModels.Properties
 				() => !string.IsNullOrEmpty(resolved));
 		}
 
-		private async Task GetSpecialPropertiesLinuxAsync(string itemPath)
+		private async Task GetSpecialPropertiesDesktopAsync(string itemPath)
 		{
-			ApplyLinuxStat(itemPath);
-			await ApplyLinuxTypeAsync(itemPath);
+			ApplyDesktopStat(itemPath);
+			await ApplyDesktopTypeAsync(itemPath);
 
 			try
 			{
@@ -97,7 +97,7 @@ namespace Files.App.ViewModels.Properties
 			}
 
 			// A symbolic link to a folder reports the size of the link itself, a real folder is scanned
-			if (!LinuxShortcutHelper.IsSymbolicLink(itemPath, out _))
+			if (!DesktopShortcutHelper.IsSymbolicLink(itemPath, out _))
 				_ = GetFolderSizeAsync(itemPath, TokenSource.Token);
 		}
 
@@ -107,7 +107,7 @@ namespace Files.App.ViewModels.Properties
 
 			if (OperatingSystem.IsLinux())
 			{
-				await GetSpecialPropertiesLinuxAsync(itemPath);
+				await GetSpecialPropertiesDesktopAsync(itemPath);
 				return;
 			}
 

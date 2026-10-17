@@ -20,8 +20,8 @@ namespace Files.App.Utils
 				PasswordOnly = true,
 				CanBeAnonymous = false,
 				IsWrongPassword = retry,
-				Title = Strings.LinuxVolumeUnlockTitle.GetLocalizedResource(),
-				Description = string.Format(Strings.LinuxVolumeUnlockDescription.GetLocalizedResource(), string.IsNullOrEmpty(volume.Label) ? volume.Device : volume.Label),
+				Title = Strings.DesktopVolumeUnlockTitle.GetLocalizedResource(),
+				Description = string.Format(Strings.DesktopVolumeUnlockDescription.GetLocalizedResource(), string.IsNullOrEmpty(volume.Label) ? volume.Device : volume.Label),
 			};
 
 			var dialogService = Ioc.Default.GetRequiredService<IDialogService>();

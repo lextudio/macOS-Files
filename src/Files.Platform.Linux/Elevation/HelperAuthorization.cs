@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using Files.Platform.Abstractions.Elevation;
-using Files.Platform.Linux.Launching;
+using Files.Platform.Posix.Launching;
 using System;
 using System.Globalization;
 using System.IO;

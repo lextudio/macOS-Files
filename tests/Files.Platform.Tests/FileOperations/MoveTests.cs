@@ -9,7 +9,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.FileOperations
@@ -18,10 +18,10 @@ namespace Files.Platform.Tests.FileOperations
 	[SupportedOSPlatform("linux")]
 	public sealed class MoveTests : FileOperationsTestBase
 	{
-		private readonly IFileOperationsService _sameDevice = new LinuxFileOperationsService((_, _) => true);
+		private readonly IFileOperationsService _sameDevice = new PosixFileOperationsService((_, _) => true);
 
 		/// <summary>Forces the copy, verify, delete path used between file systems.</summary>
-		private readonly IFileOperationsService _crossDevice = new LinuxFileOperationsService((_, _) => false);
+		private readonly IFileOperationsService _crossDevice = new PosixFileOperationsService((_, _) => false);
 
 		public static IEnumerable<object[]> Modes => [[false], [true]];
 
@@ -32,7 +32,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var source = Write(Path.Combine(Src, "a.txt"), "hello");
 
-			var results = await new LinuxFileOperationsService().MoveAsync([source], Dst);
+			var results = await new PosixFileOperationsService().MoveAsync([source], Dst);
 
 			Assert.IsTrue(results[0].Succeeded);
 			Assert.IsFalse(File.Exists(source));
@@ -288,7 +288,7 @@ namespace Files.Platform.Tests.FileOperations
 			var tree = Path.Combine(Src, "tree");
 			Write(Path.Combine(tree, "sub", "b"), "b");
 
-			var results = await new LinuxFileOperationsService().MoveAsync([tree], Dst);
+			var results = await new PosixFileOperationsService().MoveAsync([tree], Dst);
 
 			Assert.IsTrue(results[0].Succeeded);
 			Assert.IsFalse(Directory.Exists(tree));

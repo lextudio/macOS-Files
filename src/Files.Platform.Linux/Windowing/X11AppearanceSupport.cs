@@ -7,8 +7,6 @@ using System.Threading;
 
 namespace Files.Platform.Linux.Windowing
 {
-	public enum OpacitySupport { Unknown, Supported, NoCompositor, Satellite }
-
 	public sealed record X11AppearanceSupport(OpacitySupport WindowOpacity, bool BackgroundAlpha, bool Blur)
 	{
 		private static X11AppearanceSupport _current = new(OpacitySupport.Unknown, false, false);

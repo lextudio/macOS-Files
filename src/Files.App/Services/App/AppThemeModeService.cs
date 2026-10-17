@@ -65,9 +65,10 @@ namespace Files.App.Services
 			UISettings.ColorValuesChanged += UISettings_ColorValuesChanged;
 
 #if HAS_UNO
-			Files.Platform.Linux.Theme.LinuxColorScheme.Initialize();
-			Files.Platform.Linux.Theme.LinuxColorScheme.Changed += async (_, _) =>
+			var appearance = Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Appearance.ISystemAppearanceService>();
+			appearance.Changed += async (_, _) =>
 				await MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(() => SetAppThemeMode());
+			_ = appearance.RefreshAsync();
 #endif
 		}
 
@@ -78,7 +79,7 @@ namespace Files.App.Services
 		{
 #if HAS_UNO
 			if (theme is ElementTheme.Default)
-				return Files.Platform.Linux.Theme.LinuxColorScheme.IsDark ? ElementTheme.Dark : ElementTheme.Light;
+				return Ioc.Default.GetService<Files.Platform.Abstractions.Appearance.ISystemAppearanceService>()?.Current.IsDark == true ? ElementTheme.Dark : ElementTheme.Light;
 #endif
 			return theme;
 		}

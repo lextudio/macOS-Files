@@ -26,7 +26,7 @@ namespace Files.Platform.Linux.Theme
 			MapRole(["view_bg_color", "theme_base_color"], "App.Theme.FileArea.BackgroundBrush", "LayerFillColorDefaultBrush");
 			MapRole(["headerbar_bg_color", "theme_bg_color"], "App.Theme.AddressBar.BackgroundBrush", "App.Theme.Toolbar.BackgroundBrush", "ToolbarBackgroundBrush", "TabViewItemHeaderBackgroundSelected");
 			MapRole(["sidebar_bg_color", "theme_bg_color"], "App.Theme.Sidebar.BackgroundBrush", "App.Theme.InfoPane.BackgroundBrush");
-			MapRole(["popover_bg_color", "theme_bg_color"], "Files.Linux.FlyoutSurfaceBrush", "FlyoutBackgroundThemeBrush", "MenuFlyoutPresenterBackground", "ContentDialogBackground");
+			MapRole(["popover_bg_color", "theme_bg_color"], "Files.Desktop.FlyoutSurfaceBrush", "FlyoutBackgroundThemeBrush", "MenuFlyoutPresenterBackground", "ContentDialogBackground");
 			MapRole(["card_bg_color", "theme_base_color"], "CardBackgroundFillColorDefaultBrush", "CardBackgroundFillColorSecondaryBrush", "App.Theme.CardBackgroundFillColorTertiaryBrush", "LayerOnMicaBaseAltFillColorDefaultBrush", "ControlFillColorDefaultBrush");
 			MapRole(["borders"], "CardStrokeColorDefaultBrush", "DividerStrokeColorDefaultBrush", "ToolbarBorderBrush", "ControlStrokeColorDefaultBrush", "FlyoutBorderThemeBrush", "MenuFlyoutPresenterBorderBrush");
 			MapRole(["window_fg_color", "theme_fg_color", "theme_text_color"], "TextFillColorPrimaryBrush", "TextFillColorSecondaryBrush", "TextFillColorTertiaryBrush", "TabViewItemHeaderForeground", "TabViewItemHeaderForegroundSelected");
@@ -83,7 +83,7 @@ namespace Files.Platform.Linux.Theme
 			var white = new AppearanceColor(255, 255, 255);
 			var black = new AppearanceColor(0, 0, 0);
 			foreach (var key in new[] { "TextFillColorPrimaryBrush", "TextFillColorSecondaryBrush", "TextFillColorTertiaryBrush", "TextFillColorDisabledBrush", "AccentTextFillColorPrimaryBrush", "AccentTextFillColorSecondaryBrush", "App.Theme.InfoPane.AccentTextBrush" }) result[key] = white;
-			foreach (var key in new[] { "Files.Linux.FlyoutSurfaceBrush", "MenuFlyoutPresenterBackground", "FlyoutBackgroundThemeBrush", "ContentDialogBackground", "CardBackgroundFillColorDefaultBrush", "CardBackgroundFillColorSecondaryBrush", "App.Theme.CardBackgroundFillColorTertiaryBrush", "LayerFillColorDefaultBrush", "LayerOnMicaBaseAltFillColorDefaultBrush", "ControlFillColorDefaultBrush" }) result[key] = black;
+			foreach (var key in new[] { "Files.Desktop.FlyoutSurfaceBrush", "MenuFlyoutPresenterBackground", "FlyoutBackgroundThemeBrush", "ContentDialogBackground", "CardBackgroundFillColorDefaultBrush", "CardBackgroundFillColorSecondaryBrush", "App.Theme.CardBackgroundFillColorTertiaryBrush", "LayerFillColorDefaultBrush", "LayerOnMicaBaseAltFillColorDefaultBrush", "ControlFillColorDefaultBrush" }) result[key] = black;
 			foreach (var control in new[] { "Button", "ComboBox", "ToolbarButton", "ToggleButton", "ToolbarToggleButton" })
 			{
 				foreach (var state in new[] { "", "PointerOver", "Pressed", "Disabled" })

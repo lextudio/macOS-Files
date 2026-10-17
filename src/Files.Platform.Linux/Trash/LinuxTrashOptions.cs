@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Files.Platform.Linux.Native;
 
 namespace Files.Platform.Linux.Trash
@@ -43,7 +43,7 @@ namespace Files.Platform.Linux.Trash
 		public Action<string, string>? BeforeRestoreMove { get; set; }
 
 		/// <summary>Diagnostic seams for fd-relative restore renames and cross-device copies.</summary>
-		public LinuxFileOperationsHooks? FileOperationsHooks { get; set; }
+		public PosixFileOperationsHooks? FileOperationsHooks { get; set; }
 
 		private static string GetDefaultDataHome()
 		{

@@ -570,18 +570,18 @@ namespace Files.App.Data.Models
 			}
 		}
 
-		private bool isLinuxOpenTargetAvailable;
-		public bool IsLinuxOpenTargetAvailable
+		private bool isDesktopOpenTargetAvailable;
+		public bool IsDesktopOpenTargetAvailable
 		{
-			get => isLinuxOpenTargetAvailable;
+			get => isDesktopOpenTargetAvailable;
 			set
 			{
-				if (SetProperty(ref isLinuxOpenTargetAvailable, value))
+				if (SetProperty(ref isDesktopOpenTargetAvailable, value))
 					OnPropertyChanged(nameof(IsOpenTargetVisible));
 			}
 		}
 
-		public bool IsOpenTargetVisible => IsSelectedItemShortcut || IsLinuxOpenTargetAvailable;
+		public bool IsOpenTargetVisible => IsSelectedItemShortcut || IsDesktopOpenTargetAvailable;
 
 		private string? desktopEntryName;
 		public string? DesktopEntryName

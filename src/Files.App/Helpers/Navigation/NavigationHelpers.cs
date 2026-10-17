@@ -386,9 +386,9 @@ namespace Files.App.Helpers
 					: navigationArg == MainPageViewModel.SelectedTabItem?.NavigationParameter?.NavigationParameter;
 				if (isCurrent)
 				{
-					var title = $"{windowTitle} - {(OperatingSystem.IsLinux() ? Strings.LinuxAppDisplayName.GetLocalizedResource() : "Files")}";
-					title = Files.Platform.Linux.Windowing.X11WindowChrome.SanitizeTitle(MainWindow.FormatRootModeTitle(title));
-					MainWindow.Instance.UpdateLinuxWindowTitle(title);
+					var title = $"{windowTitle} - {(OperatingSystem.IsLinux() ? Strings.DesktopAppDisplayName.GetLocalizedResource() : "Files")}";
+					title = Files.Platform.Posix.WindowTitle.Sanitize(MainWindow.FormatRootModeTitle(title));
+					MainWindow.Instance.UpdateWindowTitle(title);
 					MainWindow.Instance.AppWindow.Title = title;
 				}
 			});
@@ -425,7 +425,7 @@ namespace Files.App.Helpers
 		}
 
 		// The Linux app has one window per process, so a new window is a second process that skips single instance forwarding
-		private static Task LaunchNewLinuxInstance()
+		private static Task LaunchNewDesktopInstance()
 		{
 			try
 			{
@@ -442,7 +442,7 @@ namespace Files.App.Helpers
 
 				startInfo.Environment["FILES_NO_SINGLE_INSTANCE"] = "1";
 				startInfo.ArgumentList.Add("--new-window");
-				if (Files.Platform.Linux.Elevation.RootActionMode.IsRequested(Program.LaunchArguments))
+				if (Files.Platform.Posix.Elevation.RootActionMode.IsRequested(Program.LaunchArguments))
 					startInfo.ArgumentList.Add("--root");
 				System.Diagnostics.Process.Start(startInfo)?.Dispose();
 			}
@@ -467,7 +467,7 @@ namespace Files.App.Helpers
 		public static Task LaunchNewWindowAsync()
 		{
 			if (OperatingSystem.IsLinux())
-				return LaunchNewLinuxInstance();
+				return LaunchNewDesktopInstance();
 
 			return Launcher.LaunchUriAsync(new Uri("files-dev:?window=")).AsTask();
 		}
@@ -499,7 +499,7 @@ namespace Files.App.Helpers
 					!Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Archives.IArchiveService>().IsArchiveFileName(x.GetRequiredPath()))
 				)
 			{
-				opened = await OpenFilesLinuxAsync(selectedItems.Select(x => x.GetRequiredPath()));
+				opened = await OpenFilesDesktopAsync(selectedItems.Select(x => x.GetRequiredPath()));
 			}
 
 			if (opened)
@@ -534,7 +534,7 @@ namespace Files.App.Helpers
 			if (workingDirectory.StartsWith(Constants.UserEnvironmentPaths.RecycleBinPath, StringComparison.Ordinal))
 				return;
 
-			await RunWithItemsLinuxAsync(executablePath, items.Select(item => item.Path).ToArray());
+			await RunWithItemsDesktopAsync(executablePath, items.Select(item => item.Path).ToArray());
 		}
 
 		/// <summary>
@@ -573,7 +573,7 @@ namespace Files.App.Helpers
 				return true;
 			}
 
-			return await OpenPathLinuxAsync(path, associatedInstance, openViaApplicationPicker, selectItems, forceOpenInNewTab);
+			return await OpenPathDesktopAsync(path, associatedInstance, openViaApplicationPicker, selectItems, forceOpenInNewTab);
 		}
 
 

@@ -13,7 +13,7 @@ namespace Files.App.Actions
 
 
 		public virtual string Label
-			=> Strings.OpenTerminalLinux.GetLocalizedResource();
+			=> Strings.OpenTerminalDesktop.GetLocalizedResource();
 
 		public virtual string Description
 			=> Strings.OpenTerminalDescription.GetLocalizedResource();
@@ -46,10 +46,10 @@ namespace Files.App.Actions
 			if (paths.Length is 0)
 				return Task.CompletedTask;
 
-			return OpenLinuxTerminalsAsync(paths);
+			return OpenDesktopTerminalsAsync(paths);
 		}
 
-		private static async Task OpenLinuxTerminalsAsync(string[] paths)
+		private static async Task OpenDesktopTerminalsAsync(string[] paths)
 		{
 			var launcher = Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Launching.ILauncherService>();
 			foreach (var path in paths)

@@ -74,7 +74,7 @@ namespace Files.Platform.Tests.SystemIntegration
 			var inherited = new Dictionary<string, string?> { [variable] = "/home/user/untrusted" };
 			foreach (var entry in RootStartupEnvironment.GetOverrides("/root")) inherited[entry.Key] = entry.Value;
 			Assert.AreEqual(expected, inherited[variable]);
-			var directories = new Files.Platform.Linux.Mime.XdgDirectories(name => inherited.GetValueOrDefault(name));
+			var directories = new Files.Platform.Posix.Mime.XdgDirectories(name => inherited.GetValueOrDefault(name));
 			CollectionAssert.AreEqual(new[] { "/usr/local/share", "/usr/share" }, new List<string>(directories.DataDirs));
 			CollectionAssert.AreEqual(new[] { "/etc/xdg" }, new List<string>(directories.ConfigDirs));
 		}

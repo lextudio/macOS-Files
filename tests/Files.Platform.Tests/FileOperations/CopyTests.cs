@@ -9,7 +9,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.FileOperations
@@ -18,7 +18,7 @@ namespace Files.Platform.Tests.FileOperations
 	[SupportedOSPlatform("linux")]
 	public sealed class CopyTests : FileOperationsTestBase
 	{
-		private readonly IFileOperationsService _service = new LinuxFileOperationsService();
+		private readonly IFileOperationsService _service = new PosixFileOperationsService();
 
 		[TestMethod]
 		public async Task Copy_File_CopiesContentTimeAndMode()

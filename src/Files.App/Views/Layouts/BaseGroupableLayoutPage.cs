@@ -103,8 +103,8 @@ namespace Files.App.Views.Layouts
 			ItemManipulationModel.ScrollToTopInvoked += ItemManipulationModel_ScrollToTopInvoked;
 			ItemManipulationModel.RefreshItemThumbnailInvoked += ItemManipulationModel_RefreshItemThumbnail;
 			ItemManipulationModel.RefreshItemsThumbnailInvoked += ItemManipulationModel_RefreshItemsThumbnail;
-			ActualThemeChanged -= LinuxPage_ActualThemeChanged;
-			ActualThemeChanged += LinuxPage_ActualThemeChanged;
+			ActualThemeChanged -= DesktopPage_ActualThemeChanged;
+			ActualThemeChanged += DesktopPage_ActualThemeChanged;
 		}
 
 		protected override void UnhookEvents()
@@ -357,7 +357,7 @@ namespace Files.App.Views.Layouts
 				container.RequestedTheme = ActualTheme;
 		}
 
-		private void LinuxPage_ActualThemeChanged(FrameworkElement sender, object args)
+		private void DesktopPage_ActualThemeChanged(FrameworkElement sender, object args)
 		{
 			if (ListViewBase?.ItemsPanelRoot is not { } panel)
 				return;
@@ -617,7 +617,7 @@ namespace Files.App.Views.Layouts
 		protected bool TryHandleGroupedArrowKey(KeyRoutedEventArgs e)
 		{
 			if (e.Key is not (VirtualKey.Up or VirtualKey.Down or VirtualKey.Left or VirtualKey.Right) ||
-				!IsLinuxGrouped ||
+				!IsDesktopGrouped ||
 				ListViewBase.Items.Count == 0 ||
 				FocusManager.GetFocusedElement(MainWindow.Instance.Content.XamlRoot) is TextBox ||
 				InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down) ||
@@ -640,7 +640,7 @@ namespace Files.App.Views.Layouts
 				return true;
 			}
 
-			var panel = ListViewBase.ItemsPanelRoot as LinuxGroupedWrapPanel;
+			var panel = ListViewBase.ItemsPanelRoot as DesktopGroupedWrapPanel;
 			if (panel is null && e.Key is VirtualKey.Left or VirtualKey.Right)
 				return false;
 

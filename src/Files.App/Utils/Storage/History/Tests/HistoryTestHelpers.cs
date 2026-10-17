@@ -7,7 +7,7 @@ using Windows.Storage;
 
 namespace Files.App.Utils.Storage
 {
-	internal sealed class HistoryTestHelpers(LinuxFilesystemOperations operations) : IFilesystemHelpers
+	internal sealed class HistoryTestHelpers(DesktopFilesystemOperations operations) : IFilesystemHelpers
 	{
 		public DeleteConfirmationPolicies? LastDeleteConfirmation { get; private set; }
 		public bool RegisteredHistory { get; private set; }

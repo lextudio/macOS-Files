@@ -11,7 +11,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.FileOperations
@@ -44,7 +44,7 @@ namespace Files.Platform.Tests.FileOperations
 			var secret = Write(Path.Combine(Src, "secret"), "top secret");
 			File.SetUnixFileMode(secret, UnixFileMode.UserRead | UnixFileMode.UserWrite);
 			var seen = new List<UnixFileMode>();
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				TemporaryFileCreated = path => seen.Add(File.GetUnixFileMode(path)),
 			});
@@ -64,7 +64,7 @@ namespace Files.Platform.Tests.FileOperations
 			Write(Path.Combine(folder, "f"), "x");
 			File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute);
 			var seen = new List<UnixFileMode>();
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				DirectoryCreated = path => seen.Add(File.GetUnixFileMode(path)),
 			});
@@ -87,7 +87,7 @@ namespace Files.Platform.Tests.FileOperations
 			var sub = Path.Combine(tree, "sub");
 			Write(Path.Combine(sub, "inside"), "x");
 			var swapped = false;
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				BeforeDeleteEntry = path =>
 				{
@@ -117,7 +117,7 @@ namespace Files.Platform.Tests.FileOperations
 			var precious = Write(Path.Combine(outside, "precious"), "keep");
 			var tree = Path.Combine(Src, "tree");
 			var victim = Write(Path.Combine(tree, "victim", "a"), "a");
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				BeforeDeleteEntry = path =>
 				{
@@ -146,7 +146,7 @@ namespace Files.Platform.Tests.FileOperations
 			var tree = Path.Combine(Src, "tree");
 			var sub = Path.Combine(tree, "sub");
 			Write(Path.Combine(sub, "inside"), "x");
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				BeforeOpenSource = path =>
 				{
@@ -171,7 +171,7 @@ namespace Files.Platform.Tests.FileOperations
 			var outside = Write(Path.Combine(Root, "outside", "secret"), "outside data");
 			var tree = Path.Combine(Src, "tree");
 			var file = Write(Path.Combine(tree, "f"), "mine");
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				BeforeOpenSource = path =>
 				{
@@ -194,7 +194,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var fifo = Path.Combine(Src, "pipe");
 			MakeFifo(fifo);
-			var service = new LinuxFileOperationsService();
+			var service = new PosixFileOperationsService();
 
 			var results = await service.CopyAsync([fifo], Dst).WaitAsync(TimeSpan.FromSeconds(10));
 
@@ -208,7 +208,7 @@ namespace Files.Platform.Tests.FileOperations
 			var tree = Path.Combine(Src, "tree");
 			Write(Path.Combine(tree, "ok"), "ok");
 			MakeFifo(Path.Combine(tree, "pipe"));
-			var service = new LinuxFileOperationsService();
+			var service = new PosixFileOperationsService();
 
 			var results = await service.CopyAsync([tree], Dst).WaitAsync(TimeSpan.FromSeconds(10));
 
@@ -223,11 +223,11 @@ namespace Files.Platform.Tests.FileOperations
 			var fifo = Path.Combine(Src, "pipe");
 			MakeFifo(fifo);
 
-			var moved = await new LinuxFileOperationsService((_, _) => false).MoveAsync([fifo], Dst).WaitAsync(TimeSpan.FromSeconds(10));
+			var moved = await new PosixFileOperationsService((_, _) => false).MoveAsync([fifo], Dst).WaitAsync(TimeSpan.FromSeconds(10));
 			Assert.AreEqual(FileOperationErrorKind.UnsupportedFileType, moved[0].ErrorKind);
 			Assert.IsTrue(Path.Exists(fifo));
 
-			var deleted = await new LinuxFileOperationsService().DeleteAsync([fifo]).WaitAsync(TimeSpan.FromSeconds(10));
+			var deleted = await new PosixFileOperationsService().DeleteAsync([fifo]).WaitAsync(TimeSpan.FromSeconds(10));
 			Assert.IsTrue(deleted[0].Succeeded, deleted[0].ErrorMessage);
 			Assert.IsFalse(Path.Exists(fifo));
 		}

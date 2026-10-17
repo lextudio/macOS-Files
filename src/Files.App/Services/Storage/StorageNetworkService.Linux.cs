@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using Files.App.Dialogs;
-using Files.Platform.Abstractions.Gvfs;
+using Files.Platform.Abstractions.Network;
 using Files.Platform.Linux.Gvfs;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
@@ -25,7 +25,7 @@ namespace Files.App.Services
 		private static bool IsNetworkKind(GvfsMount mount)
 			=> mount.Kind is not (GvfsMountKind.Mtp or GvfsMountKind.Gphoto);
 
-		private void StartLinuxWatching()
+		private void StartPlatformWatching()
 		{
 			if (Gvfs is not { } gvfs)
 				return;
@@ -50,8 +50,8 @@ namespace Files.App.Services
 			App.Logger.LogInformation("Watching GVfs mounts in {Directory} ({Count} now)", NetworkRootPath, gvfs.GetMounts().Count);
 		}
 
-		private IEnumerable<IFolder> GetLinuxNetworkItems()
-			=> (Gvfs?.GetMounts() ?? []).Where(IsNetworkKind).Select(m => (IFolder)LinuxDriveCatalog.CreateNetworkItem(m));
+		private IEnumerable<IFolder> GetPlatformNetworkItems()
+			=> (Gvfs?.GetMounts() ?? []).Where(IsNetworkKind).Select(m => (IFolder)DesktopDriveCatalog.CreateNetworkItem(m));
 
 		/// <inheritdoc/>
 		public Task<NetworkAvailability?> GetNetworkAvailabilityAsync()
@@ -85,7 +85,7 @@ namespace Files.App.Services
 			DynamicDialog? dialog = null;
 			var input = new TextBox
 			{
-				PlaceholderText = Strings.LinuxConnectToServerPlaceholder.GetLocalizedResource(),
+				PlaceholderText = Strings.DesktopConnectToServerPlaceholder.GetLocalizedResource(),
 				MinWidth = 320d,
 			};
 
@@ -99,9 +99,9 @@ namespace Files.App.Services
 
 			dialog = new DynamicDialog(new DynamicDialogViewModel()
 			{
-				TitleText = Strings.LinuxConnectToServerTitle.GetLocalizedResource(),
-				SubtitleText = Strings.LinuxConnectToServerSubtitle.GetLocalizedResource(),
-				PrimaryButtonText = Strings.LinuxConnectToServerButton.GetLocalizedResource(),
+				TitleText = Strings.DesktopConnectToServerTitle.GetLocalizedResource(),
+				SubtitleText = Strings.DesktopConnectToServerSubtitle.GetLocalizedResource(),
+				PrimaryButtonText = Strings.DesktopConnectToServerButton.GetLocalizedResource(),
 				CloseButtonText = Strings.Cancel.GetLocalizedResource(),
 				DisplayControl = new StackPanel { Children = { input } },
 				DynamicButtons = DynamicDialogButtons.Primary | DynamicDialogButtons.Cancel,
@@ -121,8 +121,8 @@ namespace Files.App.Services
 			if (!await gvfs.ConnectAsync(uri))
 			{
 				await DialogDisplayHelper.ShowDialogAsync(
-					Strings.LinuxConnectToServerTitle.GetLocalizedResource(),
-					string.Format(Strings.LinuxConnectToServerFailed.GetLocalizedResource(), uri));
+					Strings.DesktopConnectToServerTitle.GetLocalizedResource(),
+					string.Format(Strings.DesktopConnectToServerFailed.GetLocalizedResource(), uri));
 			}
 		}
 

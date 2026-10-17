@@ -47,15 +47,15 @@ namespace Files.App.ViewModels.Properties
 
 			if (OperatingSystem.IsLinux())
 			{
-				SetupLinuxShortcut(itemPath);
+				SetupDesktopShortcut(itemPath);
 				return;
 			}
 
 		}
 
-		private void SetupLinuxShortcut(string itemPath)
+		private void SetupDesktopShortcut(string itemPath)
 		{
-			if (LinuxShortcutHelper.IsSymbolicLink(itemPath, out var target))
+			if (DesktopShortcutHelper.IsSymbolicLink(itemPath, out var target))
 			{
 				var directory = Path.GetDirectoryName(itemPath) ?? "/";
 				var resolved = string.IsNullOrEmpty(target) ? null : Path.GetFullPath(target, directory);
@@ -66,7 +66,7 @@ namespace Files.App.ViewModels.Properties
 				ViewModel.ShortcutItemWorkingDirVisibility = false;
 				ViewModel.ShortcutItemArgumentsVisibility = false;
 				ViewModel.ShortcutItemWindowArgsVisibility = false;
-				ViewModel.IsLinuxOpenTargetAvailable = resolved is not null;
+				ViewModel.IsDesktopOpenTargetAvailable = resolved is not null;
 				ViewModel.ShortcutItemOpenLinkCommand = new RelayCommand(
 					async () =>
 					{
@@ -77,9 +77,9 @@ namespace Files.App.ViewModels.Properties
 					},
 					() => !string.IsNullOrEmpty(resolved));
 			}
-			else if (LinuxShortcutHelper.IsDesktopEntry(itemPath))
+			else if (DesktopShortcutHelper.IsDesktopEntry(itemPath))
 			{
-				var (name, exec) = LinuxShortcutHelper.ReadDesktopEntry(itemPath);
+				var (name, exec) = DesktopShortcutHelper.ReadDesktopEntry(itemPath);
 				ViewModel.ShortcutItemType = Strings.Application.GetLocalizedResource();
 				ViewModel.DesktopEntryName = name;
 				ViewModel.ShortcutItemPath = exec;
@@ -90,10 +90,10 @@ namespace Files.App.ViewModels.Properties
 			}
 		}
 
-		private async Task GetSpecialPropertiesLinuxAsync(string itemPath)
+		private async Task GetSpecialPropertiesDesktopAsync(string itemPath)
 		{
-			ApplyLinuxStat(itemPath);
-			await ApplyLinuxTypeAsync(itemPath);
+			ApplyDesktopStat(itemPath);
+			await ApplyDesktopTypeAsync(itemPath);
 
 			try
 			{
@@ -117,7 +117,7 @@ namespace Files.App.ViewModels.Properties
 
 			if (OperatingSystem.IsLinux())
 			{
-				await GetSpecialPropertiesLinuxAsync(itemPath);
+				await GetSpecialPropertiesDesktopAsync(itemPath);
 				return;
 			}
 
@@ -129,7 +129,7 @@ namespace Files.App.ViewModels.Properties
 
 			if (OperatingSystem.IsLinux())
 			{
-				GetSystemFilePropertiesLinux(itemPath);
+				GetSystemFilePropertiesDesktop(itemPath);
 				return;
 			}
 
@@ -164,9 +164,9 @@ namespace Files.App.ViewModels.Properties
 			ViewModel.FileProperties = new ObservableCollection<FileProperty>(list.Where(i => i.Value is not null));
 		}
 
-		private void GetSystemFilePropertiesLinux(string itemPath)
+		private void GetSystemFilePropertiesDesktop(string itemPath)
 		{
-			var list = LinuxFileMetadata.Read(itemPath);
+			var list = DesktopFileMetadata.Read(itemPath);
 			var sections = list
 				.GroupBy(p => p.SectionResource!)
 				.Select(group => new FilePropertySection(group) { Key = group.Key })

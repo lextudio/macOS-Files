@@ -41,7 +41,7 @@ namespace Files.Platform.Tests.Tags
 								? Files.Platform.Abstractions.FileOperations.ConflictAction.Skip
 								: Files.Platform.Abstractions.FileOperations.ConflictAction.Overwrite))
 				};
-				var service = new Files.Platform.Linux.FileOperations.LinuxFileOperationsService();
+				var service = new Files.Platform.Posix.FileOperations.PosixFileOperationsService();
 				await service.MoveAsync([source], destination, options);
 				Assert.IsTrue(File.Exists(Path.Combine(source, "skip")));
 				Assert.IsFalse(db.IsXattrStale(Path.Combine(source, "move")));
@@ -83,7 +83,7 @@ namespace Files.Platform.Tests.Tags
 						new Files.Platform.Abstractions.FileOperations.ConflictResolution(
 							Files.Platform.Abstractions.FileOperations.ConflictAction.Overwrite))
 				};
-				var service = new Files.Platform.Linux.FileOperations.LinuxFileOperationsService((_, _) => !crossDevice);
+				var service = new Files.Platform.Posix.FileOperations.PosixFileOperationsService((_, _) => !crossDevice);
 				var results = await service.MoveAsync([source], destination, options);
 				Assert.IsTrue(results[0].Succeeded);
 				Assert.IsFalse(Directory.Exists(source));
@@ -114,7 +114,7 @@ namespace Files.Platform.Tests.Tags
 				db.SetTags(Path.Combine(folder, "file"), null, [], true);
 				db.SetTags(folder + "-neighbor", null, ["neighbor"]);
 				var options = new Files.Platform.Abstractions.FileOperations.FileOperationOptions { PathChanged = db.UpdatePath };
-				var service = new Files.Platform.Linux.FileOperations.LinuxFileOperationsService((_, _) => false);
+				var service = new Files.Platform.Posix.FileOperations.PosixFileOperationsService((_, _) => false);
 				var rename = await service.RenameAsync(folder, "renamed", options);
 				Assert.IsTrue(rename.Succeeded);
 				var renamed = Path.Combine(root, "renamed");

@@ -103,14 +103,14 @@
 			</wctcontrols:SettingsCard>
 
 			<wctcontrols:SettingsCard
-				Description="{helpers:ResourceString Key=LinuxColourSourceDescription}"
-				Header="{helpers:ResourceString Key=LinuxColourSource}"
-				Visibility="{x:Bind ViewModel.LinuxAppearanceVisibility}">
+				Description="{helpers:ResourceString Key=DesktopColourSourceDescription}"
+				Header="{helpers:ResourceString Key=DesktopColourSource}"
+				Visibility="{x:Bind ViewModel.DesktopAppearanceVisibility}">
 				<wctcontrols:SettingsCard.HeaderIcon>
 					<FontIcon Glyph="&#xE790;" />
 				</wctcontrols:SettingsCard.HeaderIcon>
 				<uc:ComboBoxEx
-					AutomationProperties.Name="{helpers:ResourceString Key=LinuxColourSource}"
+					AutomationProperties.Name="{helpers:ResourceString Key=DesktopColourSource}"
 					ItemsSource="{x:Bind ViewModel.ColourSources}"
 					SelectedIndex="{x:Bind ViewModel.SelectedColourSource, Mode=TwoWay}" />
 			</wctcontrols:SettingsCard>
@@ -130,30 +130,30 @@
 			</wctcontrols:SettingsCard>
 
 			<wctcontrols:SettingsCard
-				Visibility="{x:Bind ViewModel.LinuxAppearanceVisibility}"
-				Header="{helpers:ResourceString Key=LinuxBackdropMode}"
+				Visibility="{x:Bind ViewModel.DesktopAppearanceVisibility}"
+				Header="{helpers:ResourceString Key=DesktopBackdropMode}"
 				Description="{x:Bind ViewModel.BackdropDescription, Mode=OneWay}">
 				<uc:ComboBoxEx
-					AutomationProperties.Name="{helpers:ResourceString Key=LinuxBackdropMode}"
+					AutomationProperties.Name="{helpers:ResourceString Key=DesktopBackdropMode}"
 					ItemsSource="{x:Bind ViewModel.BackdropModes}"
 					SelectedIndex="{x:Bind ViewModel.SelectedBackdropMode, Mode=TwoWay}" />
 			</wctcontrols:SettingsCard>
 			<wctcontrols:SettingsCard
-				Visibility="{x:Bind ViewModel.LinuxAppearanceVisibility}"
-				Header="{helpers:ResourceString Key=LinuxBackgroundOpacity}"
-				Description="{helpers:ResourceString Key=LinuxBackgroundOpacityDescription}">
+				Visibility="{x:Bind ViewModel.DesktopAppearanceVisibility}"
+				Header="{helpers:ResourceString Key=DesktopBackgroundOpacity}"
+				Description="{helpers:ResourceString Key=DesktopBackgroundOpacityDescription}">
 				<Slider Width="140" Minimum="0" Maximum="1" StepFrequency=".05"
-					AutomationProperties.Name="{helpers:ResourceString Key=LinuxBackgroundOpacity}"
+					AutomationProperties.Name="{helpers:ResourceString Key=DesktopBackgroundOpacity}"
 					IsEnabled="{x:Bind ViewModel.IsBackgroundOpacityEnabled, Mode=OneWay}"
 					Value="{x:Bind ViewModel.BackgroundOpacity, Mode=TwoWay}" />
 			</wctcontrols:SettingsCard>
 
 			<wctcontrols:SettingsCard
-				Visibility="{x:Bind ViewModel.LinuxAppearanceVisibility}"
-				Header="{helpers:ResourceString Key=LinuxDetectCompositorDisplayScale}"
-				Description="{helpers:ResourceString Key=LinuxDetectCompositorDisplayScaleDescription}">
+				Visibility="{x:Bind ViewModel.DesktopAppearanceVisibility}"
+				Header="{helpers:ResourceString Key=DesktopDetectCompositorDisplayScale}"
+				Description="{helpers:ResourceString Key=DesktopDetectCompositorDisplayScaleDescription}">
 				<ToggleSwitch
-					AutomationProperties.Name="{helpers:ResourceString Key=LinuxDetectCompositorDisplayScale}"
+					AutomationProperties.Name="{helpers:ResourceString Key=DesktopDetectCompositorDisplayScale}"
 					IsOn="{x:Bind ViewModel.DetectCompositorDisplayScale, Mode=TwoWay}" />
 			</wctcontrols:SettingsCard>
 

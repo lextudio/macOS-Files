@@ -1,7 +1,7 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
-using Files.Platform.Linux.Permissions;
+using Files.Platform.Posix.Permissions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -46,7 +46,7 @@ namespace Files.Platform.Tests.Permissions
 			return path;
 		}
 
-		private static LinuxFilePermissionsService NewService() => new();
+		private static PosixFilePermissionsService NewService() => new();
 
 		[TestMethod]
 		public void NameDatabase_ParsesPasswdAndGroup()
@@ -192,7 +192,7 @@ namespace Files.Platform.Tests.Permissions
 			var file = Create("a.txt", new string('z', 5000));
 			var link = Path.Combine(_root, "l");
 			File.CreateSymbolicLink(link, file);
-			var stat = new LinuxFileStatService();
+			var stat = new PosixPermissionsFileStatService();
 
 			Assert.IsTrue(stat.TryGetStat(file, out var info));
 			Assert.AreEqual(5000, info.Size);
@@ -211,7 +211,7 @@ namespace Files.Platform.Tests.Permissions
 			Create("d/sub/b.txt", "123");
 			File.CreateSymbolicLink(Path.Combine(_root, "d", "link"), Path.Combine(_root, "d", "a.txt"));
 
-			var totals = await new LinuxFileStatService().ScanFolderAsync(Path.Combine(_root, "d"), null, default);
+			var totals = await new PosixPermissionsFileStatService().ScanFolderAsync(Path.Combine(_root, "d"), null, default);
 
 			Assert.AreEqual(2, totals.Files);
 			Assert.AreEqual(1, totals.Folders);

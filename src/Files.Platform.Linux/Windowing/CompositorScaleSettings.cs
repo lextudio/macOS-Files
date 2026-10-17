@@ -1,7 +1,7 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
-using Files.Platform.Linux.Previews;
+using Files.Platform.Posix.Previews;
 using System;
 using System.IO;
 using System.Text.Json;

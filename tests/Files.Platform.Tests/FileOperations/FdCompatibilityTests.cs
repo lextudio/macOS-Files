@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Files.Platform.Abstractions.FileOperations;
-using Files.Platform.Linux.FileOperations;
+using Files.Platform.Posix.FileOperations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Files.Platform.Tests.FileOperations
@@ -21,7 +21,7 @@ namespace Files.Platform.Tests.FileOperations
 		public async Task Rename2Unavailable_CopyMoveRenameAndMountCache(int errno)
 		{
 			var attempts = 0;
-			var service = new LinuxFileOperationsService((_, _) => true, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => true, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => { attempts++; return errno; },
 			});
@@ -69,7 +69,7 @@ namespace Files.Platform.Tests.FileOperations
 				File.CreateSymbolicLink(source, "missing-source");
 			else
 				Write(source, "data");
-			var service = new LinuxFileOperationsService((_, _) => true, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => true, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) =>
 				{
@@ -97,7 +97,7 @@ namespace Files.Platform.Tests.FileOperations
 		{
 			var source = Write(Path.Combine(Src, "file"), "data");
 			var destination = Path.Combine(Dst, "file");
-			var service = new LinuxFileOperationsService(null, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService(null, new PosixFileOperationsHooks
 			{
 				TemporaryFileCreated = _ => File.WriteAllText(destination, "keep"),
 				RenameError = (_, _, _) => errno,
@@ -117,7 +117,7 @@ namespace Files.Platform.Tests.FileOperations
 		public async Task RenameFailure_DoesNotUseCompatibilityFallback(int errno)
 		{
 			var source = Write(Path.Combine(Src, "file"), "data");
-			var service = new LinuxFileOperationsService((_, _) => true, new LinuxFileOperationsHooks
+			var service = new PosixFileOperationsService((_, _) => true, new PosixFileOperationsHooks
 			{
 				RenameError = (_, _, _) => errno,
 			});
@@ -150,7 +150,7 @@ namespace Files.Platform.Tests.FileOperations
 			}
 			try
 			{
-				var service = new LinuxFileOperationsService();
+				var service = new PosixFileOperationsService();
 				var copy = await service.CopyAsync([source], destinationParent);
 				Assert.IsTrue(copy[0].Succeeded, copy[0].ErrorMessage);
 				Assert.AreEqual("data", File.ReadAllText(Path.Combine(destinationParent, "tree", "child")));
@@ -179,7 +179,7 @@ namespace Files.Platform.Tests.FileOperations
 			var source = Write(Path.Combine(tree, "file"), "data");
 			File.SetUnixFileMode(source, (UnixFileMode)0xFFF);
 			File.SetUnixFileMode(tree, (UnixFileMode)0xFFF);
-			var service = new LinuxFileOperationsService((_, _) => false);
+			var service = new PosixFileOperationsService((_, _) => false);
 
 			var result = crossDeviceMove ? await service.MoveAsync([tree], Dst) : await service.CopyAsync([tree], Dst);
 

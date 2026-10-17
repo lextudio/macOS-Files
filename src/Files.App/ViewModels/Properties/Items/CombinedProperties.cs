@@ -55,13 +55,13 @@ namespace Files.App.ViewModels.Properties
 		{
 			if (OperatingSystem.IsLinux())
 			{
-				await GetSpecialPropertiesLinuxAsync();
+				await GetSpecialPropertiesDesktopAsync();
 				return;
 			}
 
 		}
 
-		private async Task GetSpecialPropertiesLinuxAsync()
+		private async Task GetSpecialPropertiesDesktopAsync()
 		{
 			ViewModel.ItemAttributesVisibility = false;
 			ViewModel.ItemCreatedTimestampVisibility = false;

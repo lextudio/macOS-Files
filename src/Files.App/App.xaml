@@ -181,7 +181,7 @@
 				</ResourceDictionary>
 
 				<!--  Linux desktop overrides (fonts, Mica fallback); must stay last  -->
-				<ResourceDictionary Source="ms-appx:///Styles/LinuxDesktopResources.xaml" />
+				<ResourceDictionary Source="ms-appx:///Styles/DesktopResources.xaml" />
 			</ResourceDictionary.MergedDictionaries>
 
 		</ResourceDictionary>

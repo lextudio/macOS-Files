@@ -144,8 +144,8 @@ namespace Files.Platform.Tests.Launching
 			var entry = Strict("[Desktop Entry]\nType=Application\nName=X\nExec=/bin/echo \"a b\" \"c d\" %c\n", out var error)!;
 			Assert.IsNull(error);
 
-			var first = Files.Platform.Linux.Launching.DesktopExecExpander.Expand(entry.Application, [])[0];
-			var second = Files.Platform.Linux.Launching.DesktopExecExpander.Expand(entry.Application, [])[0];
+			var first = Files.Platform.Posix.Launching.DesktopExecExpander.Expand(entry.Application, [])[0];
+			var second = Files.Platform.Posix.Launching.DesktopExecExpander.Expand(entry.Application, [])[0];
 			CollectionAssert.AreEqual(first.ToArray(), second.ToArray());
 			Assert.AreEqual("/bin/echo", first[0]);
 		}

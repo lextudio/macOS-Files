@@ -80,16 +80,7 @@ namespace Files.Platform.Linux.Windowing
 		}
 
 		/// <summary>Replaces control characters (including NUL and line breaks) so a folder name cannot corrupt the window title.</summary>
-		public static string SanitizeTitle(string title)
-		{
-			if (!title.AsSpan().ContainsAnyInRange('\0', '\x1F') && !title.AsSpan().ContainsAnyInRange('\x7F', '\x9F'))
-				return title;
-
-			var builder = new StringBuilder(title.Length);
-			foreach (var c in title)
-				builder.Append(char.IsControl(c) ? ' ' : c);
-			return builder.ToString();
-		}
+		public static string SanitizeTitle(string title) => Files.Platform.Posix.WindowTitle.Sanitize(title);
 
 		public void HideRegions()
 		{

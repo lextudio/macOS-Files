@@ -197,7 +197,7 @@ namespace Files.Platform.Tests.Settings
 			Assert.IsTrue(serializer.CreateFile(SettingsPath));
 			var database = CreateDatabase(serializer);
 
-			using (var held = Files.Platform.Linux.Native.FileLockNative.TryAcquire(SettingsPath + ".lock", TimeSpan.Zero, out _))
+			using (var held = Files.Platform.Posix.Native.FileLockNative.TryAcquire(SettingsPath + ".lock", TimeSpan.Zero, out _))
 			{
 				Assert.IsNotNull(held);
 				Assert.IsTrue(database.SetValue("hidden", true));
@@ -212,7 +212,7 @@ namespace Files.Platform.Tests.Settings
 		{
 			var target = Path.Combine(_root, "elsewhere");
 			File.CreateSymbolicLink(SettingsPath + ".lock", target);
-			Assert.IsNull(Files.Platform.Linux.Native.FileLockNative.TryAcquire(SettingsPath + ".lock", TimeSpan.Zero, out var error));
+			Assert.IsNull(Files.Platform.Posix.Native.FileLockNative.TryAcquire(SettingsPath + ".lock", TimeSpan.Zero, out var error));
 			Assert.IsNotNull(error);
 			Assert.IsFalse(File.Exists(target));
 		}

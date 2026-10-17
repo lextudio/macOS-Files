@@ -9,7 +9,7 @@ namespace Files.App.Actions
 		private ISidebarContext SidebarContext { get; } = Ioc.Default.GetRequiredService<ISidebarContext>();
 
 		public override string Label
-			=> Strings.OpenTerminalLinux.GetLocalizedResource();
+			=> Strings.OpenTerminalDesktop.GetLocalizedResource();
 
 		public override string Description
 			=> Strings.OpenTerminalDescription.GetLocalizedResource();

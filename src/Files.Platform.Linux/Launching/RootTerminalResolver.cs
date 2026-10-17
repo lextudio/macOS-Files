@@ -72,7 +72,7 @@ namespace Files.Platform.Linux.Launching
 				info.Environment.Clear();
 				info.Environment["LANG"] = "C";
 				info.ArgumentList.Add("--version");
-				using var process = Files.Platform.Linux.Launching.TracedProcess.Start(info);
+				using var process = Files.Platform.Posix.Launching.TracedProcess.Start(info);
 				if (process is null) return null;
 				var output = process.StandardOutput.ReadToEndAsync();
 				var error = process.StandardError.ReadToEndAsync();

@@ -33,7 +33,7 @@ namespace Files.App.Data.Factories
 
 		public static Task<List<ContextMenuFlyoutItemViewModel>> GetItemContextShellCommandsAsync(string? workingDir, List<ListedItem> selectedItems, bool shiftPressed, bool showOpenMenu, CancellationToken cancellationToken)
 		{
-			return GetLinuxItemContextCommandsAsync(workingDir, selectedItems, shiftPressed, showOpenMenu, cancellationToken);
+			return GetDesktopItemContextCommandsAsync(workingDir, selectedItems, shiftPressed, showOpenMenu, cancellationToken);
 		}
 
 		public static List<ContextMenuFlyoutItemViewModel> Filter(List<ContextMenuFlyoutItemViewModel> items, List<ListedItem> selectedItems, bool shiftPressed, CurrentInstanceViewModel currentInstanceViewModel, bool removeOverflowMenu = true)
@@ -370,7 +370,7 @@ namespace Files.App.Data.Factories
 						ThemedIconStyle = state.Commands[Commands.AddItem].Glyph.ThemedIconStyle
 					},
 					Text = state.Commands[Commands.AddItem].Label,
-					Items = GetLinuxNewItemItems(state.CanCreateFileInPage, state.Commands[Commands.CreateFolder], cancellationToken),
+					Items = GetDesktopNewItemItems(state.CanCreateFileInPage, state.Commands[Commands.CreateFolder], cancellationToken),
 					ShowItem = !state.ItemsSelected,
 					ShowInFtpPage = true
 				},
@@ -878,7 +878,7 @@ namespace Files.App.Data.Factories
 
 		public static List<ContextMenuFlyoutItemViewModel> GetNewItemItems(BaseLayoutViewModel commandsViewModel, bool canCreateFileInPage)
 		{
-			return GetLinuxNewItemItems(canCreateFileInPage);
+			return GetDesktopNewItemItems(canCreateFileInPage);
 		}
 	}
 }

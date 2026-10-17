@@ -324,7 +324,7 @@ namespace Files.Platform.Linux.Thumbnails
 			Process? process;
 			try
 			{
-				process = Files.Platform.Linux.Launching.TracedProcess.Start(info);
+				process = Files.Platform.Posix.Launching.TracedProcess.Start(info);
 			}
 			catch (System.ComponentModel.Win32Exception)
 			{

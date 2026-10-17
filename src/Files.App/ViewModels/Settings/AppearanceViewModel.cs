@@ -3,9 +3,6 @@
 
 using Files.Platform.Abstractions.Appearance;
 using CommunityToolkit.WinUI.Helpers;
-#if HAS_UNO
-using Files.Platform.Linux.Windowing;
-#endif
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System.Windows.Input;
@@ -23,9 +20,9 @@ namespace Files.App.ViewModels.Settings
 		private readonly IUserSettingsService UserSettingsService;
 		private readonly IResourcesService ResourcesService;
 
-		public Visibility LinuxAppearanceVisibility => OperatingSystem.IsLinux() ? Visibility.Visible : Visibility.Collapsed;
-		public List<string> ColourSources { get; } = [Strings.LinuxColourFiles.GetLocalizedResource(), Strings.AdwaitaTheme.GetLocalizedResource(), Strings.LinuxColourSystem.GetLocalizedResource()];
-		public List<string> BackdropModes { get; } = [Strings.LinuxBackdropSolid.GetLocalizedResource(), Strings.LinuxBackdropTransparent.GetLocalizedResource(), Strings.LinuxBackdropBlur.GetLocalizedResource()];
+		public Visibility DesktopAppearanceVisibility => OperatingSystem.IsLinux() ? Visibility.Visible : Visibility.Collapsed;
+		public List<string> ColourSources { get; } = [Strings.DesktopColourFiles.GetLocalizedResource(), Strings.AdwaitaTheme.GetLocalizedResource(), Strings.DesktopColourSystem.GetLocalizedResource()];
+		public List<string> BackdropModes { get; } = [Strings.DesktopBackdropSolid.GetLocalizedResource(), Strings.DesktopBackdropTransparent.GetLocalizedResource(), Strings.DesktopBackdropBlur.GetLocalizedResource()];
 		public int SelectedColourSource
 		{
 			get => (int)UserSettingsService.AppearanceSettingsService.ColourSource;
@@ -72,15 +69,15 @@ namespace Files.App.ViewModels.Settings
 			{
 #if HAS_UNO
 				var appearance = UserSettingsService.AppearanceSettingsService;
-				return X11AppearanceSupport.Current.Resolve(appearance.BackdropMode,
+				return Ioc.Default.GetRequiredService<IAppearanceSupport>().Resolve(appearance.BackdropMode,
 					Ioc.Default.GetRequiredService<ISystemAppearanceService>().Current.HighContrast == true) != BackdropMode.Solid;
 #else
 				return false;
 #endif
 			}
 		}
-		public string BackdropDescription => (IsBackgroundOpacityEnabled ? Strings.LinuxBackdropDescription :
-			UserSettingsService.AppearanceSettingsService.BackdropMode == BackdropMode.Solid ? Strings.LinuxBackdropSolidDescription : Strings.LinuxBackdropFallback).GetLocalizedResource();
+		public string BackdropDescription => (IsBackgroundOpacityEnabled ? Strings.DesktopBackdropDescription :
+			UserSettingsService.AppearanceSettingsService.BackdropMode == BackdropMode.Solid ? Strings.DesktopBackdropSolidDescription : Strings.DesktopBackdropFallback).GetLocalizedResource();
 
 		public List<string> Themes { get; private set; }
 		public Dictionary<BackdropMaterialType, string> BackdropMaterialTypes { get; private set; } = [];
@@ -118,7 +115,7 @@ namespace Files.App.ViewModels.Settings
 				});
 			};
 			Ioc.Default.GetRequiredService<ISystemAppearanceService>().Changed += appearanceChanged;
-			X11AppearanceSupport.Changed += appearanceChanged;
+			Ioc.Default.GetRequiredService<IAppearanceSupport>().Changed += appearanceChanged;
 #endif
 			selectedThemeIndex = (int)Enum.Parse<ElementTheme>(AppThemeModeService.AppThemeMode.ToString());
 
@@ -397,7 +394,7 @@ namespace Files.App.ViewModels.Settings
 			get
 			{
 #if HAS_UNO
-				return X11AppearanceSupport.Current.WindowOpacity == OpacitySupport.Supported &&
+				return Ioc.Default.GetRequiredService<IAppearanceSupport>().WindowOpacity == OpacitySupport.Supported &&
 					Ioc.Default.GetRequiredService<ISystemAppearanceService>().Current.HighContrast != true;
 #else
 				return false;
@@ -410,13 +407,13 @@ namespace Files.App.ViewModels.Settings
 			{
 #if HAS_UNO
 				if (Ioc.Default.GetRequiredService<ISystemAppearanceService>().Current.HighContrast == true)
-					return Strings.LinuxOpacityHighContrast.GetLocalizedResource();
-				return (X11AppearanceSupport.Current.WindowOpacity switch
+					return Strings.DesktopOpacityHighContrast.GetLocalizedResource();
+				return (Ioc.Default.GetRequiredService<IAppearanceSupport>().WindowOpacity switch
 				{
-					OpacitySupport.Satellite => Strings.LinuxOpacitySatellite,
-					OpacitySupport.NoCompositor => Strings.LinuxOpacityNoCompositor,
-					OpacitySupport.Unknown => Strings.LinuxOpacityUnknown,
-					_ => Strings.LinuxOpacitySupported,
+					OpacitySupport.Satellite => Strings.DesktopOpacitySatellite,
+					OpacitySupport.NoCompositor => Strings.DesktopOpacityNoCompositor,
+					OpacitySupport.Unknown => Strings.DesktopOpacityUnknown,
+					_ => Strings.DesktopOpacitySupported,
 				}).GetLocalizedResource();
 #else
 				return Strings.WindowOpacityDescription.GetLocalizedResource();

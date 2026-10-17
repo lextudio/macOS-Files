@@ -14,18 +14,13 @@ namespace Files.Platform.Linux.Launching
 	public static class LaunchingServiceCollectionExtensions
 	{
 		/// <summary>
-		/// Registers the launcher and templates services. Also requires <c>AddLinuxMime()</c>.
+		/// Registers the Linux launcher and terminal resolver. The OS-neutral executable locator/starter,
+		/// executable service and templates service come from <c>AddPosixPlatform()</c>.
 		/// </summary>
 		public static IServiceCollection AddLinuxLaunching(this IServiceCollection services)
 		{
-			services.TryAddSingleton<IExecutableLocator, PathExecutableLocator>();
-			services.TryAddSingleton<IProcessStarter>(_ => Environment.GetEnvironmentVariable("FILES_LAUNCH_DRYRUN") is "1" or "true"
-				? new DryRunProcessStarter()
-				: new DetachedProcessStarter());
-			services.TryAddSingleton<IExecutableService, LinuxExecutableService>();
 			services.TryAddSingleton<TerminalResolver>();
 			services.TryAddSingleton<ILauncherService, LinuxLauncherService>();
-			services.TryAddSingleton<ITemplatesService, LinuxTemplatesService>();
 			return services;
 		}
 	}

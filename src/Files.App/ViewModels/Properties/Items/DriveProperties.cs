@@ -39,7 +39,7 @@ namespace Files.App.ViewModels.Properties
 			ViewModel.ItemType = $"DriveType{Drive.Type}".GetLocalizedResource();
 		}
 
-		private void GetSpecialPropertiesLinux(string drivePath)
+		private void GetSpecialPropertiesDesktop(string drivePath)
 		{
 			try
 			{
@@ -66,7 +66,7 @@ namespace Files.App.ViewModels.Properties
 
 			if (OperatingSystem.IsLinux())
 			{
-				GetSpecialPropertiesLinux(drivePath);
+				GetSpecialPropertiesDesktop(drivePath);
 				return;
 			}
 

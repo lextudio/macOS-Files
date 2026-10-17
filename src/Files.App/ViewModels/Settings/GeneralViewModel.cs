@@ -564,7 +564,7 @@ namespace Files.App.ViewModels.Settings
 		}
 
 		public string ShowOpenTerminalText
-			=> Strings.ShowOpenTerminalLinux.GetLocalizedResource();
+			=> Strings.ShowOpenTerminalDesktop.GetLocalizedResource();
 
 		public bool ShowOpenTerminal
 		{

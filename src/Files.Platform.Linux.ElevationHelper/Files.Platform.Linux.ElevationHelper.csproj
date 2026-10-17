@@ -17,9 +17,10 @@
   <ItemGroup>
     <DirectPInvoke Include="libc" />
     <ProjectReference Include="../Files.Platform.Abstractions/Files.Platform.Abstractions.csproj" />
-    <Compile Include="../Files.Platform.Linux/Native/PosixNative.cs" Link="Native/PosixNative.cs" />
+    <Compile Include="../Files.Platform.Posix/Native/PosixNative.cs" Link="Native/PosixNative.cs" />
+    <Compile Include="../Files.Platform.Posix/Native/PosixNative.Darwin.cs" Link="Native/PosixNative.Darwin.cs" />
     <Compile Include="../Files.Platform.Linux/Native/ElevationNative.cs" Link="Native/ElevationNative.cs" />
     <Compile Include="../Files.Platform.Linux/Elevation/HelperAuthorization.cs" Link="Elevation/HelperAuthorization.cs" />
-    <Compile Include="../Files.Platform.Linux/Launching/DisplaySanitizer.cs" Link="Launching/DisplaySanitizer.cs" />
+    <Compile Include="../Files.Platform.Posix/Launching/DisplaySanitizer.cs" Link="Launching/DisplaySanitizer.cs" />
   </ItemGroup>
 </Project>
