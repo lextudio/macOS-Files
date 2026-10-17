@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using Files.Platform.Abstractions.Instance;
-#if !HAS_UNO_SKIA_MACOS
+#if !DESKTOP_MACOS
 using Files.Platform.Linux.Elevation;
 using Files.Platform.Linux.Instance;
 using Files.Platform.Linux.Windowing;
@@ -38,7 +38,7 @@ namespace Files.App
 		/// </summary>
 		public static string[] LaunchArguments { get; private set; } = [];
 
-#if !HAS_UNO_SKIA_MACOS
+#if !DESKTOP_MACOS
 		/// <summary>
 		/// Gets the single instance service this process owns. Null when single instance handling is disabled.
 		/// </summary>
@@ -52,7 +52,7 @@ namespace Files.App
 
 			LaunchArguments = args;
 
-#if HAS_UNO_SKIA_MACOS
+#if DESKTOP_MACOS
 			// Uno resolves ms-appx:/// resources (fonts, assets) against the process working directory. A
 			// bundle launched from Finder/Dock has an arbitrary cwd, so run from the bundle directory;
 			// relative command-line paths keep using the captured launch cwd.
