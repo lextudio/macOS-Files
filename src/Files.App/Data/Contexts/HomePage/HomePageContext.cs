@@ -16,7 +16,7 @@ namespace Files.App.Data.Contexts
 
 		private static IHomeFolder CreateHomeFolder()
 		{
-			return new LinuxHomeFolder(
+			return new DesktopHomeFolder(
 				Ioc.Default.GetRequiredService<IUserDirectories>(),
 				Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Volumes.IVolumeService>(),
 				Ioc.Default.GetRequiredService<Files.Platform.Abstractions.Recent.IRecentFilesStore>(),

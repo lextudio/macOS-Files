@@ -103,8 +103,8 @@ namespace Files.App.Views.Layouts
 			ItemManipulationModel.ScrollToTopInvoked += ItemManipulationModel_ScrollToTopInvoked;
 			ItemManipulationModel.RefreshItemThumbnailInvoked += ItemManipulationModel_RefreshItemThumbnail;
 			ItemManipulationModel.RefreshItemsThumbnailInvoked += ItemManipulationModel_RefreshItemsThumbnail;
-			ActualThemeChanged -= LinuxPage_ActualThemeChanged;
-			ActualThemeChanged += LinuxPage_ActualThemeChanged;
+			ActualThemeChanged -= DesktopPage_ActualThemeChanged;
+			ActualThemeChanged += DesktopPage_ActualThemeChanged;
 		}
 
 		protected override void UnhookEvents()
@@ -357,7 +357,7 @@ namespace Files.App.Views.Layouts
 				container.RequestedTheme = ActualTheme;
 		}
 
-		private void LinuxPage_ActualThemeChanged(FrameworkElement sender, object args)
+		private void DesktopPage_ActualThemeChanged(FrameworkElement sender, object args)
 		{
 			if (ListViewBase?.ItemsPanelRoot is not { } panel)
 				return;

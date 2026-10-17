@@ -272,7 +272,7 @@ namespace Files.App.ViewModels.Settings
 
 		public Visibility WindowsOnlyVisibility => IsWindows ? Visibility.Visible : Visibility.Collapsed;
 
-		public Visibility LinuxOnlyVisibility => IsWindows ? Visibility.Collapsed : Visibility.Visible;
+		public Visibility DesktopOnlyVisibility => IsWindows ? Visibility.Collapsed : Visibility.Visible;
 
 		/// <summary>Claims org.freedesktop.FileManager1 so other apps' "Show in folder" opens Files (off by default).</summary>
 		public bool UseAsDefaultFileManager

@@ -5,12 +5,12 @@ namespace Files.App.Helpers
 {
 	internal sealed class CredentialsHelpers
 	{
-		// Linux: the Secret Service (libsecret backend) through ISecretStore; PasswordVault does not exist there
-		private static ISecretStore? LinuxStore => OperatingSystem.IsLinux() ? Ioc.Default.GetService<ISecretStore>() : null;
+		// Desktop heads: the platform secret store (Secret Service on Linux) through ISecretStore; PasswordVault does not exist there
+		private static ISecretStore? PlatformStore => OperatingSystem.IsWindows() ? null : Ioc.Default.GetService<ISecretStore>();
 
 		public static void SavePassword(string resourceName, string username, string password)
 		{
-			if (LinuxStore is { } store)
+			if (PlatformStore is { } store)
 			{
 				store.Save(resourceName, username, password);
 				return;
@@ -25,7 +25,7 @@ namespace Files.App.Helpers
 		// Remove saved credentials from the vault
 		public static void DeleteSavedPassword(string resourceName, string username)
 		{
-			if (LinuxStore is { } store)
+			if (PlatformStore is { } store)
 			{
 				store.Delete(resourceName, username);
 				return;
@@ -39,7 +39,7 @@ namespace Files.App.Helpers
 
 		public static string GetPassword(string resourceName, string username)
 		{
-			if (LinuxStore is { } store)
+			if (PlatformStore is { } store)
 				return store.Get(resourceName, username) ?? string.Empty;
 
 			try

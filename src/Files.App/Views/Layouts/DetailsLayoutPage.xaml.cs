@@ -849,7 +849,7 @@ namespace Files.App.Views.Layouts
 			RootGrid.Children.Add(desktopHeaderScroller);
 		}
 
-		private void LinuxContentScroller_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
+		private void DesktopContentScroller_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
 			=> SynchronizeDesktopHeader();
 
 		private void SynchronizeDesktopHeader()
@@ -862,7 +862,7 @@ namespace Files.App.Views.Layouts
 		private void DetachDesktopHeaderScroller()
 		{
 			if (ContentScroller is { } scroller)
-				scroller.ViewChanged -= LinuxContentScroller_ViewChanged;
+				scroller.ViewChanged -= DesktopContentScroller_ViewChanged;
 		}
 
 		private void UpdateDesktopListTheme()
@@ -1165,7 +1165,7 @@ namespace Files.App.Views.Layouts
 			ContentScroller = FileList.FindDescendant<ScrollViewer>(x => x.Name == "ScrollViewer");
 			if (ContentScroller is { } desktopScroller)
 			{
-				desktopScroller.ViewChanged += LinuxContentScroller_ViewChanged;
+				desktopScroller.ViewChanged += DesktopContentScroller_ViewChanged;
 				SynchronizeDesktopHeader();
 			}
 			const double OffsetCorrection = 88; // HeaderGrid (40) + ListViewHeaderItem (44 + 4 margin)

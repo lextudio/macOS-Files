@@ -97,7 +97,7 @@ namespace Files.App.Data.Items
 			{
 				var work = DisplayArea.Primary.WorkArea;
 				// AppWindow sizes are physical pixels; the caps are logical
-				var scale = Files.Platform.Linux.Windowing.DisplayScaleResolver.GetEffectiveScale();
+				var scale = DesktopPlatform.GetDisplayScale();
 				var width = Math.Clamp((int)(work.Width * 0.8), Math.Min((int)(MinWidth * scale), work.Width), (int)(1600 * scale));
 				var height = Math.Clamp((int)(work.Height * 0.8), Math.Min((int)(MinHeight * scale), work.Height), (int)(1000 * scale));
 				AppWindow.Resize(new Windows.Graphics.SizeInt32 { Width = width, Height = height });

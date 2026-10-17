@@ -102,15 +102,7 @@ namespace Files.App
 				try
 				{
 					var settings = Ioc.Default.GetRequiredService<IUserSettingsService>().GeneralSettingsService;
-					var fileManager = Ioc.Default.GetRequiredService<Files.Platform.Linux.DBus.FileManagerService>();
-
-					async Task Apply()
-					{
-						if (settings.UseAsDefaultFileManager)
-							await fileManager.StartAsync();
-						else
-							await fileManager.StopAsync();
-					}
+					async Task Apply() => await DesktopPlatform.SetDefaultFileManagerAsync(settings.UseAsDefaultFileManager);
 
 					await Apply();
 					settings.PropertyChanged += async (_, e) =>

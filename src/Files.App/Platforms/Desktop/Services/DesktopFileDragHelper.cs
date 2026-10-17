@@ -106,7 +106,7 @@ namespace Files.App.Services.Desktop
 
 			var existing = ExistingPaths(paths);
 			if (existing.Count > 0)
-				data.SetData(Files.Platform.Linux.Clipboard.ClipboardFormats.UriList, Files.Platform.Linux.Clipboard.ClipboardFormats.BuildUriList(existing));
+				DesktopPlatform.SetDraggedFiles(data, existing);
 		}
 
 		/// <summary>

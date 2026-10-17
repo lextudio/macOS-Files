@@ -139,7 +139,7 @@
 			<wctcontrols:SettingsCard
 				Description="{helpers:ResourceString Key=SettingsDesktopDefaultFileManagerDescription}"
 				Header="{helpers:ResourceString Key=SettingsDesktopDefaultFileManager}"
-				Visibility="{x:Bind ViewModel.LinuxOnlyVisibility}">
+				Visibility="{x:Bind ViewModel.DesktopOnlyVisibility}">
 				<wctcontrols:SettingsCard.HeaderIcon>
 					<FontIcon Glyph="&#xEC50;" />
 				</wctcontrols:SettingsCard.HeaderIcon>

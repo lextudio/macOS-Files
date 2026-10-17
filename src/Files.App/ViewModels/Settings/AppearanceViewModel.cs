@@ -20,7 +20,7 @@ namespace Files.App.ViewModels.Settings
 		private readonly IUserSettingsService UserSettingsService;
 		private readonly IResourcesService ResourcesService;
 
-		public Visibility LinuxAppearanceVisibility => OperatingSystem.IsLinux() ? Visibility.Visible : Visibility.Collapsed;
+		public Visibility DesktopAppearanceVisibility => OperatingSystem.IsLinux() ? Visibility.Visible : Visibility.Collapsed;
 		public List<string> ColourSources { get; } = [Strings.DesktopColourFiles.GetLocalizedResource(), Strings.AdwaitaTheme.GetLocalizedResource(), Strings.DesktopColourSystem.GetLocalizedResource()];
 		public List<string> BackdropModes { get; } = [Strings.DesktopBackdropSolid.GetLocalizedResource(), Strings.DesktopBackdropTransparent.GetLocalizedResource(), Strings.DesktopBackdropBlur.GetLocalizedResource()];
 		public int SelectedColourSource

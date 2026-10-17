@@ -208,7 +208,7 @@ namespace Files.App
 
 		public static class UserEnvironmentPaths
 		{
-			private static readonly Files.Platform.Linux.LinuxUserDirectories _userDirectories = new();
+			private static readonly IUserDirectories _userDirectories = DesktopPlatform.CreateUserDirectories();
 
 			public static readonly string DesktopPath = _userDirectories.Desktop;
 

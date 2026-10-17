@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace Files.App.Storage.Storables
 {
-	public sealed class LinuxHomeFolder : IHomeFolder
+	public sealed class DesktopHomeFolder : IHomeFolder
 	{
 		private readonly IUserDirectories directories;
 		private readonly IVolumeService volumes;
@@ -20,7 +20,7 @@ namespace Files.App.Storage.Storables
 		public string Id => "Home";
 		public string Name => "Home";
 
-		public LinuxHomeFolder(IUserDirectories directories, IVolumeService volumes, IRecentFilesStore recentFiles, INetworkLocationService network)
+		public DesktopHomeFolder(IUserDirectories directories, IVolumeService volumes, IRecentFilesStore recentFiles, INetworkLocationService network)
 		{
 			this.directories = directories;
 			this.volumes = volumes;
