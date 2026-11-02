@@ -183,7 +183,7 @@ namespace Files.Platform.Linux.Volumes
 				var optical = false;
 				var canEject = false;
 				var canPowerOff = false;
-				if (block.TryGetValue("Drive", out var driveValue) && driveValue is string drivePath && drivePath != "/" &&
+				if (DrivePathOf(objects, block) is { } drivePath &&
 					objects.TryGetValue(drivePath, out var driveInterfaces) && driveInterfaces.TryGetValue(DriveInterface, out var drive))
 				{
 					driveId = drivePath;
@@ -246,6 +246,30 @@ namespace Files.Platform.Linux.Volumes
 			return null;
 		}
 
+		/// <summary>The drive of a block device; a cleartext device has none of its own, so it uses its container's.</summary>
+		private static string? DrivePathOf(UDisks2Objects objects, Dictionary<string, object?> block)
+		{
+			if (block.TryGetValue("Drive", out var value) && value is string drive && drive != "/")
+				return drive;
+
+			if (String(block, "CryptoBackingDevice") is { } backing && objects.TryGetValue(backing, out var backingInterfaces) &&
+				backingInterfaces.TryGetValue(BlockInterface, out var backingBlock) &&
+				backingBlock.TryGetValue("Drive", out value) && value is string backingDrive && backingDrive != "/")
+				return backingDrive;
+
+			return null;
+		}
+
+		/// <summary>Finds the encrypted container behind the cleartext device <paramref name="cleartext"/>, or null if it is not a cleartext device.</summary>
+		public static string? FindCryptoBacking(UDisks2Objects objects, string cleartext)
+		{
+			if (objects.TryGetValue(cleartext, out var interfaces) && interfaces.TryGetValue(BlockInterface, out var block) &&
+				String(block, "CryptoBackingDevice") is { } backing && IsBlockPath(backing) && objects.ContainsKey(backing))
+				return backing;
+
+			return null;
+		}
+
 		/// <summary>Whether <paramref name="mountPoint"/> belongs to the system rather than being a user-visible drive.</summary>
 		public static bool IsPlumbingMountPoint(string mountPoint)
 		{
@@ -294,5 +318,27 @@ namespace Files.Platform.Linux.Volumes
 			=> properties.TryGetValue(key, out var value) && value is ulong number ? number : 0;
 
 		private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
+	}
+
+	/// <summary>
+	/// Remembers the cleartext devices the app unlocked itself, so only those are locked again; volumes that were already unlocked are left alone.
+	/// </summary>
+	public sealed class UDisks2UnlockTracker
+	{
+		private readonly Dictionary<string, string> unlocked = new(StringComparer.Ordinal);
+
+		/// <summary>Records that the app unlocked <paramref name="containerPath"/> as <paramref name="cleartextPath"/>.</summary>
+		public void Track(string cleartextPath, string containerPath)
+		{
+			lock (unlocked)
+				unlocked[cleartextPath] = containerPath;
+		}
+
+		/// <summary>Forgets <paramref name="cleartextPath"/> and returns the container the app unlocked behind it, or null if it did not.</summary>
+		public string? TryForget(string cleartextPath)
+		{
+			lock (unlocked)
+				return unlocked.Remove(cleartextPath, out var container) ? container : null;
+		}
 	}
 }
