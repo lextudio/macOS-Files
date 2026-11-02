@@ -130,13 +130,15 @@ namespace Files.Platform.Linux.Secrets
 		private bool Run(Func<DBusConnection, Task<bool>> action)
 			=> Run(async c => await action(c).ConfigureAwait(false) ? "1" : null, out _) is not null;
 
-		// The budget covers an unlock prompt the user has to answer, which has its own shorter bound inside UnlockAsync
+		// The budget must outlast the worst sequence so the prompt Dismiss runs before the connection is disposed. Save: OpenSession + CreateItem,
+		// then Unlock + AddMatch + Prompt, then OpenSession + CreateItem again (7 calls); Get/Delete are shorter, and a dismissed or timed-out prompt
+		// ends with Dismiss instead of the retry. Waiting for the unlock gate and for the user's answer each take up to unlockTimeout.
 		private T? Run<T>(Func<DBusConnection, Task<T?>> action, out bool reachable) where T : class
 		{
 			var wasReachable = false;
 			try
 			{
-				return RunAsync(action, () => wasReachable = true, CallTimeout * 3 + unlockTimeout).GetAwaiter().GetResult();
+				return RunAsync(action, () => wasReachable = true, CallTimeout * 8 + unlockTimeout * 2).GetAwaiter().GetResult();
 			}
 			catch (Exception ex) when (ex is TimeoutException or DBusExceptionBase or ObjectDisposedException or InvalidOperationException or System.IO.IOException)
 			{

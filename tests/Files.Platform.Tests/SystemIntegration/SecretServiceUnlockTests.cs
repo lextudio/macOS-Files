@@ -24,6 +24,7 @@ namespace Files.Platform.Tests.SystemIntegration
 			PromptAccept,
 			PromptDismiss,
 			PromptNever,
+			PromptImmediate,
 			Error,
 		}
 
@@ -165,19 +166,31 @@ namespace Files.Platform.Tests.SystemIntegration
 				if (Mode == UnlockMode.PromptNever)
 					return;
 
-				var dismissed = Mode != UnlockMode.PromptAccept;
+				var immediate = Mode == UnlockMode.PromptImmediate;
+				var dismissed = Mode is not (UnlockMode.PromptAccept or UnlockMode.PromptImmediate);
 				if (!dismissed)
 					Locked = false;
+
+				if (immediate)
+				{
+					SendCompleted(dismissed);
+					return;
+				}
 
 				_ = Task.Run(async () =>
 				{
 					await Task.Delay(50);
-					using var writer = connection.GetMessageWriter();
-					writer.WriteSignalHeader(null, PromptPath, "org.freedesktop.Secret.Prompt", "Completed", "bv");
-					writer.WriteBool(dismissed);
-					writer.WriteVariantString(string.Empty);
-					connection.TrySendMessage(writer.CreateMessage());
+					SendCompleted(dismissed);
 				});
+			}
+
+			private void SendCompleted(bool dismissed)
+			{
+				using var writer = connection.GetMessageWriter();
+				writer.WriteSignalHeader(null, PromptPath, "org.freedesktop.Secret.Prompt", "Completed", "bv");
+				writer.WriteBool(dismissed);
+				writer.WriteVariantString(string.Empty);
+				connection.TrySendMessage(writer.CreateMessage());
 			}
 
 			private void Search(MethodContext context)
@@ -344,6 +357,36 @@ namespace Files.Platform.Tests.SystemIntegration
 
 			Assert.AreEqual("stored", await Task.Run(() => NewStore(bus).Get("r", "a")));
 			Assert.AreEqual(1, service.PromptCalls);
+		}
+
+		[TestMethod]
+		public async Task Locked_PromptCompletesImmediately_StillUnlocks()
+		{
+			using var bus = PrivateBus.Start();
+			using var service = await FakeSecretService.StartAsync(bus.Address);
+			service.Locked = true;
+			service.Mode = UnlockMode.PromptImmediate;
+
+			var store = NewStore(bus);
+			await Task.Run(() => store.Save("r", "a", "s3cret"));
+
+			Assert.IsTrue(store.IsPersistent);
+			Assert.AreEqual(1, service.PromptCalls);
+			Assert.AreEqual("s3cret", await Task.Run(() => NewStore(bus).Get("r", "a")));
+		}
+
+		[TestMethod]
+		public async Task LockedItem_DeletePromptsThenRemoves()
+		{
+			using var bus = PrivateBus.Start();
+			using var service = await FakeSecretService.StartAsync(bus.Address);
+			service.Seed("r", "a", "stored");
+			service.Locked = true;
+			service.Mode = UnlockMode.PromptAccept;
+
+			Assert.IsTrue(await Task.Run(() => NewStore(bus).Delete("r", "a")));
+			Assert.AreEqual(1, service.PromptCalls);
+			Assert.IsNull(await Task.Run(() => NewStore(bus).Get("r", "a")));
 		}
 	}
 }
