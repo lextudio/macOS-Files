@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.Versioning;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Files.Platform.Tests.SystemIntegration
 {
@@ -16,37 +17,37 @@ namespace Files.Platform.Tests.SystemIntegration
 	public sealed class SecretServiceStoreTests
 	{
 		[TestMethod]
-		public void WithoutService_SecretsLiveInMemory()
+		public async Task WithoutService_SecretsLiveInMemory()
 		{
 			using var bus = PrivateBus.Start();
 			var store = new SecretServiceStore(bus.Address);
 
-			store.Save("resource", "account", "s3cret");
+			await store.SaveAsync("resource", "account", "s3cret");
 
 			Assert.IsFalse(store.IsPersistent);
-			Assert.AreEqual("s3cret", store.Get("resource", "account"));
-			Assert.IsNull(store.Get("resource", "other"));
-			Assert.IsTrue(store.Delete("resource", "account"));
-			Assert.IsNull(store.Get("resource", "account"));
+			Assert.AreEqual("s3cret", await store.GetAsync("resource", "account"));
+			Assert.IsNull(await store.GetAsync("resource", "other"));
+			Assert.IsTrue(await store.DeleteAsync("resource", "account"));
+			Assert.IsNull(await store.GetAsync("resource", "account"));
 		}
 
 		[TestMethod]
-		public void UnconfirmedDelete_NeverResurrectsAndDoesNotEatReplacement()
+		public async Task UnconfirmedDelete_NeverResurrectsAndDoesNotEatReplacement()
 		{
 			using var bus = PrivateBus.Start();
 			var store = new SecretServiceStore(bus.Address);
 
-			store.Save("r", "a", "old");
-			store.Delete("r", "a");
-			Assert.IsNull(store.Get("r", "a"));
+			await store.SaveAsync("r", "a", "old");
+			await store.DeleteAsync("r", "a");
+			Assert.IsNull(await store.GetAsync("r", "a"));
 
-			store.Save("r", "a", "new");
-			Assert.AreEqual("new", store.Get("r", "a"));
-			Assert.AreEqual("new", store.Get("r", "a")); // a stale tombstone retry must not remove the replacement
+			await store.SaveAsync("r", "a", "new");
+			Assert.AreEqual("new", await store.GetAsync("r", "a"));
+			Assert.AreEqual("new", await store.GetAsync("r", "a")); // a stale tombstone retry must not remove the replacement
 		}
 
 		[TestMethod]
-		public void WithKeyring_RoundTripsThroughSecretService()
+		public async Task WithKeyring_RoundTripsThroughSecretService()
 		{
 			using var bus = PrivateBus.Start();
 			var home = Path.Combine(Path.GetTempPath(), "fkr-" + Guid.NewGuid().ToString("N")[..8]);
@@ -90,10 +91,10 @@ namespace Files.Platform.Tests.SystemIntegration
 				var deadline = DateTime.UtcNow.AddSeconds(8);
 				while (DateTime.UtcNow < deadline)
 				{
-					store.Save("Files:https://example.invalid", "token", "ghp_secret");
+					await store.SaveAsync("Files:https://example.invalid", "token", "ghp_secret");
 					if (store.IsPersistent)
 						break;
-					Thread.Sleep(300);
+					await Task.Delay(300);
 				}
 
 				if (!store.IsPersistent)
@@ -101,13 +102,13 @@ namespace Files.Platform.Tests.SystemIntegration
 
 				// A second store has no in-memory copy, so this proves the value went through the service
 				var other = new SecretServiceStore(bus.Address);
-				Assert.AreEqual("ghp_secret", other.Get("Files:https://example.invalid", "token"));
+				Assert.AreEqual("ghp_secret", await other.GetAsync("Files:https://example.invalid", "token"));
 
-				store.Save("Files:https://example.invalid", "token", "replaced");
-				Assert.AreEqual("replaced", new SecretServiceStore(bus.Address).Get("Files:https://example.invalid", "token"));
+				await store.SaveAsync("Files:https://example.invalid", "token", "replaced");
+				Assert.AreEqual("replaced", await new SecretServiceStore(bus.Address).GetAsync("Files:https://example.invalid", "token"));
 
-				Assert.IsTrue(store.Delete("Files:https://example.invalid", "token"));
-				Assert.IsNull(new SecretServiceStore(bus.Address).Get("Files:https://example.invalid", "token"));
+				Assert.IsTrue(await store.DeleteAsync("Files:https://example.invalid", "token"));
+				Assert.IsNull(await new SecretServiceStore(bus.Address).GetAsync("Files:https://example.invalid", "token"));
 			}
 			finally
 			{

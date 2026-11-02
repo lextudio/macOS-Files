@@ -29,7 +29,7 @@ namespace Files.App.Storage
 				string.Equals(GetFtpPath(firstPath), GetFtpPath(secondPath), StringComparison.Ordinal);
 		}
 
-		public static AsyncFtpClient GetFtpClient(string ftpPath)
-			=> FtpClientFactory.Create(FtpUrl.Parse(ftpPath));
+		public static Task<AsyncFtpClient> GetFtpClientAsync(string ftpPath)
+			=> FtpClientFactory.CreateAsync(FtpUrl.Parse(ftpPath));
 	}
 }

@@ -158,7 +158,7 @@ namespace Files.Platform.Tests.Storables
 		}
 
 		[TestMethod]
-		public void Credentials_PersistThroughSecretStore_ScopedBySchemeHostAndPort()
+		public async Task Credentials_PersistThroughSecretStore_ScopedBySchemeHostAndPort()
 		{
 			var store = new MemorySecretStore();
 			var previous = FtpManager.SecretStore;
@@ -167,19 +167,20 @@ namespace Files.Platform.Tests.Storables
 			{
 				var key = FtpUrl.Parse("ftps://Example.org/x").GetCredentialKey();
 				var cache = new FtpCredentialCache();
-				cache[key] = new NetworkCredential("bob", "pw");
+				await cache.SetAsync(key, new NetworkCredential("bob", "pw"));
 
 				Assert.AreEqual("ftps://example.org:990", key);
-				Assert.AreEqual("pw", store.Get("Files FTP ftps://example.org:990", "bob"));
+				Assert.AreEqual("pw", await store.GetAsync("Files FTP ftps://example.org:990", "bob"));
 
 				var fresh = new FtpCredentialCache();
-				Assert.IsTrue(fresh.TryGetValue(key, out var credential));
+				var credential = await fresh.TryGetSavedAsync(key);
+				Assert.IsNotNull(credential);
 				Assert.AreEqual("pw", credential.Password);
 
 				// Other scheme or port never sees it
-				Assert.IsFalse(fresh.TryGetValue(FtpUrl.Parse("ftp://example.org").GetCredentialKey(), out _));
-				Assert.IsFalse(fresh.TryGetValue(FtpUrl.Parse("ftps://example.org:2121").GetCredentialKey(), out _));
-				Assert.IsFalse(fresh.TryGetValue("example.org", out _));
+				Assert.IsNull(await fresh.TryGetSavedAsync(FtpUrl.Parse("ftp://example.org").GetCredentialKey()));
+				Assert.IsNull(await fresh.TryGetSavedAsync(FtpUrl.Parse("ftps://example.org:2121").GetCredentialKey()));
+				Assert.IsNull(await fresh.TryGetSavedAsync("example.org"));
 			}
 			finally
 			{
@@ -188,7 +189,7 @@ namespace Files.Platform.Tests.Storables
 		}
 
 		[TestMethod]
-		public void UrlCredentials_AreNeverPersisted_AndNeverOverrideSaved()
+		public async Task UrlCredentials_AreNeverPersisted_AndNeverOverrideSaved()
 		{
 			var store = new MemorySecretStore();
 			var previous = FtpManager.SecretStore;
@@ -204,11 +205,11 @@ namespace Files.Platform.Tests.Storables
 				Assert.IsFalse(new FtpCredentialCache().TryGetValue(key, out _));
 				Assert.IsFalse(cache.TryGetValue(FtpUrl.Parse("ftp://other").GetCredentialKey(), out _));
 
-				cache[key] = new NetworkCredential("bob", "saved");
+				await cache.SetAsync(key, new NetworkCredential("bob", "saved"));
 				cache.SetFromUrl(key, new NetworkCredential("eve", "typed"));
 				Assert.IsTrue(cache.TryGetValue(key, out var chosen));
 				Assert.AreEqual("bob", chosen.UserName);
-				Assert.IsNull(store.Get("Files FTP ftp://h:21", "eve"));
+				Assert.IsNull(await store.GetAsync("Files FTP ftp://h:21", "eve"));
 			}
 			finally
 			{
@@ -217,7 +218,7 @@ namespace Files.Platform.Tests.Storables
 		}
 
 		[TestMethod]
-		public void LegacyHostKeys_AreSessionOnly()
+		public async Task LegacyHostKeys_AreSessionOnly()
 		{
 			var store = new MemorySecretStore();
 			var previous = FtpManager.SecretStore;
@@ -225,9 +226,9 @@ namespace Files.Platform.Tests.Storables
 			try
 			{
 				var cache = new FtpCredentialCache();
-				cache["host"] = new NetworkCredential("bob", "pw");
+				await cache.SetAsync("host", new NetworkCredential("bob", "pw"));
 
-				Assert.IsNull(store.Get("Files FTP host", "bob"));
+				Assert.IsNull(await store.GetAsync("Files FTP host", "bob"));
 				Assert.IsTrue(cache.TryGetValue("host", out _));
 			}
 			finally
@@ -306,14 +307,14 @@ namespace Files.Platform.Tests.Storables
 		}
 
 		[TestMethod]
-		public void Factory_UsesUrlCredential_ButSavedCredentialWins()
+		public async Task Factory_UsesUrlCredential_ButSavedCredentialWins()
 		{
 			var plain = FtpUrl.Parse("ftpes://alice:secret@factory1.example/p");
-			using (var client = FtpClientFactory.Create(plain))
+			using (var client = await FtpClientFactory.CreateAsync(plain))
 				Assert.AreEqual("alice", client.Credentials.UserName);
 
-			FtpManager.Credentials[FtpUrl.Parse("ftpes://factory2.example").GetCredentialKey()] = new NetworkCredential("bob", "saved");
-			using (var client = FtpClientFactory.Create(FtpUrl.Parse("ftpes://eve:typed@factory2.example/p")))
+			await FtpManager.Credentials.SetAsync(FtpUrl.Parse("ftpes://factory2.example").GetCredentialKey(), new NetworkCredential("bob", "saved"));
+			using (var client = await FtpClientFactory.CreateAsync(FtpUrl.Parse("ftpes://eve:typed@factory2.example/p")))
 				Assert.AreEqual("bob", client.Credentials.UserName);
 		}
 
@@ -412,9 +413,13 @@ namespace Files.Platform.Tests.Storables
 			private readonly System.Collections.Generic.Dictionary<(string, string), string> _items = new();
 
 			public bool IsPersistent => false;
-			public void Save(string resource, string account, string secret) => _items[(resource, account)] = secret;
-			public string? Get(string resource, string account) => _items.TryGetValue((resource, account), out var v) ? v : null;
-			public bool Delete(string resource, string account) => _items.Remove((resource, account));
+			public Task SaveAsync(string resource, string account, string secret)
+			{
+				_items[(resource, account)] = secret;
+				return Task.CompletedTask;
+			}
+			public Task<string?> GetAsync(string resource, string account) => Task.FromResult(_items.TryGetValue((resource, account), out var v) ? v : null);
+			public Task<bool> DeleteAsync(string resource, string account) => Task.FromResult(_items.Remove((resource, account)));
 		}
 	}
 }

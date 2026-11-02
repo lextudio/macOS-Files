@@ -99,9 +99,10 @@ namespace Files.App.ViewModels.Settings
 			IsIDENameValid = true;
 
 			// LINUX-TODO(devtools): Enable GitHub sign-in when Linux credential storage is available.
-			IsLogoutEnabled = IsWindows && GitHelpers.GetSavedCredentials() != string.Empty;
+			if (IsWindows)
+				_ = UpdateIsLogoutEnabledAsync();
 
-			RemoveCredentialsCommand = new RelayCommand(DoRemoveCredentials);
+			RemoveCredentialsCommand = new RelayCommand(DoRemoveCredentialsAsync);
 			ConnectToGitHubCommand = new RelayCommand(DoConnectToGitHubAsync);
 			CancelIDEChangesCommand = new RelayCommand(DoCancelIDEChanges);
 			SaveIDEChangesCommand = new RelayCommand(DoSaveIDEChanges);
@@ -123,9 +124,14 @@ namespace Files.App.ViewModels.Settings
 			}
 		}
 
-		public void DoRemoveCredentials()
+		private async Task UpdateIsLogoutEnabledAsync()
 		{
-			GitHelpers.RemoveSavedCredentials();
+			IsLogoutEnabled = await GitHelpers.GetSavedCredentialsAsync() != string.Empty;
+		}
+
+		public async void DoRemoveCredentialsAsync()
+		{
+			await GitHelpers.RemoveSavedCredentialsAsync();
 			IsLogoutEnabled = false;
 		}
 

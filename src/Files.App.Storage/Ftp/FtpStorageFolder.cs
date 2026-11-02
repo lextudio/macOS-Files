@@ -17,7 +17,7 @@ namespace Files.App.Storage
 		/// <inheritdoc/>
 		public async Task<IStorableChild> GetFirstByNameAsync(string folderName, CancellationToken cancellationToken = default)
 		{
-			using var ftpClient = GetFtpClient();
+			using var ftpClient = await GetFtpClientAsync();
 			await ftpClient.EnsureConnectedAsync(cancellationToken);
 
 			var itemId = $"{Id.TrimEnd('/')}/{folderName}";
@@ -37,7 +37,7 @@ namespace Files.App.Storage
 		/// <inheritdoc/>
 		public async IAsyncEnumerable<IStorableChild> GetItemsAsync(StorableType kind = StorableType.All, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			using var ftpClient = GetFtpClient();
+			using var ftpClient = await GetFtpClientAsync();
 			await ftpClient.EnsureConnectedAsync(cancellationToken);
 
 			foreach (var item in await ftpClient.GetListing(FtpHelpers.GetFtpPath(Id), cancellationToken))
@@ -59,7 +59,7 @@ namespace Files.App.Storage
 		/// <inheritdoc/>
 		public async Task DeleteAsync(IStorableChild item, CancellationToken cancellationToken = default)
 		{
-			using var ftpClient = GetFtpClient();
+			using var ftpClient = await GetFtpClientAsync();
 			await ftpClient.EnsureConnectedAsync(cancellationToken);
 
 			if (item is IFile locatableFile)
@@ -108,7 +108,7 @@ namespace Files.App.Storage
 		/// <inheritdoc/>
 		public async Task<IChildFile> CreateFileAsync(string desiredName, bool overwrite = default, CancellationToken cancellationToken = default)
 		{
-			using var ftpClient = GetFtpClient();
+			using var ftpClient = await GetFtpClientAsync();
 			await ftpClient.EnsureConnectedAsync(cancellationToken);
 
 			var newId = $"{Id.TrimEnd('/')}/{desiredName}";
@@ -139,7 +139,7 @@ namespace Files.App.Storage
 		/// <inheritdoc/>
 		public async Task<IChildFolder> CreateFolderAsync(string desiredName, bool overwrite = default, CancellationToken cancellationToken = default)
 		{
-			using var ftpClient = GetFtpClient();
+			using var ftpClient = await GetFtpClientAsync();
 			await ftpClient.EnsureConnectedAsync(cancellationToken);
 
 			var newId = $"{Id.TrimEnd('/')}/{desiredName}";

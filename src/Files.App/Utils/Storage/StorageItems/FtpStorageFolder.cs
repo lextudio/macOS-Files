@@ -70,7 +70,7 @@ namespace Files.App.Utils.Storage
 		{
 			return AsyncInfo.Run((cancellationToken) => SafetyExtensions.Wrap(async () =>
 			{
-				using var ftpClient = GetFtpClient();
+				using var ftpClient = await GetFtpClientAsync();
 				if (!await ftpClient.EnsureConnectedAsync())
 				{
 					return new BaseBasicProperties();
@@ -85,7 +85,7 @@ namespace Files.App.Utils.Storage
 		{
 			return AsyncInfo.Run((cancellationToken) => SafetyExtensions.Wrap<IStorageItem?>(async () =>
 			{
-				using var ftpClient = GetFtpClient();
+				using var ftpClient = await GetFtpClientAsync();
 				if (!await ftpClient.EnsureConnectedAsync())
 				{
 					return null;
@@ -128,7 +128,7 @@ namespace Files.App.Utils.Storage
 		{
 			return AsyncInfo.Run((cancellationToken) => SafetyExtensions.Wrap<IReadOnlyList<IStorageItem>?>(async () =>
 			{
-				using var ftpClient = GetFtpClient();
+				using var ftpClient = await GetFtpClientAsync();
 				if (!await ftpClient.EnsureConnectedAsync())
 				{
 					return null;
@@ -204,7 +204,7 @@ namespace Files.App.Utils.Storage
 		{
 			return AsyncInfo.Run((cancellationToken) => SafetyExtensions.Wrap<BaseStorageFile?>(async () =>
 			{
-				using var ftpClient = GetFtpClient();
+				using var ftpClient = await GetFtpClientAsync();
 				if (!await ftpClient.EnsureConnectedAsync())
 				{
 					return null;
@@ -255,7 +255,7 @@ namespace Files.App.Utils.Storage
 		{
 			return AsyncInfo.Run((cancellationToken) => SafetyExtensions.Wrap<BaseStorageFolder?>(async () =>
 			{
-				using var ftpClient = GetFtpClient();
+				using var ftpClient = await GetFtpClientAsync();
 				if (!await ftpClient.EnsureConnectedAsync())
 				{
 					throw new IOException($"Failed to connect to FTP server.");
@@ -288,7 +288,7 @@ namespace Files.App.Utils.Storage
 		{
 			return AsyncInfo.Run((cancellationToken) => SafetyExtensions.Wrap<BaseStorageFolder?>(async () =>
 			{
-				using var ftpClient = GetFtpClient();
+				using var ftpClient = await GetFtpClientAsync();
 				if (!await ftpClient.EnsureConnectedAsync())
 					throw new IOException($"Failed to connect to FTP server.");
 
@@ -318,7 +318,7 @@ namespace Files.App.Utils.Storage
 		{
 			return AsyncInfo.Run((cancellationToken) => SafetyExtensions.WrapAsync(async () =>
 			{
-				using var ftpClient = GetFtpClient();
+				using var ftpClient = await GetFtpClientAsync();
 				if (!await ftpClient.EnsureConnectedAsync())
 				{
 					return;
@@ -338,7 +338,7 @@ namespace Files.App.Utils.Storage
 		{
 			return AsyncInfo.Run((cancellationToken) => SafetyExtensions.WrapAsync(async () =>
 			{
-				using var ftpClient = GetFtpClient();
+				using var ftpClient = await GetFtpClientAsync();
 				if (await ftpClient.EnsureConnectedAsync())
 				{
 					await ftpClient.DeleteDirectory(FtpPath, cancellationToken);
@@ -369,10 +369,10 @@ namespace Files.App.Utils.Storage
 		public override IAsyncOperation<StorageItemThumbnail?> GetThumbnailAsync(ThumbnailMode mode, uint requestedSize, ThumbnailOptions options)
 			=> Task.FromResult<StorageItemThumbnail?>(null).AsAsyncOperation();
 
-		private AsyncFtpClient GetFtpClient()
+		private Task<AsyncFtpClient> GetFtpClientAsync()
 		{
 			// Same URL parsing, credential scope and TLS policy as the OwlCore storables
-			return FtpClientFactory.Create(
+			return FtpClientFactory.CreateAsync(
 				FtpUrl.Parse(Path),
 				Credentials is null ? null : new NetworkCredential(Credentials.UserName, Credentials.SecurePassword));
 		}

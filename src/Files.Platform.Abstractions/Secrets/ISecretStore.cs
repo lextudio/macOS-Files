@@ -1,10 +1,13 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
+using System.Threading.Tasks;
+
 namespace Files.Platform.Abstractions.Secrets
 {
 	/// <summary>
 	/// Stores small secrets (tokens, passwords) for the app, replacing the Windows credential vault.
+	/// Operations are asynchronous because the keyring may need the user to unlock it first; never block a thread on them.
 	/// </summary>
 	public interface ISecretStore
 	{
@@ -16,16 +19,16 @@ namespace Files.Platform.Abstractions.Secrets
 		/// <summary>
 		/// Saves (or replaces) the secret of <paramref name="resource"/> and <paramref name="account"/>.
 		/// </summary>
-		void Save(string resource, string account, string secret);
+		Task SaveAsync(string resource, string account, string secret);
 
 		/// <summary>
 		/// Returns the secret, or <see langword="null"/> when there is none.
 		/// </summary>
-		string? Get(string resource, string account);
+		Task<string?> GetAsync(string resource, string account);
 
 		/// <summary>
 		/// Removes the secret. Returns whether one was removed.
 		/// </summary>
-		bool Delete(string resource, string account);
+		Task<bool> DeleteAsync(string resource, string account);
 	}
 }

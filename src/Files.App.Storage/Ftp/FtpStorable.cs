@@ -31,9 +31,9 @@ namespace Files.App.Storage
 			return Task.FromResult(Parent);
 		}
 
-		protected AsyncFtpClient GetFtpClient()
+		protected Task<AsyncFtpClient> GetFtpClientAsync()
 		{
-			return FtpHelpers.GetFtpClient(Id);
+			return FtpHelpers.GetFtpClientAsync(Id);
 		}
 	}
 }

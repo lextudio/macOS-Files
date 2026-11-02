@@ -208,7 +208,7 @@ namespace Files.App.Utils.Git
 					},
 				};
 
-				var token = CredentialsHelpers.GetPassword(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
+				var token = await CredentialsHelpers.GetPasswordAsync(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
 				if (!string.IsNullOrWhiteSpace(token))
 				{
 					fetchOptions.CredentialsProvider = (url, user, cred)
@@ -276,11 +276,11 @@ namespace Files.App.Utils.Git
 				if (signature is null)
 					return GitOperationResult.GenericError;
 
-				var token = CredentialsHelpers.GetPassword(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
+				var token = await CredentialsHelpers.GetPasswordAsync(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
 				if (string.IsNullOrWhiteSpace(token))
 				{
 					await RequireGitAuthenticationAsync();
-					token = CredentialsHelpers.GetPassword(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
+					token = await CredentialsHelpers.GetPasswordAsync(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
 				}
 
 				var progressRange = endPercentage - startPercentage;
@@ -483,7 +483,7 @@ namespace Files.App.Utils.Git
 
 					pending = false;
 
-					CredentialsHelpers.SavePassword(
+					await CredentialsHelpers.SavePasswordAsync(
 						GIT_RESOURCE_NAME,
 						GIT_RESOURCE_USERNAME,
 						token);
@@ -583,15 +583,15 @@ namespace Files.App.Utils.Git
 		}
 
 		// Remove saved credentails
-		public static void RemoveSavedCredentials()
+		public static Task RemoveSavedCredentialsAsync()
 		{
-			CredentialsHelpers.DeleteSavedPassword(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
+			return CredentialsHelpers.DeleteSavedPasswordAsync(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
 		}
 
 		// Get saved credentails
-		public static string GetSavedCredentials()
+		public static Task<string> GetSavedCredentialsAsync()
 		{
-			return CredentialsHelpers.GetPassword(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
+			return CredentialsHelpers.GetPasswordAsync(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
 		}
 
 		public static async Task InitializeRepositoryAsync(string? path)

@@ -7,13 +7,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace Files.App.Storage
 {
 	public static class FtpManager
 	{
 		/// <summary>
-		/// Credentials by host. Setting an entry also saves the password in the secret store, when one is configured.
+		/// Credentials by host. <see cref="FtpCredentialCache.SetAsync"/> also saves the password in the secret store, when one is configured.
 		/// </summary>
 		public static readonly FtpCredentialCache Credentials = new();
 
@@ -72,10 +73,7 @@ namespace Files.App.Storage
 		private readonly object _lock = new();
 
 		public NetworkCredential this[string host]
-		{
-			get => TryGetValue(host, out var credential) ? credential : throw new KeyNotFoundException();
-			set => Set(host, value, persist: true);
-		}
+			=> TryGetValue(host, out var credential) ? credential : throw new KeyNotFoundException();
 
 		/// <summary>
 		/// Keeps credentials taken from a URL for this session only. They are never persisted and never override a saved
@@ -90,7 +88,10 @@ namespace Files.App.Storage
 		public NetworkCredential Get(string host, NetworkCredential defaultValue)
 			=> TryGetValue(host, out var credential) ? credential : defaultValue;
 
-		public void Remove(string host)
+		/// <summary>
+		/// Removes the credential for <paramref name="host"/> from the session and the secret store.
+		/// </summary>
+		public async Task RemoveAsync(string host)
 		{
 			lock (_lock)
 			{
@@ -103,9 +104,9 @@ namespace Files.App.Storage
 				try
 				{
 					var resource = GetResource(host);
-					if (store.Get(resource, LastUserAccount) is { } user)
-						store.Delete(resource, user);
-					store.Delete(resource, LastUserAccount);
+					if (await store.GetAsync(resource, LastUserAccount).ConfigureAwait(false) is { } user)
+						await store.DeleteAsync(resource, user).ConfigureAwait(false);
+					await store.DeleteAsync(resource, LastUserAccount).ConfigureAwait(false);
 				}
 				catch (Exception)
 				{
@@ -114,12 +115,31 @@ namespace Files.App.Storage
 			}
 		}
 
+		/// <summary>
+		/// Looks up the credential held in memory for this session; the secret store is not consulted, see <see cref="TryGetSavedAsync"/>.
+		/// </summary>
 		public bool TryGetValue(string host, out NetworkCredential value)
 		{
 			lock (_lock)
 			{
-				if (_session.TryGetValue(host, out value!))
+				if (_session.TryGetValue(host, out value!) || _fromUrl.TryGetValue(host, out value!))
 					return true;
+			}
+
+			value = null!;
+			return false;
+		}
+
+		/// <summary>
+		/// Finds the credential for <paramref name="host"/>: this session's, then the saved one, then one taken from a URL.
+		/// Reading the secret store may wait for the user to unlock the keyring, so this never blocks.
+		/// </summary>
+		public async Task<NetworkCredential?> TryGetSavedAsync(string host)
+		{
+			lock (_lock)
+			{
+				if (_session.TryGetValue(host, out var session))
+					return session;
 			}
 
 			// Legacy bare-host keys have no scheme/port scope and are never persisted or read from the store
@@ -130,11 +150,11 @@ namespace Files.App.Storage
 				try
 				{
 					var resource = GetResource(host);
-					if (store.Get(resource, LastUserAccount) is { Length: > 0 } user && store.Get(resource, user) is { } password)
+					if (await store.GetAsync(resource, LastUserAccount).ConfigureAwait(false) is { Length: > 0 } user
+						&& await store.GetAsync(resource, user).ConfigureAwait(false) is { } password)
 					{
 						// Not cached: the password stays in memory only as long as the caller needs it
-						value = new NetworkCredential(user, password);
-						return true;
+						return new NetworkCredential(user, password);
 					}
 				}
 				catch (Exception)
@@ -145,29 +165,28 @@ namespace Files.App.Storage
 
 			lock (_lock)
 			{
-				if (_fromUrl.TryGetValue(host, out value!))
-					return true;
+				return _fromUrl.TryGetValue(host, out var fromUrl) ? fromUrl : null;
 			}
-
-			value = null!;
-			return false;
 		}
 
-		private void Set(string host, NetworkCredential credential, bool persist)
+		/// <summary>
+		/// Keeps <paramref name="credential"/> for this session and saves it in the secret store when one is configured.
+		/// </summary>
+		public async Task SetAsync(string host, NetworkCredential credential)
 		{
 			lock (_lock)
 			{
 				_session[host] = credential;
 			}
 
-			if (!persist || !host.Contains("://", StringComparison.Ordinal) || FtpManager.SecretStore is not { } store || string.IsNullOrEmpty(credential.UserName))
+			if (!host.Contains("://", StringComparison.Ordinal) || FtpManager.SecretStore is not { } store || string.IsNullOrEmpty(credential.UserName))
 				return;
 
 			try
 			{
 				var resource = GetResource(host);
-				store.Save(resource, credential.UserName, credential.Password);
-				store.Save(resource, LastUserAccount, credential.UserName);
+				await store.SaveAsync(resource, credential.UserName, credential.Password).ConfigureAwait(false);
+				await store.SaveAsync(resource, LastUserAccount, credential.UserName).ConfigureAwait(false);
 			}
 			catch (Exception)
 			{

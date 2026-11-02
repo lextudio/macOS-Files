@@ -166,13 +166,13 @@ namespace Files.App.Data.Contracts
 		/// <summary>
 		/// Removes any stored credentials associated with the version control provider.
 		/// </summary>
-		void RemoveSavedCredentials();
+		Task RemoveSavedCredentialsAsync();
 
 		/// <summary>
 		/// Gets any stored credentials associated with the version control provider.
 		/// </summary>
 		/// <returns>The stored credential (typically a token), or an empty string if none exists.</returns>
-		string GetSavedCredentials();
+		Task<string> GetSavedCredentialsAsync();
 
 		/// <summary>
 		/// Initialises a new repository at the specified location.
