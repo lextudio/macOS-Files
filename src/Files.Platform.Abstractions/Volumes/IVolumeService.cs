@@ -24,6 +24,7 @@ namespace Files.Platform.Abstractions.Volumes
 	/// <param name="DriveId">The identifier of the drive the volume lives on, if known.</param>
 	/// <param name="CanEject">The drive can be ejected.</param>
 	/// <param name="CanPowerOff">The drive can be powered off.</param>
+	/// <param name="IsLocked">The volume is an encrypted (LUKS) container that has to be unlocked with a passphrase before it can be mounted.</param>
 	public sealed record VolumeInfo(
 		string Id,
 		string Device,
@@ -37,7 +38,8 @@ namespace Files.Platform.Abstractions.Volumes
 		IReadOnlyList<string> MountPoints,
 		string? DriveId = null,
 		bool CanEject = false,
-		bool CanPowerOff = false)
+		bool CanPowerOff = false,
+		bool IsLocked = false)
 	{
 		/// <summary>Gets whether the volume is mounted.</summary>
 		public bool IsMounted => MountPoints.Count > 0;
@@ -99,6 +101,9 @@ namespace Files.Platform.Abstractions.Volumes
 
 		/// <summary>The volume does not exist (any more).</summary>
 		NotFound,
+
+		/// <summary>The passphrase did not unlock the encrypted volume.</summary>
+		IncorrectPassphrase,
 	}
 
 	/// <summary>
@@ -114,6 +119,21 @@ namespace Files.Platform.Abstractions.Volumes
 
 		/// <summary>Gets the failure category.</summary>
 		public VolumeError Error { get; }
+	}
+
+	/// <summary>
+	/// Asks the user for the passphrase of an encrypted volume. Implemented by the UI layer.
+	/// </summary>
+	public interface IVolumePassphrasePrompt
+	{
+		/// <summary>
+		/// Requests the passphrase of <paramref name="volume"/> as UTF-8 bytes, or null if the user cancelled.
+		/// The caller clears the returned array once it has been used; it is never persisted.
+		/// </summary>
+		/// <param name="volume">The locked volume.</param>
+		/// <param name="retry">The previous passphrase was wrong.</param>
+		/// <param name="cancellationToken">Cancels the prompt.</param>
+		Task<byte[]?> RequestPassphraseAsync(VolumeInfo volume, bool retry, CancellationToken cancellationToken = default);
 	}
 
 	/// <summary>
@@ -136,8 +156,12 @@ namespace Files.Platform.Abstractions.Volumes
 		/// <summary>Lists the volumes (mounted or not), excluding ones the backend hides.</summary>
 		Task<IReadOnlyList<VolumeInfo>> GetVolumesAsync(CancellationToken cancellationToken = default);
 
-		/// <summary>Mounts the volume (polkit may prompt) and returns the mount point.</summary>
+		/// <summary>
+		/// Mounts the volume (polkit may prompt) and returns the mount point.
+		/// A locked encrypted volume is unlocked first, asking for the passphrase through <see cref="IVolumePassphrasePrompt"/>.
+		/// </summary>
 		/// <exception cref="VolumeOperationException">The operation failed.</exception>
+		/// <exception cref="OperationCanceledException">The user cancelled the passphrase prompt.</exception>
 		Task<string> MountAsync(string volumeId, CancellationToken cancellationToken = default);
 
 		/// <summary>Unmounts the volume.</summary>

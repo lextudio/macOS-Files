@@ -403,6 +403,7 @@ namespace Files.App.Helpers
 			services.AddFtpStorables();
 			Files.App.Storage.Archives.ArchiveServiceCollectionExtensions.AddArchiveStorables(services);
 			services.AddSingleton<Files.Platform.Abstractions.Archives.IArchivePasswordPrompt, Files.App.Actions.ArchivePasswordPrompt>();
+			services.AddSingleton<Files.Platform.Abstractions.Volumes.IVolumePassphrasePrompt, Files.App.Utils.VolumePassphrasePrompt>();
 
 			// Conditional DI
 				services.AddSingleton<IUpdateService, DummyUpdateService>();

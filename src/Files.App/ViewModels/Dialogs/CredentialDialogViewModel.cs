@@ -12,6 +12,16 @@ namespace Files.App.ViewModels.Dialogs
 			set => SetProperty(ref _UserName, value);
 		}
 
+		/// <summary>
+		/// Overrides the default dialog title when set.
+		/// </summary>
+		public string? Title { get; set; }
+
+		/// <summary>
+		/// Overrides the default description when set.
+		/// </summary>
+		public string? Description { get; set; }
+
 		private bool _IsAnonymous;
 		public bool IsAnonymous
 		{

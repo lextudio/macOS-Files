@@ -320,6 +320,11 @@ namespace Files.App.Utils.Storage
 
 				return volume.MountPoint ?? await volumes.MountAsync(volume.Id);
 			}
+			catch (OperationCanceledException)
+			{
+				// The user dismissed the passphrase prompt
+				return null;
+			}
 			catch (VolumeOperationException ex)
 			{
 				await ShowVolumeErrorAsync(ex);
