@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Tmds.DBus.Protocol;
 
@@ -15,7 +16,8 @@ namespace Files.Platform.Linux.Secrets
 {
 	/// <summary>
 	/// <see cref="ISecretStore"/> on the freedesktop Secret Service (libsecret's backend: GNOME Keyring, KWallet, KeePassXC) over D-Bus.
-	/// When no service is reachable or the collection is locked, secrets are kept in memory for the lifetime of the process.
+	/// A locked collection is unlocked through the desktop's own keyring prompt. When no service is reachable or the unlock is dismissed, fails or times out,
+	/// secrets are kept in memory for the lifetime of the process.
 	/// </summary>
 	public sealed class SecretServiceStore : ISecretStore
 	{
@@ -25,11 +27,18 @@ namespace Files.Platform.Linux.Secrets
 		private const string ServiceInterface = "org.freedesktop.Secret.Service";
 		private const string CollectionInterface = "org.freedesktop.Secret.Collection";
 		private const string ItemInterface = "org.freedesktop.Secret.Item";
+		private const string PromptInterface = "org.freedesktop.Secret.Prompt";
 		private const string LabelProperty = "org.freedesktop.Secret.Item.Label";
 		private const string AttributesProperty = "org.freedesktop.Secret.Item.Attributes";
 		private static readonly TimeSpan CallTimeout = TimeSpan.FromSeconds(3);
+		private static readonly TimeSpan DefaultUnlockTimeout = TimeSpan.FromSeconds(45);
+		private static readonly TimeSpan DefaultPromptCooldown = TimeSpan.FromMinutes(2);
 
 		private readonly string? busAddress;
+		private readonly TimeSpan unlockTimeout;
+		private readonly TimeSpan promptCooldown;
+		private readonly SemaphoreSlim unlockGate = new(1, 1);
+		private long promptBlockedUntilTicks;
 		private readonly ConcurrentDictionary<(string, string), string> memory = new();
 		private readonly ConcurrentDictionary<(string, string), byte> tombstones = new();
 		private readonly ConcurrentDictionary<(string, string), object> locks = new();
@@ -38,8 +47,19 @@ namespace Files.Platform.Linux.Secrets
 		/// Creates the store. <paramref name="busAddress"/> null means the user's session bus.
 		/// </summary>
 		public SecretServiceStore(string? busAddress = null)
+			: this(busAddress, DefaultUnlockTimeout, DefaultPromptCooldown)
+		{
+		}
+
+		/// <summary>
+		/// <paramref name="unlockTimeout"/> bounds the wait for the user to answer the unlock prompt. After a prompt is dismissed or times out,
+		/// no new prompt is shown for <paramref name="promptCooldown"/> so a refusing user is not asked on every save.
+		/// </summary>
+		internal SecretServiceStore(string? busAddress, TimeSpan unlockTimeout, TimeSpan promptCooldown)
 		{
 			this.busAddress = busAddress;
+			this.unlockTimeout = unlockTimeout;
+			this.promptCooldown = promptCooldown;
 		}
 
 		/// <inheritdoc/>
@@ -53,7 +73,6 @@ namespace Files.Platform.Linux.Secrets
 			{
 				memory[key] = secret;
 				tombstones.TryRemove(key, out _);
-				// LINUX-TODO(secrets): prompts to unlock a locked keyring are not shown; a locked collection falls back to memory only.
 				// Get prefers the in-memory value, so a failed update never lets the stale persisted secret win in this process.
 				IsPersistent = Run(c => SaveAsync(c, resource, account, secret));
 			}
@@ -111,12 +130,15 @@ namespace Files.Platform.Linux.Secrets
 		private bool Run(Func<DBusConnection, Task<bool>> action)
 			=> Run(async c => await action(c).ConfigureAwait(false) ? "1" : null, out _) is not null;
 
+		// The budget must outlast the worst sequence so the prompt Dismiss runs before the connection is disposed. Save: OpenSession + CreateItem,
+		// then Unlock + AddMatch + Prompt, then OpenSession + CreateItem again (7 calls); Get/Delete are shorter, and a dismissed or timed-out prompt
+		// ends with Dismiss instead of the retry. Waiting for the unlock gate and for the user's answer each take up to unlockTimeout.
 		private T? Run<T>(Func<DBusConnection, Task<T?>> action, out bool reachable) where T : class
 		{
 			var wasReachable = false;
 			try
 			{
-				return RunAsync(action, () => wasReachable = true).GetAwaiter().GetResult();
+				return RunAsync(action, () => wasReachable = true, CallTimeout * 8 + unlockTimeout * 2).GetAwaiter().GetResult();
 			}
 			catch (Exception ex) when (ex is TimeoutException or DBusExceptionBase or ObjectDisposedException or InvalidOperationException or System.IO.IOException)
 			{
@@ -128,7 +150,7 @@ namespace Files.Platform.Linux.Secrets
 			}
 		}
 
-		private async Task<T?> RunAsync<T>(Func<DBusConnection, Task<T?>> action, Action markReachable) where T : class
+		private async Task<T?> RunAsync<T>(Func<DBusConnection, Task<T?>> action, Action markReachable, TimeSpan budget) where T : class
 		{
 			var connection = await DBusSession.TryConnectAsync(busAddress, CallTimeout).ConfigureAwait(false);
 			if (connection is null)
@@ -137,7 +159,7 @@ namespace Files.Platform.Linux.Secrets
 			try
 			{
 				markReachable();
-				return await action(connection).WaitAsync(CallTimeout * 2).ConfigureAwait(false);
+				return await action(connection).WaitAsync(budget).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -171,7 +193,7 @@ namespace Files.Platform.Linux.Secrets
 			writer.WriteDictionaryEnd(start);
 		}
 
-		private static async Task<string?> FindItemAsync(DBusConnection bus, string resource, string account)
+		private static async Task<(string Path, bool Locked)?> FindItemAsync(DBusConnection bus, string resource, string account)
 		{
 			MessageBuffer message;
 			{
@@ -196,13 +218,18 @@ namespace Files.Platform.Linux.Secrets
 				return (unlockedItems, lockedItems);
 			}, null).ConfigureAwait(false);
 
-			return unlocked.FirstOrDefault() ?? locked.FirstOrDefault();
+			if (unlocked.FirstOrDefault() is { } open)
+				return (open, false);
+
+			return locked.FirstOrDefault() is { } closed ? (closed, true) : null;
 		}
 
-		private static async Task<string?> GetAsync(DBusConnection bus, string resource, string account)
+		private async Task<string?> GetAsync(DBusConnection bus, string resource, string account)
 		{
-			var item = await FindItemAsync(bus, resource, account).ConfigureAwait(false);
-			if (item is null)
+			if (await FindItemAsync(bus, resource, account).ConfigureAwait(false) is not var (item, locked))
+				return null;
+
+			if (locked && !await UnlockAsync(bus, item).ConfigureAwait(false))
 				return null;
 
 			var session = await OpenSessionAsync(bus).ConfigureAwait(false);
@@ -229,7 +256,17 @@ namespace Files.Platform.Linux.Secrets
 			return Encoding.UTF8.GetString(bytes);
 		}
 
-		private static async Task<bool> SaveAsync(DBusConnection bus, string resource, string account, string secret)
+		private async Task<bool> SaveAsync(DBusConnection bus, string resource, string account, string secret)
+		{
+			if (await CreateItemAsync(bus, resource, account, secret).ConfigureAwait(false))
+				return true;
+
+			// A prompt means the collection is locked: ask the user to unlock it, then retry once
+			return await UnlockAsync(bus, DefaultCollection).ConfigureAwait(false)
+				&& await CreateItemAsync(bus, resource, account, secret).ConfigureAwait(false);
+		}
+
+		private static async Task<bool> CreateItemAsync(DBusConnection bus, string resource, string account, string secret)
 		{
 			var session = await OpenSessionAsync(bus).ConfigureAwait(false);
 
@@ -272,24 +309,26 @@ namespace Files.Platform.Linux.Secrets
 				return reader.ReadObjectPathAsString();
 			}, null).ConfigureAwait(false);
 
-			// A prompt means the collection is locked and needs the user to unlock it
 			return prompt == "/";
 		}
 
-		private static async Task<string?> DeleteAsync(DBusConnection bus, string resource, string account)
+		private async Task<string?> DeleteAsync(DBusConnection bus, string resource, string account)
 		{
-			string? item;
+			(string Path, bool Locked)? found;
 			try
 			{
-				item = await FindItemAsync(bus, resource, account).ConfigureAwait(false);
+				found = await FindItemAsync(bus, resource, account).ConfigureAwait(false);
 			}
 			catch (DBusErrorReplyException ex) when (ex.ErrorName is "org.freedesktop.DBus.Error.ServiceUnknown" or "org.freedesktop.DBus.Error.NameHasNoOwner")
 			{
 				return "unavailable"; // no Secret Service answered: the delete is unconfirmed
 			}
 
-			if (item is null)
+			if (found is not var (item, locked))
 				return "absent"; // a live service answered: there is no such item
+
+			if (locked && !await UnlockAsync(bus, item).ConfigureAwait(false))
+				return "failed";
 
 			MessageBuffer message;
 			using (var writer = bus.GetMessageWriter())
@@ -300,6 +339,138 @@ namespace Files.Platform.Linux.Secrets
 
 			var prompt = await bus.CallTracedAsync("dbus.secrets", message, static (Message m, object? _) => m.GetBodyReader().ReadObjectPathAsString(), null).ConfigureAwait(false);
 			return prompt == "/" ? "deleted" : "failed";
+		}
+
+		/// <summary>
+		/// Unlocks <paramref name="objectPath"/> (a collection or item). When the service needs the user, shows the desktop's keyring prompt and waits for it.
+		/// Returns false when the unlock is dismissed, denied, fails or times out; a refused prompt is not repeated until the cooldown passes.
+		/// </summary>
+		private async Task<bool> UnlockAsync(DBusConnection bus, string objectPath)
+		{
+			if (!await unlockGate.WaitAsync(unlockTimeout).ConfigureAwait(false))
+				return false;
+
+			try
+			{
+				if (DateTime.UtcNow.Ticks < Interlocked.Read(ref promptBlockedUntilTicks))
+					return false;
+
+				string prompt;
+				try
+				{
+					prompt = await CallUnlockAsync(bus, objectPath).ConfigureAwait(false);
+				}
+				catch (Exception ex) when (ex is DBusExceptionBase or TimeoutException)
+				{
+					return false;
+				}
+
+				if (prompt == "/")
+					return true;
+
+				var unlocked = await RunPromptAsync(bus, prompt).ConfigureAwait(false);
+				if (!unlocked)
+					Interlocked.Exchange(ref promptBlockedUntilTicks, (DateTime.UtcNow + promptCooldown).Ticks);
+				return unlocked;
+			}
+			finally
+			{
+				unlockGate.Release();
+			}
+		}
+
+		private static async Task<string> CallUnlockAsync(DBusConnection bus, string objectPath)
+		{
+			MessageBuffer message;
+			using (var writer = bus.GetMessageWriter())
+			{
+				writer.WriteMethodCallHeader(Service, ServicePath, ServiceInterface, "Unlock", "ao");
+				writer.WriteArray(new[] { new ObjectPath(objectPath) });
+				message = writer.CreateMessage();
+			}
+
+			return await bus.CallTracedAsync("dbus.secrets", message, static (Message m, object? _) =>
+			{
+				var reader = m.GetBodyReader();
+				reader.ReadArrayOfObjectPath();
+				return reader.ReadObjectPathAsString();
+			}, null).WaitAsync(CallTimeout).ConfigureAwait(false);
+		}
+
+		private async Task<bool> RunPromptAsync(DBusConnection bus, string prompt)
+		{
+			var completed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+			var rule = new MatchRule
+			{
+				Type = MessageType.Signal,
+				Path = prompt,
+				Interface = PromptInterface,
+				Member = "Completed",
+			};
+
+			// Subscribe before Prompt so a prompt that finishes immediately cannot be missed
+			IDisposable? subscription = null;
+			try
+			{
+				subscription = await bus.AddMatchAsync(rule, static (Message m, object? _) =>
+				{
+					var reader = m.GetBodyReader();
+					return !reader.ReadBool();
+				}, static (Exception? ex, bool accepted, object? _, object? state) =>
+				{
+					var source = (TaskCompletionSource<bool>)state!;
+					if (ex is not null)
+						source.TrySetResult(false);
+					else
+						source.TrySetResult(accepted);
+				}, null, completed, false, ObserverFlags.None).AsTask().WaitAsync(CallTimeout).ConfigureAwait(false);
+
+				await CallPromptMethodAsync(bus, prompt, "Prompt", "s").WaitAsync(CallTimeout).ConfigureAwait(false);
+
+				try
+				{
+					return await completed.Task.WaitAsync(unlockTimeout).ConfigureAwait(false);
+				}
+				catch (TimeoutException)
+				{
+					await DismissAsync(bus, prompt).ConfigureAwait(false);
+					return false;
+				}
+			}
+			catch (Exception ex) when (ex is DBusExceptionBase or TimeoutException)
+			{
+				return false;
+			}
+			finally
+			{
+				subscription?.Dispose();
+			}
+		}
+
+		private static Task CallPromptMethodAsync(DBusConnection bus, string prompt, string member, string signature)
+		{
+			MessageBuffer message;
+			using (var writer = bus.GetMessageWriter())
+			{
+				writer.WriteMethodCallHeader(Service, prompt, PromptInterface, member, signature);
+				if (signature.Length > 0)
+					writer.WriteString(string.Empty);
+				message = writer.CreateMessage();
+			}
+
+			return bus.CallTracedAsync("dbus.secrets", message);
+		}
+
+		private static async Task DismissAsync(DBusConnection bus, string prompt)
+		{
+			try
+			{
+				await CallPromptMethodAsync(bus, prompt, "Dismiss", string.Empty).WaitAsync(CallTimeout).ConfigureAwait(false);
+			}
+			catch (Exception ex) when (ex is DBusExceptionBase or TimeoutException)
+			{
+				// Best effort: the prompt may already be gone
+			}
 		}
 	}
 
