@@ -172,6 +172,7 @@ namespace Files.Platform.Linux.Volumes
 			}
 			catch (DBusErrorReplyException ex) when (ex.ErrorName == "org.freedesktop.UDisks2.Error.NotMounted")
 			{
+				await RelockAsync(volumeId, cancellationToken).ConfigureAwait(false);
 			}
 			catch (DBusErrorReplyException ex)
 			{
@@ -182,13 +183,14 @@ namespace Files.Platform.Linux.Volumes
 		/// <summary>Locks the container behind <paramref name="cleartextId"/> if the app unlocked it; a failure is logged and never fails the unmount.</summary>
 		private async Task RelockAsync(string cleartextId, CancellationToken cancellationToken)
 		{
-			if (!unlockTracker.TryForget(cleartextId))
+			if (unlockTracker.TryForget(cleartextId) is not { } tracked)
 				return;
 
 			try
 			{
 				var objects = await GetObjectsAsync(cancellationToken).ConfigureAwait(false);
-				if (UDisks2Parser.FindCryptoBacking(objects, cleartextId) is not { } container)
+				// A reused device name may now belong to a volume unlocked elsewhere
+				if (UDisks2Parser.FindCryptoBacking(objects, cleartextId) is not { } container || container != tracked)
 					return;
 
 				await CallAsync<object?>(container, UDisks2Parser.EncryptedInterface, "Lock", static (Message _, object? _) => null, cancellationToken).ConfigureAwait(false);
@@ -303,7 +305,7 @@ namespace Files.Platform.Linux.Volumes
 				var result = await bus.CallTracedAsync("dbus.volumes", message, static (Message m, object? _) => m.GetBodyReader().ReadObjectPathAsString(), null)
 					.WaitAsync(CallTimeout, cancellationToken).ConfigureAwait(false);
 				await Task.Yield();
-				unlockTracker.Track(result);
+				unlockTracker.Track(result, volumeId);
 				return result;
 			}
 			catch (DBusErrorReplyException ex) when (IsAlreadyUnlocked(ex))
@@ -335,8 +337,13 @@ namespace Files.Platform.Linux.Volumes
 			var siblings = volume.DriveId is null
 				? [volume]
 				: volumes.Where(v => v.DriveId == volume.DriveId).ToList();
-			foreach (var sibling in siblings.Where(v => v.IsMounted))
-				await UnmountAsync(sibling.Id, cancellationToken).ConfigureAwait(false);
+			foreach (var sibling in siblings)
+			{
+				if (sibling.IsMounted)
+					await UnmountAsync(sibling.Id, cancellationToken).ConfigureAwait(false);
+				else
+					await RelockAsync(sibling.Id, cancellationToken).ConfigureAwait(false);
+			}
 
 			return (volume.DriveId, volume.CanEject, volume.CanPowerOff);
 		}
