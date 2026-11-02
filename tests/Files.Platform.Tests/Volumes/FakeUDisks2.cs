@@ -33,7 +33,7 @@ namespace Files.Platform.Tests.Volumes
 
 		public List<FakeCall> Calls { get; } = new();
 
-		/// <summary>Errors to answer with, keyed by <c>Interface.Member</c>.</summary>
+		/// <summary>Errors to answer with, keyed by <c>Interface.Member</c> (<c>org.freedesktop.UDisks2.Encrypted.Lock</c> makes <c>Lock</c> fail).</summary>
 		public Dictionary<string, string> Errors { get; } = new();
 
 		/// <summary>Messages for <see cref="Errors"/>, keyed the same way (default "fake failure").</summary>
@@ -274,6 +274,15 @@ namespace Files.Platform.Tests.Volumes
 
 			if (iface == UDisks2Parser.FilesystemInterface && member == "Unmount" && block is not null)
 				SetMounts(block);
+
+			if (iface == UDisks2Parser.EncryptedInterface && member == "Lock" && block is not null)
+			{
+				lock (gate)
+				{
+					Objects.Remove(Root + "/block_devices/dm_" + block);
+					Objects[path2][UDisks2Parser.EncryptedInterface]["CleartextDevice"] = new ObjPath("/");
+				}
+			}
 
 			using var empty = context.CreateReplyWriter("");
 			context.Reply(empty.CreateMessage());

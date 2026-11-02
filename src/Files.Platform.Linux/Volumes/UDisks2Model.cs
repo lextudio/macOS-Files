@@ -246,6 +246,16 @@ namespace Files.Platform.Linux.Volumes
 			return null;
 		}
 
+		/// <summary>Finds the encrypted container behind the cleartext device <paramref name="cleartext"/>, or null if it is not a cleartext device.</summary>
+		public static string? FindCryptoBacking(UDisks2Objects objects, string cleartext)
+		{
+			if (objects.TryGetValue(cleartext, out var interfaces) && interfaces.TryGetValue(BlockInterface, out var block) &&
+				String(block, "CryptoBackingDevice") is { } backing && IsBlockPath(backing) && objects.ContainsKey(backing))
+				return backing;
+
+			return null;
+		}
+
 		/// <summary>Whether <paramref name="mountPoint"/> belongs to the system rather than being a user-visible drive.</summary>
 		public static bool IsPlumbingMountPoint(string mountPoint)
 		{
@@ -294,5 +304,27 @@ namespace Files.Platform.Linux.Volumes
 			=> properties.TryGetValue(key, out var value) && value is ulong number ? number : 0;
 
 		private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
+	}
+
+	/// <summary>
+	/// Remembers the cleartext devices the app unlocked itself, so only those are locked again; volumes that were already unlocked are left alone.
+	/// </summary>
+	public sealed class UDisks2UnlockTracker
+	{
+		private readonly HashSet<string> unlocked = new(StringComparer.Ordinal);
+
+		/// <summary>Records that the app unlocked <paramref name="cleartextPath"/>.</summary>
+		public void Track(string cleartextPath)
+		{
+			lock (unlocked)
+				unlocked.Add(cleartextPath);
+		}
+
+		/// <summary>Forgets <paramref name="cleartextPath"/> and returns whether the app had unlocked it.</summary>
+		public bool TryForget(string cleartextPath)
+		{
+			lock (unlocked)
+				return unlocked.Remove(cleartextPath);
+		}
 	}
 }

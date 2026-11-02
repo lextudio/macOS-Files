@@ -5,6 +5,7 @@ using Files.Platform.Abstractions.Volumes;
 using Files.Platform.Linux.DBus;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
@@ -33,6 +34,7 @@ namespace Files.Platform.Linux.Volumes
 		private const int MaxPassphraseAttempts = 5;
 
 		private readonly IVolumePassphrasePrompt? passphrasePrompt;
+		private readonly UDisks2UnlockTracker unlockTracker = new();
 		private readonly SemaphoreSlim connectGate = new(1, 1);
 		private readonly object watchGate = new();
 		private DBusConnection? connection;
@@ -166,6 +168,7 @@ namespace Files.Platform.Linux.Volumes
 			try
 			{
 				await CallAsync<object?>(volumeId, UDisks2Parser.FilesystemInterface, "Unmount", static (Message _, object? _) => null, cancellationToken).ConfigureAwait(false);
+				await RelockAsync(volumeId, cancellationToken).ConfigureAwait(false);
 			}
 			catch (DBusErrorReplyException ex) when (ex.ErrorName == "org.freedesktop.UDisks2.Error.NotMounted")
 			{
@@ -173,6 +176,26 @@ namespace Files.Platform.Linux.Volumes
 			catch (DBusErrorReplyException ex)
 			{
 				throw Translate(ex);
+			}
+		}
+
+		/// <summary>Locks the container behind <paramref name="cleartextId"/> if the app unlocked it; a failure is logged and never fails the unmount.</summary>
+		private async Task RelockAsync(string cleartextId, CancellationToken cancellationToken)
+		{
+			if (!unlockTracker.TryForget(cleartextId))
+				return;
+
+			try
+			{
+				var objects = await GetObjectsAsync(cancellationToken).ConfigureAwait(false);
+				if (UDisks2Parser.FindCryptoBacking(objects, cleartextId) is not { } container)
+					return;
+
+				await CallAsync<object?>(container, UDisks2Parser.EncryptedInterface, "Lock", static (Message _, object? _) => null, cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException && (IsBackendFailure(ex) || ex is VolumeOperationException))
+			{
+				Debug.WriteLine($"Could not lock {cleartextId} after unmounting: {ex.Message}");
 			}
 		}
 
@@ -280,6 +303,7 @@ namespace Files.Platform.Linux.Volumes
 				var result = await bus.CallTracedAsync("dbus.volumes", message, static (Message m, object? _) => m.GetBodyReader().ReadObjectPathAsString(), null)
 					.WaitAsync(CallTimeout, cancellationToken).ConfigureAwait(false);
 				await Task.Yield();
+				unlockTracker.Track(result);
 				return result;
 			}
 			catch (DBusErrorReplyException ex) when (IsAlreadyUnlocked(ex))
