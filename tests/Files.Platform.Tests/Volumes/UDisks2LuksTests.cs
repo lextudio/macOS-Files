@@ -222,6 +222,163 @@ namespace Files.Platform.Tests.Volumes
 			}
 		}
 
+		private const string LockMember = "org.freedesktop.UDisks2.Encrypted.Lock";
+
+		private static List<string> Members(FakeUDisks2 fake) => fake.CallsSnapshot().Select(c => c.Interface.Split('.').Last() + "." + c.Member).ToList();
+
+		[TestMethod]
+		public async Task UnmountLocksTheContainerTheAppUnlocked()
+		{
+			var (bus, fake) = await StartAsync();
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, new ScriptedPrompt("correct horse")))
+			{
+				await service.MountAsync(Locked);
+				await service.UnmountAsync(Cleartext);
+
+				CollectionAssert.AreEqual(new[] { "Encrypted.Unlock", "Filesystem.Mount", "Filesystem.Unmount", "Encrypted.Lock" }, Members(fake).ToArray());
+				Assert.AreEqual(Locked, fake.CallsSnapshot()[3].Path);
+				Assert.IsTrue((await service.GetVolumesAsync()).Single().IsLocked);
+
+				// The entry is forgotten: after an external unlock, unmounting does not lock again
+				fake.AddCleartext("sde1");
+				await service.UnmountAsync(Cleartext);
+				Assert.AreEqual(1, Members(fake).Count(m => m == "Encrypted.Lock"));
+			}
+		}
+
+		[TestMethod]
+		public async Task EjectLocksTheContainerTheAppUnlocked()
+		{
+			var (bus, fake) = await StartAsync();
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, new ScriptedPrompt("correct horse")))
+			{
+				await service.MountAsync(Locked);
+				await service.EjectAsync(Cleartext);
+
+				var members = Members(fake);
+				Assert.IsTrue(members.IndexOf("Filesystem.Unmount") < members.IndexOf("Encrypted.Lock"));
+				Assert.AreEqual(Locked, fake.CallsSnapshot().Single(c => c.Member == "Lock").Path);
+
+				// The drive is ejected after the container is locked, though the cleartext device has no drive of its own
+				Assert.IsTrue(members.IndexOf("Encrypted.Lock") < members.IndexOf("Drive.Eject"));
+			}
+		}
+
+		[TestMethod]
+		public async Task EjectLocksAnUnmountedContainerTheAppUnlockedBeforeEjecting()
+		{
+			var (bus, fake) = await StartAsync();
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, new ScriptedPrompt("correct horse")))
+			{
+				await service.MountAsync(Locked);
+				fake.SetMounts("dm_sde1");
+				await service.EjectAsync(Cleartext);
+
+				var members = Members(fake);
+				Assert.IsFalse(members.Contains("Filesystem.Unmount"));
+				Assert.IsTrue(members.IndexOf("Encrypted.Lock") < members.IndexOf("Drive.Eject"));
+			}
+		}
+
+		[TestMethod]
+		public async Task UnmountOfAnAlreadyUnmountedVolumeStillLocksWhatTheAppUnlocked()
+		{
+			var (bus, fake) = await StartAsync();
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, new ScriptedPrompt("correct horse")))
+			{
+				await service.MountAsync(Locked);
+				fake.Errors["org.freedesktop.UDisks2.Filesystem.Unmount"] = "org.freedesktop.UDisks2.Error.NotMounted";
+				await service.UnmountAsync(Cleartext);
+
+				Assert.AreEqual(1, Members(fake).Count(m => m == "Encrypted.Lock"));
+			}
+		}
+
+		[TestMethod]
+		public async Task CleartextDeviceUsesTheDriveOfItsContainer()
+		{
+			var (bus, fake) = await StartAsync();
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address))
+			{
+				fake.AddCleartext("sde1");
+				var volume = (await service.GetVolumesAsync()).Single();
+
+				Assert.AreEqual("/org/freedesktop/UDisks2/drives/Generic_Flash", volume.DriveId);
+				Assert.IsTrue(volume.CanEject);
+			}
+		}
+
+		[TestMethod]
+		public void UnlockTrackerOnlyForgetsTheContainerItTracked()
+		{
+			var tracker = new UDisks2UnlockTracker();
+			Assert.IsNull(tracker.TryForget(Cleartext));
+
+			tracker.Track(Cleartext, Locked);
+			Assert.AreEqual(Locked, tracker.TryForget(Cleartext));
+			Assert.IsNull(tracker.TryForget(Cleartext));
+		}
+
+		[TestMethod]
+		public async Task ReusedCleartextNameForAnotherContainerIsNotLocked()
+		{
+			var (bus, fake) = await StartAsync();
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, new ScriptedPrompt("correct horse")))
+			{
+				await service.MountAsync(Locked);
+				fake.AddEncrypted("sdf1", "Generic_Flash", "other");
+				fake.SetMounts("dm_sde1");
+				fake.Objects["/org/freedesktop/UDisks2/block_devices/dm_sde1"][UDisks2Parser.BlockInterface]["CryptoBackingDevice"] = new ObjPath("/org/freedesktop/UDisks2/block_devices/sdf1");
+				await service.UnmountAsync(Cleartext);
+
+				Assert.IsFalse(Members(fake).Contains("Encrypted.Lock"));
+			}
+		}
+
+		[TestMethod]
+		public async Task UnmountDoesNotLockAContainerThatWasAlreadyUnlocked()
+		{
+			var (bus, fake) = await StartAsync();
+			fake.AddCleartext("sde1");
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, new ScriptedPrompt("correct horse")))
+			{
+				await service.MountAsync(Locked);
+				await service.UnmountAsync(Cleartext);
+
+				CollectionAssert.AreEqual(new[] { "Filesystem.Mount", "Filesystem.Unmount" }, Members(fake).ToArray());
+			}
+		}
+
+		[TestMethod]
+		public async Task LockFailureDoesNotFailTheUnmount()
+		{
+			var (bus, fake) = await StartAsync();
+			fake.Errors[LockMember] = "org.freedesktop.UDisks2.Error.DeviceBusy";
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, new ScriptedPrompt("correct horse")))
+			{
+				await service.MountAsync(Locked);
+				await service.UnmountAsync(Cleartext);
+
+				Assert.AreEqual(1, Members(fake).Count(m => m == "Encrypted.Lock"));
+				Assert.IsFalse((await service.GetVolumesAsync()).Single().IsMounted);
+			}
+		}
+
+		[TestMethod]
+		public async Task FailedUnmountDoesNotLock()
+		{
+			var (bus, fake) = await StartAsync();
+			fake.Errors["org.freedesktop.UDisks2.Filesystem.Unmount"] = "org.freedesktop.UDisks2.Error.DeviceBusy";
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, new ScriptedPrompt("correct horse")))
+			{
+				await service.MountAsync(Locked);
+				var ex = await Assert.ThrowsExactlyAsync<VolumeOperationException>(() => service.UnmountAsync(Cleartext));
+
+				Assert.AreEqual(VolumeError.Busy, ex.Error);
+				Assert.IsFalse(Members(fake).Contains("Encrypted.Lock"));
+			}
+		}
+
 		[TestMethod]
 		public void TranslateMapsOnlyPassphraseFailuresToIncorrectPassphrase()
 		{
