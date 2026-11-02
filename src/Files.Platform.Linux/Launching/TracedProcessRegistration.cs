@@ -4,7 +4,6 @@
 using Files.Platform.Linux.Elevation;
 using Files.Platform.Linux.Native;
 using Files.Platform.Posix.Launching;
-using System.Runtime.CompilerServices;
 
 namespace Files.Platform.Linux.Launching
 {
@@ -14,10 +13,11 @@ namespace Files.Platform.Linux.Launching
 	/// </summary>
 	internal static class TracedProcessRegistration
 	{
-		// The hook must be installed before any process is started, so it runs as part of loading this assembly.
-#pragma warning disable CA2255
-		[ModuleInitializer]
-#pragma warning restore CA2255
+		/// <summary>
+		/// Installs the hook. The shared POSIX helper has no reference back to this assembly, so this
+		/// must run before anything can start a child process; <c>AddLinuxPlatform</c> calls it while
+		/// the container is being configured.
+		/// </summary>
 		internal static void Register()
 			=> TracedProcess.PrepareStartInfo = info =>
 			{

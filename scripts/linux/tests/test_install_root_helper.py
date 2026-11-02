@@ -124,7 +124,7 @@ class InstallerTests(unittest.TestCase):
         repo = INSTALLER.parents[2]
         project = ET.parse(repo / "src/Files.Platform.Linux.ElevationHelper/Files.Platform.Linux.ElevationHelper.csproj")
         self.assertEqual("true", project.findtext("PropertyGroup/InvariantGlobalization"))
-        native = (repo / "src/Files.Platform.Linux/Native/PosixNative.cs").read_text(encoding="utf-8-sig")
+        native = (repo / "src/Files.Platform.Posix/Native/PosixNative.cs").read_text(encoding="utf-8-sig")
         helper_branch = native.split("#if ELEVATION_HELPER", 1)[1].split("#endif", 1)[0]
         self.assertNotIn("symlinkat", helper_branch)
         public_branch = native.split("#if !ELEVATION_HELPER", 1)[1].split("#endif", 1)[0]

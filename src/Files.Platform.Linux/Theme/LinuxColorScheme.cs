@@ -58,6 +58,11 @@ namespace Files.Platform.Linux.Theme
 			return value;
 		}
 
+		/// <summary>
+		/// Gets the <c>FILES_COLOR_SCHEME</c> override, if one is set. It wins over every detection source.
+		/// </summary>
+		public static bool? ForcedIsDark => OverrideValue();
+
 		private static bool? OverrideValue()
 		{
 			return Environment.GetEnvironmentVariable("FILES_COLOR_SCHEME")?.Trim().ToLowerInvariant() switch

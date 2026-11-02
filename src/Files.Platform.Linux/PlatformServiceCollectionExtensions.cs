@@ -25,6 +25,10 @@ namespace Files.Platform.Linux
 		/// </summary>
 		public static IServiceCollection AddLinuxPlatform(this IServiceCollection services)
 		{
+			// Install the process-start hook before any service can launch a child process. The shared
+			// POSIX helper has no reference back to this assembly, so it cannot install it itself.
+			TracedProcessRegistration.Register();
+
 			return services
 				.AddSingleton<IPlatformCapabilities, LinuxPlatformCapabilities>()
 				.AddSingleton<Files.Platform.Abstractions.Appearance.ISystemAppearanceService, Theme.LinuxSystemAppearanceService>()

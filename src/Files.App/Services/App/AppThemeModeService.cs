@@ -79,7 +79,13 @@ namespace Files.App.Services
 		{
 #if HAS_UNO
 			if (theme is ElementTheme.Default)
-				return Ioc.Default.GetService<Files.Platform.Abstractions.Appearance.ISystemAppearanceService>()?.Current.IsDark == true ? ElementTheme.Dark : ElementTheme.Light;
+			{
+				// The portal only answers when one exists; PaletteIsDark carries LinuxColorScheme's
+				// fallback chain (GTK_THEME, kdeglobals, gsettings) and the FILES_COLOR_SCHEME override.
+				var appearance = Ioc.Default.GetService<Files.Platform.Abstractions.Appearance.ISystemAppearanceService>()?.Current;
+
+				return (appearance?.IsDark ?? appearance?.PaletteIsDark ?? false) ? ElementTheme.Dark : ElementTheme.Light;
+			}
 #endif
 			return theme;
 		}

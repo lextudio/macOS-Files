@@ -164,5 +164,28 @@ namespace Files.Platform.Tests.Theme
 			Assert.IsTrue(guard >= 0 && guard < settings, "Closing before restoration must preserve the saved session.");
 			Assert.IsTrue(method[guard..settings].Contains("return;", StringComparison.Ordinal));
 		}
+
+		[TestMethod]
+		[DataRow("dark", true)]
+		[DataRow("light", false)]
+		public void AppearanceService_SeedsThePaletteBeforeThePortalAnswers(string scheme, bool expectedDark)
+		{
+			var preference = typeof(LinuxColorScheme).GetField("_isDark", BindingFlags.NonPublic | BindingFlags.Static)!;
+			var savedPreference = preference.GetValue(null);
+			var forced = Environment.GetEnvironmentVariable("FILES_COLOR_SCHEME");
+			try
+			{
+				Environment.SetEnvironmentVariable("FILES_COLOR_SCHEME", scheme);
+				using var service = new LinuxSystemAppearanceService();
+
+				Assert.IsNull(service.Current.IsDark, "The portal must not be assumed to have answered.");
+				Assert.AreEqual(expectedDark, service.Current.PaletteIsDark);
+			}
+			finally
+			{
+				preference.SetValue(null, savedPreference);
+				Environment.SetEnvironmentVariable("FILES_COLOR_SCHEME", forced);
+			}
+		}
 	}
 }

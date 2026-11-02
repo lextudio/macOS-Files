@@ -28,6 +28,25 @@ namespace Files.Platform.Linux.Theme
 		public SystemAppearance Current { get; private set; } = new(null, null, null, new Dictionary<string, AppearanceColor>());
 		public event EventHandler? Changed;
 
+		public LinuxSystemAppearanceService()
+		{
+			// Resolve the preference synchronously so the first window paints with the right theme even
+			// when the portal has not answered yet, and start the watcher that covers desktops without
+			// one. LinuxColorScheme also honours the FILES_COLOR_SCHEME override.
+			Current = Current with { PaletteIsDark = LinuxColorScheme.Initialize() };
+			LinuxColorScheme.Changed += OnColorSchemeChanged;
+		}
+
+		private void OnColorSchemeChanged(object? sender, EventArgs e)
+		{
+			var paletteDark = LinuxColorScheme.IsDark;
+			if (Current.PaletteIsDark == paletteDark)
+				return;
+
+			Current = Current with { PaletteIsDark = paletteDark };
+			Changed?.Invoke(this, EventArgs.Empty);
+		}
+
 		public async Task RefreshAsync(CancellationToken cancellationToken = default)
 		{
 			using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token);
@@ -74,7 +93,7 @@ namespace Files.Platform.Linux.Theme
 					_watch?.Dispose(); _watch = null;
 					_connection?.Dispose(); _connection = null;
 				}
-				var dark = ReadScheme(preferences.GetValueOrDefault("color-scheme"));
+				var dark = LinuxColorScheme.ForcedIsDark ?? ReadScheme(preferences.GetValueOrDefault("color-scheme"));
 				var contrast = ReadContrast(preferences.GetValueOrDefault("contrast"));
 				var accent = ReadAccent(preferences.GetValueOrDefault("accent-color"));
 				var paletteDark = dark ?? LinuxColorScheme.IsDark;
@@ -188,6 +207,7 @@ namespace Files.Platform.Linux.Theme
 		public void Dispose()
 		{
 			_disposed = true;
+			LinuxColorScheme.Changed -= OnColorSchemeChanged;
 			_lifetime.Cancel();
 			_watch?.Dispose();
 			_connection?.Dispose();
