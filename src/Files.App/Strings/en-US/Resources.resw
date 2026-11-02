@@ -4907,6 +4907,12 @@
   <data name="LinuxVolumeNotAuthorized" xml:space="preserve">
     <value>You are not authorized to do this.</value>
   </data>
+  <data name="LinuxVolumeUnlockTitle" xml:space="preserve">
+    <value>Unlock encrypted volume</value>
+  </data>
+  <data name="LinuxVolumeUnlockDescription" xml:space="preserve">
+    <value>Enter the passphrase to unlock {0}:</value>
+  </data>
   <data name="LinuxVolumeNotMounted" xml:space="preserve">
     <value>This drive is not mounted.</value>
   </data>

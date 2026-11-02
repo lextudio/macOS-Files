@@ -132,6 +132,9 @@ namespace Files.Platform.Linux.Volumes
 		/// <summary>Interface names.</summary>
 		public const string LoopInterface = "org.freedesktop.UDisks2.Loop";
 
+		/// <summary>Interface names.</summary>
+		public const string EncryptedInterface = "org.freedesktop.UDisks2.Encrypted";
+
 		/// <summary>Whether <paramref name="id"/> looks like a UDisks2 block device object path (no further interpretation of the string is done by callers).</summary>
 		public static bool IsBlockPath(string? id)
 		{
@@ -156,8 +159,15 @@ namespace Files.Platform.Linux.Volumes
 				if (!path.StartsWith(BlockPrefix, StringComparison.Ordinal))
 					continue;
 
-				// LINUX-TODO(udisks2-luks): encrypted volumes (org.freedesktop.UDisks2.Encrypted) are not offered; unlocking needs a passphrase prompt
-				if (!interfaces.TryGetValue(BlockInterface, out var block) || !interfaces.TryGetValue(FilesystemInterface, out var fs))
+				if (!interfaces.TryGetValue(BlockInterface, out var block))
+					continue;
+
+				// An encrypted container is offered only while locked; once unlocked its cleartext device is the volume
+				var locked = interfaces.ContainsKey(EncryptedInterface) && FindCleartext(objects, path) is null;
+				Dictionary<string, object?>? fs;
+				if (locked)
+					fs = [];
+				else if (!interfaces.TryGetValue(FilesystemInterface, out fs))
 					continue;
 
 				if (Bool(block, "HintIgnore"))
@@ -207,11 +217,33 @@ namespace Files.Platform.Linux.Volumes
 					mountPoints,
 					driveId,
 					canEject,
-					canPowerOff));
+					canPowerOff,
+					locked));
 			}
 
 			result.Sort(static (a, b) => string.CompareOrdinal(a.Device, b.Device));
 			return result;
+		}
+
+		/// <summary>
+		/// Finds the unlocked cleartext device of the encrypted block device <paramref name="path"/>, or null if it is locked (or not encrypted).
+		/// </summary>
+		public static string? FindCleartext(UDisks2Objects objects, string path)
+		{
+			if (!objects.TryGetValue(path, out var interfaces) || !interfaces.TryGetValue(EncryptedInterface, out var encrypted))
+				return null;
+
+			if (String(encrypted, "CleartextDevice") is { } cleartext && IsBlockPath(cleartext) && objects.ContainsKey(cleartext))
+				return cleartext;
+
+			// CleartextDevice can lag behind; the cleartext device always points back at its container
+			foreach (var (other, otherInterfaces) in objects)
+			{
+				if (IsBlockPath(other) && otherInterfaces.TryGetValue(BlockInterface, out var block) && String(block, "CryptoBackingDevice") == path)
+					return other;
+			}
+
+			return null;
 		}
 
 		/// <summary>Whether <paramref name="mountPoint"/> belongs to the system rather than being a user-visible drive.</summary>

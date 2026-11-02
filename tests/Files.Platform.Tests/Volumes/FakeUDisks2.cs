@@ -36,6 +36,12 @@ namespace Files.Platform.Tests.Volumes
 		/// <summary>Errors to answer with, keyed by <c>Interface.Member</c>.</summary>
 		public Dictionary<string, string> Errors { get; } = new();
 
+		/// <summary>Block device name to the passphrase that unlocks it (<see cref="AddEncrypted"/>).</summary>
+		public Dictionary<string, string> Passphrases { get; } = new();
+
+		/// <summary>The passphrases received by <c>Unlock</c>, in order.</summary>
+		public List<string> ReceivedPassphrases { get; } = new();
+
 		public string Path => Root;
 
 		public bool HandlesChildPaths => true;
@@ -104,6 +110,59 @@ namespace Files.Platform.Tests.Volumes
 
 			lock (gate)
 				Objects[Root + "/block_devices/" + name] = interfaces;
+		}
+
+		/// <summary>Adds a locked LUKS container (no file system until unlocked; Unlock creates the cleartext device).</summary>
+		public void AddEncrypted(string name, string? drive, string passphrase, bool removable = true)
+		{
+			lock (gate)
+			{
+				Passphrases[name] = passphrase;
+				Objects[Root + "/block_devices/" + name] = new()
+				{
+					[UDisks2Parser.BlockInterface] = new()
+					{
+						["Device"] = Bytes("/dev/" + name),
+						["IdLabel"] = "",
+						["IdType"] = "crypto_LUKS",
+						["Size"] = 2_000_000_000UL,
+						["Drive"] = new ObjPath(drive is null ? "/" : Root + "/drives/" + drive),
+						["HintSystem"] = !removable,
+						["HintIgnore"] = false,
+					},
+					[UDisks2Parser.EncryptedInterface] = new()
+					{
+						["CleartextDevice"] = new ObjPath("/"),
+					},
+				};
+			}
+		}
+
+		/// <summary>Creates the cleartext device of an encrypted container as UDisks2 does after a successful unlock.</summary>
+		public string AddCleartext(string name)
+		{
+			var clear = "dm_" + name;
+			lock (gate)
+			{
+				Objects[Root + "/block_devices/" + clear] = new()
+				{
+					[UDisks2Parser.BlockInterface] = new()
+					{
+						["Device"] = Bytes("/dev/" + clear),
+						["IdLabel"] = "SECRET",
+						["IdType"] = "ext4",
+						["Size"] = 1_900_000_000UL,
+						["Drive"] = new ObjPath("/"),
+						["HintSystem"] = false,
+						["HintIgnore"] = false,
+						["CryptoBackingDevice"] = new ObjPath(Root + "/block_devices/" + name),
+					},
+					[UDisks2Parser.FilesystemInterface] = new() { ["MountPoints"] = Array.Empty<byte[]>() },
+				};
+				Objects[Root + "/block_devices/" + name][UDisks2Parser.EncryptedInterface]["CleartextDevice"] = new ObjPath(Root + "/block_devices/" + clear);
+			}
+
+			return Root + "/block_devices/" + clear;
 		}
 
 		public void SetMounts(string block, params string[] mounts)
@@ -184,6 +243,9 @@ namespace Files.Platform.Tests.Volumes
 			}
 
 			var reader = request.GetBodyReader();
+			if (iface == UDisks2Parser.EncryptedInterface && member == "Unlock")
+				return HandleUnlock(context, ref reader);
+
 			var raw = reader.ReadDictionaryOfStringToVariantValue();
 			var options = raw.ToDictionary(kv => kv.Key, kv => UDisks2Objects.ToClr(kv.Value));
 			lock (gate)
@@ -212,6 +274,40 @@ namespace Files.Platform.Tests.Volumes
 
 			using var empty = context.CreateReplyWriter("");
 			context.Reply(empty.CreateMessage());
+			return ValueTask.CompletedTask;
+		}
+
+		private ValueTask HandleUnlock(MethodContext context, ref Reader reader)
+		{
+			var passphrase = reader.ReadString();
+			var options = reader.ReadDictionaryOfStringToVariantValue().ToDictionary(kv => kv.Key, kv => UDisks2Objects.ToClr(kv.Value));
+			var path = context.Request.PathAsString ?? "";
+			var block = path[UDisks2Parser.BlockPrefix.Length..];
+			string? cleartext = null;
+			bool ok;
+			lock (gate)
+			{
+				Calls.Add(new FakeCall(path, UDisks2Parser.EncryptedInterface, "Unlock", options));
+				ReceivedPassphrases.Add(passphrase);
+				ok = Passphrases.TryGetValue(block, out var expected) && expected == passphrase;
+			}
+
+			if (Errors.TryGetValue(UDisks2Parser.EncryptedInterface + ".Unlock", out var error))
+			{
+				context.ReplyError(error, "fake failure");
+				return ValueTask.CompletedTask;
+			}
+
+			if (!ok)
+			{
+				context.ReplyError("org.freedesktop.UDisks2.Error.Failed", "Error unlocking /dev/" + block + ": Failed to activate device: Operation not permitted");
+				return ValueTask.CompletedTask;
+			}
+
+			cleartext = AddCleartext(block);
+			using var writer = context.CreateReplyWriter("o");
+			writer.WriteObjectPath(cleartext);
+			context.Reply(writer.CreateMessage());
 			return ValueTask.CompletedTask;
 		}
 

@@ -21,7 +21,7 @@ namespace Files.Platform.Linux.Volumes
 		public static IServiceCollection AddLinuxVolumes(this IServiceCollection services)
 		{
 			services.TryAddSingleton<IExecutableLocator, PathExecutableLocator>();
-			services.TryAddSingleton<IVolumeService>(_ => new UDisks2VolumeService());
+			services.TryAddSingleton<IVolumeService>(sp => new UDisks2VolumeService(null, sp.GetService<IVolumePassphrasePrompt>()));
 			services.TryAddSingleton<IGioRunner, GioRunner>();
 			services.TryAddSingleton<INetworkLocationService, GvfsNetworkLocationService>();
 			return services;

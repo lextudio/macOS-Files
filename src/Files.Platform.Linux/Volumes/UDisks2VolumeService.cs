@@ -6,6 +6,7 @@ using Files.Platform.Linux.DBus;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Tmds.DBus.Protocol;
@@ -29,6 +30,7 @@ namespace Files.Platform.Linux.Volumes
 		private static readonly TimeSpan RefreshDelay = TimeSpan.FromMilliseconds(150);
 
 		private readonly string? busAddress;
+		private readonly IVolumePassphrasePrompt? passphrasePrompt;
 		private readonly SemaphoreSlim connectGate = new(1, 1);
 		private readonly object watchGate = new();
 		private DBusConnection? connection;
@@ -40,10 +42,12 @@ namespace Files.Platform.Linux.Volumes
 
 		/// <summary>
 		/// Creates the service. <paramref name="busAddress"/> null means the system bus; tests pass a private bus.
+		/// <paramref name="passphrasePrompt"/> is asked for the passphrase of locked encrypted volumes; without it they cannot be mounted.
 		/// </summary>
-		public UDisks2VolumeService(string? busAddress = null)
+		public UDisks2VolumeService(string? busAddress = null, IVolumePassphrasePrompt? passphrasePrompt = null)
 		{
 			this.busAddress = busAddress;
+			this.passphrasePrompt = passphrasePrompt;
 		}
 
 		/// <inheritdoc/>
@@ -135,6 +139,7 @@ namespace Files.Platform.Linux.Volumes
 		public async Task<string> MountAsync(string volumeId, CancellationToken cancellationToken = default)
 		{
 			RequireBlockPath(volumeId);
+			volumeId = await ResolveCleartextAsync(volumeId, cancellationToken).ConfigureAwait(false);
 			try
 			{
 				// auth.no_user_interaction=false lets polkit ask the user for permission when the action requires it
@@ -205,6 +210,92 @@ namespace Files.Platform.Linux.Volumes
 			connectGate.Dispose();
 		}
 
+		/// <summary>Returns the volume to mount: the volume itself, or for an encrypted container its cleartext device (unlocking it first if needed).</summary>
+		private async Task<string> ResolveCleartextAsync(string volumeId, CancellationToken cancellationToken)
+		{
+			UDisks2Objects objects;
+			try
+			{
+				objects = await GetObjectsAsync(cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception ex) when (IsBackendFailure(ex))
+			{
+				// The mount call below reports the unavailable backend
+				return volumeId;
+			}
+
+			if (!objects.TryGetValue(volumeId, out var interfaces) || !interfaces.ContainsKey(UDisks2Parser.EncryptedInterface))
+				return volumeId;
+
+			if (UDisks2Parser.FindCleartext(objects, volumeId) is { } unlocked)
+				return unlocked;
+
+			var volume = UDisks2Parser.BuildVolumes(objects).FirstOrDefault(v => v.Id == volumeId)
+				?? throw new VolumeOperationException(VolumeError.NotFound, "The volume does not exist.");
+			var prompt = passphrasePrompt
+				?? throw new VolumeOperationException(VolumeError.NotSupported, "Unlocking encrypted volumes is not available.");
+
+			var retry = false;
+			while (true)
+			{
+				var passphrase = await prompt.RequestPassphraseAsync(volume, retry, cancellationToken).ConfigureAwait(false);
+				if (passphrase is null)
+					throw new OperationCanceledException("The passphrase prompt was cancelled.");
+
+				try
+				{
+					return await UnlockAsync(volumeId, passphrase, cancellationToken).ConfigureAwait(false);
+				}
+				catch (VolumeOperationException ex) when (ex.Error == VolumeError.IncorrectPassphrase)
+				{
+					retry = true;
+				}
+				finally
+				{
+					CryptographicOperations.ZeroMemory(passphrase);
+				}
+			}
+		}
+
+		private async Task<string> UnlockAsync(string volumeId, byte[] passphrase, CancellationToken cancellationToken)
+		{
+			var bus = await GetConnectionAsync().ConfigureAwait(false)
+				?? throw new VolumeOperationException(VolumeError.Failed, "UDisks2 is not available.");
+
+			MessageBuffer message;
+			using (var writer = bus.GetMessageWriter())
+			{
+				writer.WriteMethodCallHeader(ServiceName, volumeId, UDisks2Parser.EncryptedInterface, "Unlock", "sa{sv}");
+				writer.WriteString(passphrase);
+				writer.WriteDictionary(new Dictionary<string, VariantValue> { ["auth.no_user_interaction"] = false });
+				message = writer.CreateMessage();
+			}
+
+			try
+			{
+				var result = await bus.CallTracedAsync("dbus.volumes", message, static (Message m, object? _) => m.GetBodyReader().ReadObjectPathAsString(), null)
+					.WaitAsync(CallTimeout, cancellationToken).ConfigureAwait(false);
+				await Task.Yield();
+				return result;
+			}
+			catch (DBusErrorReplyException ex) when (IsAlreadyUnlocked(ex))
+			{
+				var objects = await GetObjectsAsync(cancellationToken).ConfigureAwait(false);
+				return UDisks2Parser.FindCleartext(objects, volumeId) ?? throw Translate(ex);
+			}
+			catch (DBusErrorReplyException ex)
+			{
+				throw Translate(ex);
+			}
+			catch (TimeoutException ex)
+			{
+				throw new VolumeOperationException(VolumeError.Failed, "UDisks2 did not answer.", ex);
+			}
+		}
+
+		private static bool IsAlreadyUnlocked(DBusErrorReplyException ex)
+			=> ex.ErrorMessage?.Contains("already unlocked", StringComparison.OrdinalIgnoreCase) == true;
+
 		private async Task<(string? Drive, bool CanEject, bool CanPowerOff)> UnmountDriveAsync(string volumeId, CancellationToken cancellationToken)
 		{
 			RequireBlockPath(volumeId);
@@ -246,8 +337,11 @@ namespace Files.Platform.Linux.Volumes
 		public static VolumeOperationException Translate(DBusErrorReplyException ex)
 		{
 			var name = ex.ErrorName ?? "";
+			var message = ex.ErrorMessage ?? "";
 			var error = name switch
 			{
+				// UDisks2 reports a wrong passphrase as a generic Failed error; libblockdev/cryptsetup words it as EPERM or "passphrase"
+				_ when name.EndsWith("Error.Failed", StringComparison.Ordinal) && IsPassphraseFailure(message) => VolumeError.IncorrectPassphrase,
 				_ when name.Contains("NotAuthorized", StringComparison.Ordinal) => VolumeError.NotAuthorized,
 				_ when name.EndsWith("DeviceBusy", StringComparison.Ordinal) => VolumeError.Busy,
 				_ when name.EndsWith("NotSupported", StringComparison.Ordinal) => VolumeError.NotSupported,
@@ -257,6 +351,11 @@ namespace Files.Platform.Linux.Volumes
 
 			return new VolumeOperationException(error, ex.ErrorMessage ?? name, ex);
 		}
+
+		private static bool IsPassphraseFailure(string message)
+			=> message.Contains("Operation not permitted", StringComparison.OrdinalIgnoreCase)
+				|| message.Contains("passphrase", StringComparison.OrdinalIgnoreCase)
+				|| message.Contains("No key available", StringComparison.OrdinalIgnoreCase);
 
 		private async Task<T> CallAsync<T>(string path, string iface, string member, MessageValueReader<T> reader, CancellationToken cancellationToken)
 		{
