@@ -30,6 +30,8 @@ namespace Files.Platform.Linux.Volumes
 		private static readonly TimeSpan RefreshDelay = TimeSpan.FromMilliseconds(150);
 
 		private readonly string? busAddress;
+		private const int MaxPassphraseAttempts = 5;
+
 		private readonly IVolumePassphrasePrompt? passphrasePrompt;
 		private readonly SemaphoreSlim connectGate = new(1, 1);
 		private readonly object watchGate = new();
@@ -235,9 +237,11 @@ namespace Files.Platform.Linux.Volumes
 			var prompt = passphrasePrompt
 				?? throw new VolumeOperationException(VolumeError.NotSupported, "Unlocking encrypted volumes is not available.");
 
+			var attempts = 0;
 			var retry = false;
 			while (true)
 			{
+				attempts++;
 				var passphrase = await prompt.RequestPassphraseAsync(volume, retry, cancellationToken).ConfigureAwait(false);
 				if (passphrase is null)
 					throw new OperationCanceledException("The passphrase prompt was cancelled.");
@@ -246,7 +250,7 @@ namespace Files.Platform.Linux.Volumes
 				{
 					return await UnlockAsync(volumeId, passphrase, cancellationToken).ConfigureAwait(false);
 				}
-				catch (VolumeOperationException ex) when (ex.Error == VolumeError.IncorrectPassphrase)
+				catch (VolumeOperationException ex) when (ex.Error == VolumeError.IncorrectPassphrase && attempts < MaxPassphraseAttempts)
 				{
 					retry = true;
 				}
@@ -340,7 +344,7 @@ namespace Files.Platform.Linux.Volumes
 			var message = ex.ErrorMessage ?? "";
 			var error = name switch
 			{
-				// UDisks2 reports a wrong passphrase as a generic Failed error; libblockdev/cryptsetup words it as EPERM or "passphrase"
+				// UDisks2 reports a wrong passphrase as a generic Failed error; cryptsetup words a bad key as EPERM from "Failed to activate device", or "passphrase"
 				_ when name.EndsWith("Error.Failed", StringComparison.Ordinal) && IsPassphraseFailure(message) => VolumeError.IncorrectPassphrase,
 				_ when name.Contains("NotAuthorized", StringComparison.Ordinal) => VolumeError.NotAuthorized,
 				_ when name.EndsWith("DeviceBusy", StringComparison.Ordinal) => VolumeError.Busy,
@@ -353,7 +357,8 @@ namespace Files.Platform.Linux.Volumes
 		}
 
 		private static bool IsPassphraseFailure(string message)
-			=> message.Contains("Operation not permitted", StringComparison.OrdinalIgnoreCase)
+			=> (message.Contains("Failed to activate device", StringComparison.OrdinalIgnoreCase)
+					&& message.Contains("Operation not permitted", StringComparison.OrdinalIgnoreCase))
 				|| message.Contains("passphrase", StringComparison.OrdinalIgnoreCase)
 				|| message.Contains("No key available", StringComparison.OrdinalIgnoreCase);
 

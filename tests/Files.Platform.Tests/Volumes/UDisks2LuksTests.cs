@@ -188,7 +188,37 @@ namespace Files.Platform.Tests.Volumes
 				var ex = await Assert.ThrowsExactlyAsync<VolumeOperationException>(() => service.MountAsync(Locked));
 				Assert.AreEqual(VolumeError.NotAuthorized, ex.Error);
 				Assert.AreEqual(1, prompt.Retries.Count);
+				Assert.IsFalse(prompt.Retries[0]);
 				Assert.IsTrue(prompt.Handed.Single().All(b => b == 0));
+			}
+		}
+
+		[TestMethod]
+		public async Task PermissionErrorWithoutActivationWordingIsNotRetried()
+		{
+			var (bus, fake) = await StartAsync();
+			fake.Errors["org.freedesktop.UDisks2.Encrypted.Unlock"] = "org.freedesktop.UDisks2.Error.Failed";
+			fake.ErrorMessages["org.freedesktop.UDisks2.Encrypted.Unlock"] = "Error unlocking /dev/sde1: Failed to load dm-crypt: Operation not permitted";
+			var prompt = new ScriptedPrompt("correct horse");
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, prompt))
+			{
+				var ex = await Assert.ThrowsExactlyAsync<VolumeOperationException>(() => service.MountAsync(Locked));
+				Assert.AreEqual(VolumeError.Failed, ex.Error);
+				Assert.AreEqual(1, prompt.Retries.Count);
+			}
+		}
+
+		[TestMethod]
+		public async Task WrongPassphraseStopsPromptingAfterTheRetryLimit()
+		{
+			var (bus, fake) = await StartAsync();
+			var prompt = new ScriptedPrompt("wrong");
+			using (bus) using (fake) using (var service = new UDisks2VolumeService(bus.Address, prompt))
+			{
+				var ex = await Assert.ThrowsExactlyAsync<VolumeOperationException>(() => service.MountAsync(Locked));
+				Assert.AreEqual(VolumeError.IncorrectPassphrase, ex.Error);
+				CollectionAssert.AreEqual(new[] { false, true, true, true, true }, prompt.Retries);
+				Assert.AreEqual(5, fake.ReceivedPassphrases.Count);
 			}
 		}
 
@@ -199,6 +229,7 @@ namespace Files.Platform.Tests.Volumes
 
 			Assert.AreEqual(VolumeError.IncorrectPassphrase, Map("org.freedesktop.UDisks2.Error.Failed", "Error unlocking /dev/sde1: Failed to activate device: Operation not permitted"));
 			Assert.AreEqual(VolumeError.IncorrectPassphrase, Map("org.freedesktop.UDisks2.Error.Failed", "Invalid passphrase"));
+			Assert.AreEqual(VolumeError.Failed, Map("org.freedesktop.UDisks2.Error.Failed", "Failed to load dm-crypt: Operation not permitted"));
 			Assert.AreEqual(VolumeError.Failed, Map("org.freedesktop.UDisks2.Error.Failed", "No space left on device"));
 			Assert.AreEqual(VolumeError.NotAuthorized, Map("org.freedesktop.UDisks2.Error.NotAuthorizedCanObtain", "Not authorized"));
 		}

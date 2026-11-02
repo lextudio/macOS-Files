@@ -36,6 +36,9 @@ namespace Files.Platform.Tests.Volumes
 		/// <summary>Errors to answer with, keyed by <c>Interface.Member</c>.</summary>
 		public Dictionary<string, string> Errors { get; } = new();
 
+		/// <summary>Messages for <see cref="Errors"/>, keyed the same way (default "fake failure").</summary>
+		public Dictionary<string, string> ErrorMessages { get; } = new();
+
 		/// <summary>Block device name to the passphrase that unlocks it (<see cref="AddEncrypted"/>).</summary>
 		public Dictionary<string, string> Passphrases { get; } = new();
 
@@ -294,7 +297,7 @@ namespace Files.Platform.Tests.Volumes
 
 			if (Errors.TryGetValue(UDisks2Parser.EncryptedInterface + ".Unlock", out var error))
 			{
-				context.ReplyError(error, "fake failure");
+				context.ReplyError(error, ErrorMessages.GetValueOrDefault(UDisks2Parser.EncryptedInterface + ".Unlock", "fake failure"));
 				return ValueTask.CompletedTask;
 			}
 
