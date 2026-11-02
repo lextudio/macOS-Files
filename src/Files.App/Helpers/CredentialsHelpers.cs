@@ -8,11 +8,11 @@ namespace Files.App.Helpers
 		// Linux: the Secret Service (libsecret backend) through ISecretStore; PasswordVault does not exist there
 		private static ISecretStore? LinuxStore => OperatingSystem.IsLinux() ? Ioc.Default.GetService<ISecretStore>() : null;
 
-		public static void SavePassword(string resourceName, string username, string password)
+		public static async Task SavePasswordAsync(string resourceName, string username, string password)
 		{
 			if (LinuxStore is { } store)
 			{
-				store.Save(resourceName, username, password);
+				await store.SaveAsync(resourceName, username, password);
 				return;
 			}
 
@@ -23,11 +23,11 @@ namespace Files.App.Helpers
 		}
 
 		// Remove saved credentials from the vault
-		public static void DeleteSavedPassword(string resourceName, string username)
+		public static async Task DeleteSavedPasswordAsync(string resourceName, string username)
 		{
 			if (LinuxStore is { } store)
 			{
-				store.Delete(resourceName, username);
+				await store.DeleteAsync(resourceName, username);
 				return;
 			}
 
@@ -37,10 +37,10 @@ namespace Files.App.Helpers
 			vault.Remove(credential);
 		}
 
-		public static string GetPassword(string resourceName, string username)
+		public static async Task<string> GetPasswordAsync(string resourceName, string username)
 		{
 			if (LinuxStore is { } store)
-				return store.Get(resourceName, username) ?? string.Empty;
+				return await store.GetAsync(resourceName, username) ?? string.Empty;
 
 			try
 			{

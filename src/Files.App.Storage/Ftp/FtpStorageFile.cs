@@ -15,7 +15,7 @@ namespace Files.App.Storage
 		/// <inheritdoc/>
 		public async Task<Stream> OpenStreamAsync(FileAccess access, CancellationToken cancellationToken = default)
 		{
-			var ftpClient = GetFtpClient();
+			var ftpClient = await GetFtpClientAsync();
 			try
 			{
 				await ftpClient.EnsureConnectedAsync(cancellationToken);

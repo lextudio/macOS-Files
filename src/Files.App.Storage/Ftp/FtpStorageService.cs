@@ -46,7 +46,7 @@ namespace Files.App.Storage
 		// The same parsed URL provides the credential scope, connection target and path.
 		private static async Task<FtpListItem?> GetObjectInfoAsync(FtpUrl url, CancellationToken cancellationToken)
 		{
-			using var ftpClient = FtpClientFactory.Create(url);
+			using var ftpClient = await FtpClientFactory.CreateAsync(url);
 			try
 			{
 				await ftpClient.EnsureConnectedAsync(cancellationToken);

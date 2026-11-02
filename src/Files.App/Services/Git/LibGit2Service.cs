@@ -409,11 +409,13 @@ internal sealed partial class LibGit2Service // : IVersionControl
 			await MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(
 				() => IsExecutingGitAction = Volatile.Read(ref _activeFetchCount) > 0);
 
+			// Awaited here: reading the token may wait for the user to unlock the keyring
+			var token = await CredentialsHelpers.GetPasswordAsync(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
+
 			await Task.Run(() =>
 			{
 				using var repository = new Repository(repositoryPath);
 				var signature = repository.Config.BuildSignature(DateTimeOffset.Now);
-				var token = CredentialsHelpers.GetPassword(GIT_RESOURCE_NAME, GIT_RESOURCE_USERNAME);
 				var remotes = repository.Network.Remotes.ToArray();
 				var hasFetchFailure = false;
 

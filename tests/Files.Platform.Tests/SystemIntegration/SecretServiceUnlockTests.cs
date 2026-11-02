@@ -43,6 +43,9 @@ namespace Files.Platform.Tests.SystemIntegration
 
 			public int UnlockCalls { get; private set; }
 
+			// When set, the prompt answers only after the test completes it: true accepts, false dismisses
+			public TaskCompletionSource<bool>? PromptAnswer { get; set; }
+
 			public int PromptCalls { get; private set; }
 
 			public int DismissCalls { get; private set; }
@@ -168,6 +171,18 @@ namespace Files.Platform.Tests.SystemIntegration
 
 				var immediate = Mode == UnlockMode.PromptImmediate;
 				var dismissed = Mode is not (UnlockMode.PromptAccept or UnlockMode.PromptImmediate);
+				if (PromptAnswer is { } answer)
+				{
+					_ = Task.Run(async () =>
+					{
+						var accepted = await answer.Task;
+						if (accepted)
+							Locked = false;
+						SendCompleted(!accepted);
+					});
+					return;
+				}
+
 				if (!dismissed)
 					Locked = false;
 
@@ -241,9 +256,80 @@ namespace Files.Platform.Tests.SystemIntegration
 			public void Dispose() => connection.Dispose();
 		}
 
-		// The store blocks its caller, so it is driven off the test thread to mirror the app's use from a worker
 		private static SecretServiceStore NewStore(PrivateBus bus, int unlockTimeoutMs = 5000)
 			=> new(bus.Address, TimeSpan.FromMilliseconds(unlockTimeoutMs), TimeSpan.FromMinutes(5));
+
+		[TestMethod]
+		public async Task Locked_SlowUnlock_DoesNotBlockTheCaller()
+		{
+			using var bus = PrivateBus.Start();
+			using var service = await FakeSecretService.StartAsync(bus.Address);
+			service.Seed("r", "a", "stored");
+			service.Locked = true;
+			service.Mode = UnlockMode.PromptAccept;
+			service.PromptAnswer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+			var read = NewStore(bus).GetAsync("r", "a");
+
+			// The call returned while the prompt is still unanswered, so the calling thread was not held
+			await WaitUntilAsync(() => service.PromptCalls == 1);
+			Assert.IsFalse(read.IsCompleted);
+
+			service.PromptAnswer.SetResult(true);
+			Assert.AreEqual("stored", await read);
+		}
+
+		[TestMethod]
+		public async Task Locked_SlowSaveUnlock_DoesNotBlockTheCaller()
+		{
+			using var bus = PrivateBus.Start();
+			using var service = await FakeSecretService.StartAsync(bus.Address);
+			service.Locked = true;
+			service.Mode = UnlockMode.PromptAccept;
+			service.PromptAnswer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+			var store = NewStore(bus);
+			var save = store.SaveAsync("r", "a", "s3cret");
+
+			await WaitUntilAsync(() => service.PromptCalls == 1);
+			Assert.IsFalse(save.IsCompleted);
+
+			service.PromptAnswer.SetResult(true);
+			await save;
+			Assert.IsTrue(store.IsPersistent);
+			Assert.AreEqual("s3cret", await NewStore(bus).GetAsync("r", "a"));
+		}
+
+		[TestMethod]
+		public async Task Locked_SlowUnlockThenDismissed_FallsBackToMemory()
+		{
+			using var bus = PrivateBus.Start();
+			using var service = await FakeSecretService.StartAsync(bus.Address);
+			service.Locked = true;
+			service.Mode = UnlockMode.PromptAccept;
+			service.PromptAnswer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+			var store = NewStore(bus);
+			var save = store.SaveAsync("r", "a", "s3cret");
+
+			await WaitUntilAsync(() => service.PromptCalls == 1);
+			Assert.IsFalse(save.IsCompleted);
+
+			service.PromptAnswer.SetResult(false);
+			await save;
+			Assert.IsFalse(store.IsPersistent);
+			Assert.AreEqual("s3cret", await store.GetAsync("r", "a"));
+		}
+
+		private static async Task WaitUntilAsync(Func<bool> condition)
+		{
+			var deadline = DateTime.UtcNow.AddSeconds(5);
+			while (!condition())
+			{
+				Assert.IsTrue(DateTime.UtcNow < deadline, "The fake service never received the prompt call.");
+				await Task.Delay(10);
+			}
+		}
 
 		[TestMethod]
 		public async Task Unlocked_SavesWithoutAnyPrompt()
@@ -252,12 +338,12 @@ namespace Files.Platform.Tests.SystemIntegration
 			using var service = await FakeSecretService.StartAsync(bus.Address);
 
 			var store = NewStore(bus);
-			await Task.Run(() => store.Save("r", "a", "s3cret"));
+			await store.SaveAsync("r", "a", "s3cret");
 
 			Assert.IsTrue(store.IsPersistent);
 			Assert.AreEqual(0, service.UnlockCalls);
 			Assert.AreEqual(0, service.PromptCalls);
-			Assert.AreEqual("s3cret", await Task.Run(() => NewStore(bus).Get("r", "a")));
+			Assert.AreEqual("s3cret", await NewStore(bus).GetAsync("r", "a"));
 		}
 
 		[TestMethod]
@@ -269,12 +355,12 @@ namespace Files.Platform.Tests.SystemIntegration
 			service.Mode = UnlockMode.Silent;
 
 			var store = NewStore(bus);
-			await Task.Run(() => store.Save("r", "a", "s3cret"));
+			await store.SaveAsync("r", "a", "s3cret");
 
 			Assert.IsTrue(store.IsPersistent);
 			Assert.AreEqual(1, service.UnlockCalls);
 			Assert.AreEqual(0, service.PromptCalls);
-			Assert.AreEqual("s3cret", await Task.Run(() => NewStore(bus).Get("r", "a")));
+			Assert.AreEqual("s3cret", await NewStore(bus).GetAsync("r", "a"));
 		}
 
 		[TestMethod]
@@ -286,11 +372,11 @@ namespace Files.Platform.Tests.SystemIntegration
 			service.Mode = UnlockMode.PromptAccept;
 
 			var store = NewStore(bus);
-			await Task.Run(() => store.Save("r", "a", "s3cret"));
+			await store.SaveAsync("r", "a", "s3cret");
 
 			Assert.IsTrue(store.IsPersistent);
 			Assert.AreEqual(1, service.PromptCalls);
-			Assert.AreEqual("s3cret", await Task.Run(() => NewStore(bus).Get("r", "a")));
+			Assert.AreEqual("s3cret", await NewStore(bus).GetAsync("r", "a"));
 		}
 
 		[TestMethod]
@@ -302,13 +388,13 @@ namespace Files.Platform.Tests.SystemIntegration
 			service.Mode = UnlockMode.PromptDismiss;
 
 			var store = NewStore(bus);
-			await Task.Run(() => store.Save("r", "a", "s3cret"));
+			await store.SaveAsync("r", "a", "s3cret");
 
 			Assert.IsFalse(store.IsPersistent);
-			Assert.AreEqual("s3cret", await Task.Run(() => store.Get("r", "a")));
+			Assert.AreEqual("s3cret", await store.GetAsync("r", "a"));
 			Assert.AreEqual(1, service.PromptCalls);
 
-			await Task.Run(() => store.Save("r", "b", "other"));
+			await store.SaveAsync("r", "b", "other");
 			Assert.IsFalse(store.IsPersistent);
 			Assert.AreEqual(1, service.PromptCalls, "A refused prompt must not be repeated during the cooldown.");
 		}
@@ -322,10 +408,10 @@ namespace Files.Platform.Tests.SystemIntegration
 			service.Mode = UnlockMode.Error;
 
 			var store = NewStore(bus);
-			await Task.Run(() => store.Save("r", "a", "s3cret"));
+			await store.SaveAsync("r", "a", "s3cret");
 
 			Assert.IsFalse(store.IsPersistent);
-			Assert.AreEqual("s3cret", await Task.Run(() => store.Get("r", "a")));
+			Assert.AreEqual("s3cret", await store.GetAsync("r", "a"));
 			Assert.AreEqual(0, service.PromptCalls);
 		}
 
@@ -338,10 +424,10 @@ namespace Files.Platform.Tests.SystemIntegration
 			service.Mode = UnlockMode.PromptNever;
 
 			var store = NewStore(bus, unlockTimeoutMs: 400);
-			await Task.Run(() => store.Save("r", "a", "s3cret"));
+			await store.SaveAsync("r", "a", "s3cret");
 
 			Assert.IsFalse(store.IsPersistent);
-			Assert.AreEqual("s3cret", await Task.Run(() => store.Get("r", "a")));
+			Assert.AreEqual("s3cret", await store.GetAsync("r", "a"));
 			Assert.AreEqual(1, service.PromptCalls);
 			Assert.AreEqual(1, service.DismissCalls);
 		}
@@ -355,7 +441,7 @@ namespace Files.Platform.Tests.SystemIntegration
 			service.Locked = true;
 			service.Mode = UnlockMode.PromptAccept;
 
-			Assert.AreEqual("stored", await Task.Run(() => NewStore(bus).Get("r", "a")));
+			Assert.AreEqual("stored", await NewStore(bus).GetAsync("r", "a"));
 			Assert.AreEqual(1, service.PromptCalls);
 		}
 
@@ -368,11 +454,11 @@ namespace Files.Platform.Tests.SystemIntegration
 			service.Mode = UnlockMode.PromptImmediate;
 
 			var store = NewStore(bus);
-			await Task.Run(() => store.Save("r", "a", "s3cret"));
+			await store.SaveAsync("r", "a", "s3cret");
 
 			Assert.IsTrue(store.IsPersistent);
 			Assert.AreEqual(1, service.PromptCalls);
-			Assert.AreEqual("s3cret", await Task.Run(() => NewStore(bus).Get("r", "a")));
+			Assert.AreEqual("s3cret", await NewStore(bus).GetAsync("r", "a"));
 		}
 
 		[TestMethod]
@@ -384,9 +470,9 @@ namespace Files.Platform.Tests.SystemIntegration
 			service.Locked = true;
 			service.Mode = UnlockMode.PromptAccept;
 
-			Assert.IsTrue(await Task.Run(() => NewStore(bus).Delete("r", "a")));
+			Assert.IsTrue(await NewStore(bus).DeleteAsync("r", "a"));
 			Assert.AreEqual(1, service.PromptCalls);
-			Assert.IsNull(await Task.Run(() => NewStore(bus).Get("r", "a")));
+			Assert.IsNull(await NewStore(bus).GetAsync("r", "a"));
 		}
 	}
 }

@@ -41,7 +41,7 @@ namespace Files.Platform.Linux.Secrets
 		private long promptBlockedUntilTicks;
 		private readonly ConcurrentDictionary<(string, string), string> memory = new();
 		private readonly ConcurrentDictionary<(string, string), byte> tombstones = new();
-		private readonly ConcurrentDictionary<(string, string), object> locks = new();
+		private readonly ConcurrentDictionary<(string, string), SemaphoreSlim> locks = new();
 
 		/// <summary>
 		/// Creates the store. <paramref name="busAddress"/> null means the user's session bus.
@@ -66,23 +66,31 @@ namespace Files.Platform.Linux.Secrets
 		public bool IsPersistent { get; private set; }
 
 		/// <inheritdoc/>
-		public void Save(string resource, string account, string secret)
+		public async Task SaveAsync(string resource, string account, string secret)
 		{
 			var key = (resource, account);
-			lock (LockFor(key))
+			var keyLock = LockFor(key);
+			await keyLock.WaitAsync().ConfigureAwait(false);
+			try
 			{
 				memory[key] = secret;
 				tombstones.TryRemove(key, out _);
 				// Get prefers the in-memory value, so a failed update never lets the stale persisted secret win in this process.
-				IsPersistent = Run(c => SaveAsync(c, resource, account, secret));
+				IsPersistent = (await RunAsync(async c => await SaveAsync(c, resource, account, secret).ConfigureAwait(false) ? "1" : null).ConfigureAwait(false)).Result is not null;
+			}
+			finally
+			{
+				keyLock.Release();
 			}
 		}
 
 		/// <inheritdoc/>
-		public string? Get(string resource, string account)
+		public async Task<string?> GetAsync(string resource, string account)
 		{
 			var key = (resource, account);
-			lock (LockFor(key))
+			var keyLock = LockFor(key);
+			await keyLock.WaitAsync().ConfigureAwait(false);
+			try
 			{
 				if (memory.TryGetValue(key, out var value))
 					return value;
@@ -91,25 +99,30 @@ namespace Files.Platform.Linux.Secrets
 				{
 					// A delete that was not confirmed is retried; the persisted copy must not come back meanwhile. The per-key lock
 					// guarantees no newer Save can be running, so the retry never removes a replacement.
-					if (RunDelete(resource, account, out _) is "deleted" or "absent")
+					if (await RunDeleteAsync(resource, account).ConfigureAwait(false) is ("deleted" or "absent", _))
 						tombstones.TryRemove(key, out _);
 					return null;
 				}
 
-				var stored = Run(c => GetAsync(c, resource, account), out var found);
-				return found ? stored : null;
+				return (await RunAsync(c => GetAsync(c, resource, account)).ConfigureAwait(false)).Result;
+			}
+			finally
+			{
+				keyLock.Release();
 			}
 		}
 
 		/// <inheritdoc/>
 		/// <returns><see langword="false"/> when nothing was deleted or when the persisted copy could not be removed (it is then hidden for this process).</returns>
-		public bool Delete(string resource, string account)
+		public async Task<bool> DeleteAsync(string resource, string account)
 		{
 			var key = (resource, account);
-			lock (LockFor(key))
+			var keyLock = LockFor(key);
+			await keyLock.WaitAsync().ConfigureAwait(false);
+			try
 			{
 				var removedMemory = memory.TryRemove(key, out _);
-				var outcome = RunDelete(resource, account, out _);
+				var (outcome, _) = await RunDeleteAsync(resource, account).ConfigureAwait(false);
 				if (outcome is "deleted" or "absent")
 				{
 					// Only a live service that confirmed the item is gone (or never existed) clears the marker
@@ -120,33 +133,34 @@ namespace Files.Platform.Linux.Secrets
 				tombstones[key] = 0;
 				return outcome is "unavailable" && removedMemory;
 			}
+			finally
+			{
+				keyLock.Release();
+			}
 		}
 
-		private object LockFor((string, string) key) => locks.GetOrAdd(key, static _ => new object());
+		private SemaphoreSlim LockFor((string, string) key) => locks.GetOrAdd(key, static _ => new SemaphoreSlim(1, 1));
 
-		private string RunDelete(string resource, string account, out bool reachable)
-			=> Run(c => DeleteAsync(c, resource, account), out reachable) ?? (reachable ? "failed" : "unavailable");
-
-		private bool Run(Func<DBusConnection, Task<bool>> action)
-			=> Run(async c => await action(c).ConfigureAwait(false) ? "1" : null, out _) is not null;
+		private async Task<(string Outcome, bool Reachable)> RunDeleteAsync(string resource, string account)
+		{
+			var (result, reachable) = await RunAsync(c => DeleteAsync(c, resource, account)).ConfigureAwait(false);
+			return (result ?? (reachable ? "failed" : "unavailable"), reachable);
+		}
 
 		// The budget must outlast the worst sequence so the prompt Dismiss runs before the connection is disposed. Save: OpenSession + CreateItem,
 		// then Unlock + AddMatch + Prompt, then OpenSession + CreateItem again (7 calls); Get/Delete are shorter, and a dismissed or timed-out prompt
 		// ends with Dismiss instead of the retry. Waiting for the unlock gate and for the user's answer each take up to unlockTimeout.
-		private T? Run<T>(Func<DBusConnection, Task<T?>> action, out bool reachable) where T : class
+		private async Task<(T? Result, bool Reachable)> RunAsync<T>(Func<DBusConnection, Task<T?>> action) where T : class
 		{
-			var wasReachable = false;
+			var reachable = false;
 			try
 			{
-				return RunAsync(action, () => wasReachable = true, CallTimeout * 8 + unlockTimeout * 2).GetAwaiter().GetResult();
+				var result = await RunAsync(action, () => reachable = true, CallTimeout * 8 + unlockTimeout * 2).ConfigureAwait(false);
+				return (result, reachable);
 			}
 			catch (Exception ex) when (ex is TimeoutException or DBusExceptionBase or ObjectDisposedException or InvalidOperationException or System.IO.IOException)
 			{
-				return null;
-			}
-			finally
-			{
-				reachable = wasReachable;
+				return (null, reachable);
 			}
 		}
 
